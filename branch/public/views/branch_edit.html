@@ -1,0 +1,185 @@
+<section data-ng-controller="BranchController" data-ng-init="findOne()">
+	<div class="mainwrapper anchorTag">
+		<ol class="breadcrumb">
+			<li><i class="fa fa-home link-pointer" data-ng-click="redirectdashboard()"></i></li>
+			<li><a href="/admin/country">Country</a></li>
+			 <li><a href="/admin/country/{{countryId}}/zone">Zone</a></li>
+			<li><a href="/admin/zone/{{zoneId}}/city">City</a></li>
+			<li><a href="/admin/city/{{cityId}}/branch">Branch</a></li> 
+			<li ng-disable = "true">Edit</li>
+		</ol>
+	</div>
+	<div class="mainwrapper">
+		<h3 class="pull-left ">Branch</h3>
+	</div>
+		<div class="mainwrapper">
+		<form name="branchForm" class="form-horizontal formAlign "
+			data-ng-submit="update(BRANCH.URL_PATH.LISTBRANCH,branchForm.$valid)" novalidate>
+			<div class="form-group">
+				<label mean-token="'edit-branchName'" class="col-md-2 pull-left">Branch Name</label>
+				<div class="col-md-6">
+					<input name="branchName" type="text" class="form-control"
+						data-ng-model="branch.branchName" id="branchName" placeholder="Branch Name" required>
+						<div ng-show="submitted && branchForm.branchName.$invalid">
+						<span class="err-msg errorText red"
+							ng-show="branchForm.branchName.$error.required"> Please
+							enter the Name </span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'edit-branchCode'"
+					class="col-md-2 pull-left">Branch Code</label>
+				<div class="col-md-6">
+					<textarea name="branchCode" data-ng-model="branch.branchCode"
+						id="branchCode" cols="30" rows="5" placeholder="Branch Code"
+						class="form-control" required></textarea>
+						<div ng-show="submitted && branchForm.branchCode.$invalid">
+						<span class="err-msg errorText red"
+							ng-show="branchForm.branchCode.$error.required"> Please
+							enter the Branch code</span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'edit-description'"
+					class="col-md-2 pull-left">Description</label>
+				<div class="col-md-6">
+					<textarea name="description" data-ng-model="branch.description"
+						id="description" cols="30" rows="5" placeholder="Description"
+						class="form-control" required></textarea>
+						<div ng-show="submitted && branchForm.description.$invalid">
+							<span class="err-msg errorText red"
+								ng-show="branchForm.description.$error.required"> Please
+								enter the Description </span>
+						</div>
+				</div>
+			</div>
+			<div class="form-group" ng-class="{ 'has-error' : submitted && branchForm.name.$invalid }">
+					<label mean-token="'create-address'" class="col-md-2 pull-left">Address</label>
+					<div class="row">
+					 <div class="col-md-12"> 					
+						<div class="col-md-2 pull-left rolesA">
+						<label mean-token="'new-title'">Address Line 1</label>
+						</div>
+						<div class="col-md-4 rolesA">
+							<input name="line1" type="text" class="form-control"
+								data-ng-model="branch.address.line1" id="addressline1"
+								placeholder="Line1" required>
+						</div>
+						<div class="col-md-2 pull-left rolesA">
+						<label mean-token="'new-title'">Address Line 2</label>
+						</div>
+						<div class="col-md-4 rolesA">
+							<input name="line2" type="text" class="form-control"
+								data-ng-model="branch.address.line2" id="addressline2"
+								placeholder="Line2" required>
+						</div>
+						<div class="col-md-2 pull-left rolesA">
+						<label mean-token="'new-title'">City</label>
+						</div>
+						<div class="col-md-4 rolesA">
+							<input name="city" type="text"
+								class="form-control col-md-3" data-ng-model="branch.address.city"
+								id="address.city" placeholder="City" required>
+						</div>
+						<div class="col-md-2 pull-left rolesA">
+						<label mean-token="'new-title'">State</label>
+						</div>
+						<div class="col-md-4 rolesA">
+							<input name="state" type="text"
+								class="form-control col-md-3" data-ng-model="branch.address.state"
+								id="branch.address.state" placeholder="State" required>
+						</div>
+						<div class="col-md-2 pull-left rolesA">
+						<label mean-token="'new-title'">Country</label>
+						</div>
+						<div class="col-md-4 rolesA">
+							<input name="country" type="text"
+								class="form-control col-md-3" data-ng-model="branch.address.country"
+								id="branch.address.country" placeholder="Country" required>
+						</div>
+						<div class="col-md-2 pull-left rolesA">
+						<label mean-token="'new-title'">Pincode</label>
+						</div>
+						<div class="col-md-4 rolesA">
+							<input name="pincode" type="text"
+								class="form-control col-md-3" data-ng-model="branch.address.pincode"
+								id="address.pincode" placeholder="Pincode" required>
+						</div>
+						
+					<!-- <div class="col-md-6" >
+						<textarea name="address" data-ng-model="branch.address"
+							id="address" cols="30" rows="5" placeholder="Address"
+							class="form-control"></textarea>
+
+					</div> -->					
+				</div> 
+				</div>
+				</div>
+			
+				<div class="form-group" ng-class="{ 'has-error' : submitted && branchForm.name.$invalid }">
+					<label mean-token="'create-PhoneNumber'" class="col-md-2 pull-left">Phone Number</label>
+						
+						<div class="col-md-1 ">
+							<input name="line1" type="text" class="form-control"
+								data-ng-model="branch.PhoneNumber.pre" id="addressline1"
+								placeholder="Pre" required>
+						</div>
+						
+						<div class="col-md-3">
+							<input name="line2" type="number" class="form-control"
+								data-ng-model="branch.PhoneNumber.number" id="addressline2"
+								placeholder="number" required>
+						</div>
+						<!-- <div ng-show="submitted && branchForm.number.$invalid">
+							<span class="err-msg errorText red"
+								ng-show="branchForm.number.$error.required"> Please
+								enter the phone number</span>
+						</div>
+ -->
+					</div>
+			<div class="form-group">
+				<label mean-token="'create-picture'" class="col-md-2 pull-left">Picture</label>
+				<div class="col-md-6">
+					<div class="col-sm-4">
+					
+							<img src="{{branch.picture}}" data-ng-if="branch.picture"
+								width="50px" height="50px">
+						</div>
+						<div>
+							<form name="uploadPictureForm" class="form-horizontal col-md-12"
+								role="form" novalidate>
+
+								<div class="form-group">
+
+									<div class="col-md-12">
+										<div class="btn btn-info" ngf-select
+											ngf-change="onBranchFileSelect($files)"
+											accept="image/png, image/jpeg">Upload</div>
+										<span data-ng-if="uploadInProgress">Upload progress: {{
+											uploadProgress }}</span>
+									</div>
+								</div>
+
+							</form>
+						</div>
+					
+				</div>
+			</div>
+			
+			
+
+			<div class="form-group">
+				<div class="col-md-offset-2 col-md-9">
+					<button mean-token="'edit-submit'" type="submit"
+						class="btn btn-info">Submit</button>
+					<button type="button" class="btn btn-info" ng-click="cancel(BRANCH.URL_PATH.LISTBRANCH,cityId)">Cancel</button>
+				</div>
+			</div>
+		</form>
+	</div>
+
+</section>
+
+

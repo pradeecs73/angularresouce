@@ -1,0 +1,54 @@
+<section data-ng-controller="BranchController" data-ng-init="list()">
+	<div class="mainwrapper anchorTag">
+		<ol class="breadcrumb">
+			<li><i class="fa fa-home link-pointer" data-ng-click="redirectdashboard()"></i></li>
+			<li><a href="/admin/country">Country</a></li>
+			<li><a href="/admin/country/{{countryId}}/zone">Zone</a></li>
+			<li><a href="/admin/zone/{{zoneId}}/city">City</a></li> 
+			<li ng-disable = "true">Branch</li>
+			<li></li>
+		</ol>
+	</div>
+	<div class="mainwrapper social-group-header">
+		<h3 class="pull-left">Branch</h3>
+		<button class="btn btn-info pull-right roleCreate "
+			data-ng-click="newBranch(BRANCH.URL_PATH.CREATEBRANCH,cityId)">Create Branch</button>
+	</div>
+	<table class="table table-bordered table-condensed" >
+		<thead>
+			<tr>
+				<th class="text-center">Name</th>
+				<th class="text-center">Branch Code</th>
+				<th class="text-center">Email</th>			
+				<th class="text-center">Phone number</th>
+		 		<th class="text-center">Picture</th>
+				<th class="text-center">Is Active</th>
+				<th class="text-center">Actions</th>
+			</tr>
+		</thead>
+		<tbody class="anchorTag">
+			<tr data-ng-repeat="branch in branches" class="" ng-class-odd="'odd'"
+				ng-class-even="'even'"  data-ng-show="branches.length > 0">
+				<td>{{branch.branchName}}</td>
+				<td>{{branch.branchCode}}</td>
+				<td>{{branch.email}}</td>
+				<td align="right">{{branch.PhoneNumber.number}}</td>
+			 	<td><img src = "{{branch.picture}}" width="50px" height="50px" /> </td> 
+				<td><div ng-show="{{branch.isActive}}">True</div>
+					<div ng-show="!{{branch.isActive}}">False</div>
+				</td>
+			    <td><a  href="" ng-click='editBranch(BRANCH.URL_PATH.EDITBRANCH,branch._id)' class="linksGap">
+					<i class="fa fa-pencil-square-o tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="Edit"></i></a> 
+					<a href="" ng-click = "modalDeleteBranch(branch)" class="linksGap">
+					<i class="fa fa-minus-circle tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="Delete"></i></a>
+
+				</td> 
+			</tr>
+				<tr data-ng-show="!branches.length> 0">
+							<td colspan="8"><h5>No Branches available for city</h5></td>
+						</tr> 
+		</tbody>
+	</table>
+
+	<div ng-include="'branch/views/deleteBranch.html'"></div>
+</section>

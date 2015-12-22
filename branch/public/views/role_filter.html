@@ -1,0 +1,9 @@
+<section data-ng-init="list()">
+
+	<select ng-model="role._id" class="col-md-10"
+		ng-change="roleFilter(role._id)">
+		<option value="">Role-All</option>
+		<option ng-repeat="role in roles" value="{{role._id}}">{{role.name}}</option>
+	</select>
+
+</section>

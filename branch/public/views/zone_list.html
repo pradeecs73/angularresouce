@@ -1,0 +1,46 @@
+<section data-ng-controller="ZoneController" data-ng-init="list()">
+	 <div class="mainwrapper anchorTag">
+		<ol class="breadcrumb">
+			<li><i class="fa fa-home link-pointer" data-ng-click="redirectdashboard()"></i></li>
+			<li><a href="/admin/country">Country</a></li>
+			<li ng-disable = "true">Zone</li>
+			<li></li>
+		</ol>
+	</div>
+	<div class="mainwrapper social-group-header">{{zones.country}}
+		<h3 class="pull-left">{{zones.country.name}}Zone</h3>
+		<button class="btn btn-info pull-right roleCreate "
+			data-ng-click="newZone(BRANCH.URL_PATH.CREATEZONE,countryId)">Create Zone</button>
+	</div>
+	<table class="table table-bordered table-condensed" >
+		<thead>
+			<tr>
+				<th class="text-center">Name</th>
+				<th class="text-center">Zone Code</th>
+				<th class="text-center">Actions</th>
+			</tr>
+		</thead>
+		<tbody class="anchorTag">
+			<tr data-ng-repeat="zone in zones" class="" ng-class-odd="'odd'"
+				ng-class-even="'even'" data-ng-show="zones.length > 0">
+				<td>{{zone.zoneName}}</td>
+				<td>{{zone.zoneCode}}</td>
+				 <td><a href="" ng-click='editZone(BRANCH.URL_PATH.EDITZONE,zone._id)' class="linksGap"> 
+					<i class="fa fa-pencil-square-o tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="Edit"></i></a> 
+					<a href="" ng-click = "modalDeleteZone(zone)" class="linksGap">
+					<i class="fa fa-minus-circle tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="Delete"></i></a>
+					<a href="" ng-click="cityList(BRANCH.URL_PATH.LISTCITY,zone)" class="linksGap">
+					<i class="fa fa-map tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="City"></i></a>
+
+				</td> 
+				
+			</tr>
+			<tr data-ng-show="!zones.length> 0">
+							<td colspan="3"><h5>No zones available for this role</h5></td>
+						</tr> 
+		</tbody>
+	</table>
+	<!-- <h1 data-ng-hide="!zones || zones.length" class="formAlign">No zones yet. Why don't you 
+		<a href="/admin/country/{{countryId}}/zone/create">Create One</a>?</h1> -->
+		<div ng-include="'branch/views/deleteZone.html'"></div>
+</section>

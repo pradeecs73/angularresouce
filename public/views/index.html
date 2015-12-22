@@ -1,0 +1,73 @@
+<div class="" data-ng-controller="MypractiseController">
+ 
+    <p><h1>Add your product</h1></p><br><br>
+
+    <div class="row">
+      <div class="col-md-3">
+        <div class="form-group">
+          <label class="control-label col-md-4">Product Name</label>
+          <div class="col-md-8">
+            <input type="text" class="form-control" ng-model="productnamedetails" />
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="form-group">
+          <label class="control-label col-md-4">Product Colour</label>
+          <div class="col-md-8">
+            <select class="form-control" ng-model="productcolour">
+              <option value="">Select</option>
+              <option value="black">Black</option>
+              <option value="white">White</option>
+              <option value="red">Red</option>
+            </select>
+          </div>
+        </div>
+      </div>
+       
+      <div class="col-md-3">
+        <div class="form-group">                           
+          <label class="control-label col-md-4">Product Price</label>
+          <div class="col-md-8">
+            <select  class="form-control" ng-model="productprice">
+              <option value="">Select</option>
+              <option value="1000">1000</option>
+              <option value="2000">2000</option>
+              <option value="3000">3000</option>
+              <option value="4000">4000</option>
+              <option value="5000">5000</option>
+              <option value="6000">6000</option>
+              <option value="7000">7000</option>
+              <option value="8000">8000</option>
+              <option value="9000">9000</option>
+              <option value="10000">10000</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3 text-center">   
+        <input type="button" value="Add product"  ng-click="addproduct()" />   
+      </div>    
+
+    </div>
+
+             
+           <div class="row">
+                <div class="col-md-3"><h1>Product Name</h1></div>
+                <div class="col-md-3"><h1>Colour</h1></div>
+                <div class="col-md-3"><h1>Price</h1></div>
+           </div>
+
+           <div class="row"  ng-repeat="x in allproducts">
+                <div class="col-md-3">{{ x.productname }}</div>
+                <div class="col-md-3">{{ x.colour }}</div>
+                <div class="col-md-3">{{ x.price }}</div>
+                <div class="col-md-1"><a href="" ng-click="editproduct(x)">edit</a></div>
+                <div class="col-md-2"><a href="" ng-click="deleteproduct(x._id)">Delete</a></div>
+           </div>
+ 
+  
+</div>
+

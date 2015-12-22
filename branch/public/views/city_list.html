@@ -1,0 +1,46 @@
+<section data-ng-controller="CityController" data-ng-init="list()">
+	<div class="mainwrapper anchorTag">
+		<ol class="breadcrumb">
+			<li><i class="fa fa-home link-pointer" data-ng-click="redirectdashboard()"></i></li>
+			<li><a href="/admin/country/list">Country</a></li>
+			<li><a href="/admin/country/{{countryId}}/zone/list">Zone</a></li> 
+			<li ng-disable = "true">City</li>
+		</ol>
+	</div>
+	<div class="mainwrapper social-group-header">
+		<h3 class="pull-left">City</h3>
+		<button class="btn btn-info pull-right roleCreate "
+			data-ng-click="newCity(BRANCH.URL_PATH.CREATECITY,zoneId)">Create City</button>
+	</div>
+	<table class="table table-bordered table-condensed" >
+		<thead>
+			<tr>
+				<th class="text-center">Name</th>
+				<th class="text-center">City Code</th>
+				<th class="text-center">Actions</th>
+			</tr>
+		</thead>
+		<tbody class="anchorTag" >
+			<tr data-ng-repeat="city in cities" class="" ng-class-odd="'odd'"
+				ng-class-even="'even'" data-ng-show="cities.length > 0">
+				<td>{{city.cityName}}</td>
+				<td>{{city.cityCode}}</td>
+
+				 <td><a href="" ng-click='editCity(BRANCH.URL_PATH.EDITCITY,city._id)' class="linksGap">
+					<i class="fa fa-pencil-square-o tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="Edit"></i></a> 
+					<a href="" ng-click = "modalDeleteCity(city)" class="linksGap">
+					<i class="fa fa-minus-circle tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="Delete"></i></a>
+					<a href="" ng-click="branchList(BRANCH.URL_PATH.LISTBRANCH,city)" class="linksGap">
+					<i class="fa fa-map tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="Branch"></i></a>
+
+				</td> 
+			</tr>
+			<tr data-ng-show="!cities.length> 0">
+							<td colspan="3"><h5>No Cities available for this Zone</h5></td>
+						</tr> 
+		</tbody>
+	</table>
+	<h1 data-ng-hide="!cities || cities.length" class="formAlign">No cities yet. Why don't you 
+		<a href="/admin/zone/{{zoneId}}/city/create">Create One</a>?</h1>
+		<div ng-include="'branch/views/deleteCity.html'"></div>
+</section>

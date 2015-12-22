@@ -1,0 +1,58 @@
+<section data-ng-controller="CountryController" data-ng-init="list()">
+	<div class="mainwrapper anchorTag">
+		<ol class="breadcrumb">
+			<li><i class="fa fa-home link-pointer"
+				data-ng-click="redirectdashboard()"></i></li>
+			<li ng-disable="true">Country</li>
+		</ol>
+	</div>
+	<div class="mainwrapper social-group-header">
+		<h3 class="pull-left">Country</h3>
+		<button class="btn btn-info pull-right roleCreate "
+			data-ng-click="newCountry()">Create Country</button>
+	</div>
+	<table class="table table-bordered table-condensed">
+		<thead>
+			<tr>
+				<th class="text-center">Name</th>
+				<th class="text-center">Country Code</th>
+				<th class="text-center">Currency</th>
+				<th class="text-center">Language Name</th>
+				<th class="text-center">Language Code</th>
+				<th class="text-center">Actions</th>
+			</tr>
+		</thead>
+		<tbody class="anchorTag">
+			<tr data-ng-repeat="country in countries" class=""
+				ng-class-odd="'odd'" ng-class-even="'even'"
+				data-ng-show="countries.length > 0">
+				<td data-ng-click="show(BRANCH.URL_PATH.SHOWCOUNTRY,country)">{{country.countryName}}</td>
+				<td>{{country.countryCode}}</td>
+				<td>{{country.currency}}</td>
+				<td>{{country.languageName}}</td>
+				<td>{{country.languageCode}}</td>
+				<td><a href="" ng-click='editCountry(BRANCH.URL_PATH.EDITCOUNTRY,country._id)' class="linksGap">
+						<i class="fa fa-pencil-square-o tooltip-right"
+						data-toggle="tooltip" data-placement="bottom" data-tooltip="Edit"></i>
+					</a> 
+					<a href="" ng-click="modalDeleteCountry(country)" class="linksGap">
+						<i class="fa fa-minus-circle tooltip-right" data-toggle="tooltip"
+						data-placement="bottom" data-tooltip="Delete"></i>
+					</a> 
+					<a href="" ng-click="zoneList(BRANCH.URL_PATH.LISTZONE,country)" class="linksGap">
+						<i class="fa fa-map tooltip-right" data-toggle="tooltip" 
+						data-placement="bottom" data-tooltip="Zone"></i>
+					</a>
+					<!--<i class="fa fa-map"></i>  -->
+				</td>
+			</tr>
+			<tr data-ng-show="!countries.length> 0">
+				<td colspan="6"><h5>No Countries available</h5></td>
+			</tr>
+
+		</tbody>
+	</table>
+
+	<div ng-include="'branch/views/deletecountry.html'"></div>
+</section>
+
