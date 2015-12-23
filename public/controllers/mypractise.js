@@ -60,27 +60,7 @@ angular.module('mean.mypractise').controller('MypractiseController', ['$scope', 
     };
 
      $scope.deleteproduct = function(deleteid){
-
-        var productdetails={};
-
-        $scope.entry=Mypractise.get({'productid':deleteid},function(response){
-
-               var productid=response.productid;
-
-                console.log("pradeep"+JSON.stringify($scope.entry));
-
-               $scope.entry.$remove({'productid':productid},function(response1){
-                  
-                  console.log(response1);
-
-               });
-
-        });
-         
-
       
-
-
       /*  if (confirm("Are you sure you want delete this product") == true) {     
     
                 $http.post("/api/deleteproduct",productdetails)
@@ -102,8 +82,8 @@ angular.module('mean.mypractise').controller('MypractiseController', ['$scope', 
 
      $scope.addresourceproduct = function(){
 
-        $scope.details = new Mypractise(productdetails); 
-              $scope.details.$save(function(response) {
+        var details = new Mypractise(productdetails); 
+              details.$save(function(response) {
 
                 console.log(response);
       
@@ -113,7 +93,7 @@ angular.module('mean.mypractise').controller('MypractiseController', ['$scope', 
 
      $scope.retreiveallresourceproduct = function(){
 
-        $scope.entry=Mypractise.query(function(response){
+        Mypractise.query(function(response){
 
                console.log(response);
 
@@ -123,7 +103,7 @@ angular.module('mean.mypractise').controller('MypractiseController', ['$scope', 
 
      $scope.retreiveparticulerresourceproduct = function(){
 
-        $scope.entry=Mypractise.get({'productid':deleteid},function(response){
+        Mypractise.get({'productid':deleteid},function(response){
 
                console.log(response);
 
@@ -133,36 +113,20 @@ angular.module('mean.mypractise').controller('MypractiseController', ['$scope', 
 
      
      $scope.editresourceproduct = function(){
-
-       $scope.entry=Mypractise.get({'productid':deleteid},function(response){
-
-               var productid=response.productid;
-               var productresourceid=response;
-
-                $scope.entry.$update({'productid':productid},function(response1){
-                  
-                  console.log(response1);
-
+                var details=$scope.details;
+                    details.$update(function(response1){        
+                     console.log(response1);
                });
-
-        });
 
      };
 
      $scope.deleteresourceproduct = function(){
-
-       $scope.entry=Mypractise.get({'productid':deleteid},function(response){
-
-               var productresourceid=response.productid;
-
-               $scope.entry.$remove({'productid':productresourceid},function(response1){
+	            var deatails=$scope.details;
+               deatails.$remove(function(response1){
                   
                   console.log(response1);
 
                });
-
-        });
-
      };
 
      $scope.editproduct = function(editdetails){
