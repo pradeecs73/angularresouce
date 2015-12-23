@@ -1,0 +1,49 @@
+<section data-ng-controller="SkillController" data-ng-init="find()">
+	<div class="mainwrapper anchorTag">
+		<ol class="breadcrumb">
+			<li><i data-ng-click="redirectdashboard()"
+				class="fa fa-home link-pointer"></i></li>
+			<li ng-disable = "true">Skills</li>
+			<li></li>
+		</ol>
+	</div>
+	<div class="col-xs-12 social-group-header">
+		<h3 class="pull-left ">Skills</h3>
+		<button class="btn btn-info pull-right " data-ng-click="newSkill()">Create
+			Skill</button>
+	</div>
+
+	<table class="table table-bordered table-condensed">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Description</th>
+				<th>Actions</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr data-ng-repeat="skill in collection" class="" ng-class-odd="'odd'"
+				ng-class-even="'even'">
+				<td>{{skill.name}}</td>
+				<td>{{skill.description}}</td>
+				<td><a class="btn" href="/skill/{{skill._id}}/edit" class="linksGap"> <i
+						class="fa fa-pencil-square-o tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="Edit"></i></a> 
+						<a href=""  ng-click = "modalDeleteSkill(skill)" data-target="#deleteSkill" class="linksGap">
+						<!--a href="" data-ng-click="remove(skill)"--> 
+						<i class="fa fa-minus-circle tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="Delete"></i></a>
+			    </td>
+			</tr>
+		</tbody>
+	</table>
+	
+	<div class="paginate usr">
+		<div ng-include="'system/views/paginationFilter.html'"></div>
+		<br>
+	</div>
+	
+	<h1 data-ng-hide="!skills || skills.length">
+		No skills yet. <br> Why don't you <a href="/skill/create">Create
+			One</a>?
+	</h1>
+	<div ng-include="'skill/views/deleteskill.html'"></div>
+</section>

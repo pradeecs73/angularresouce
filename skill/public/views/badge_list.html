@@ -1,0 +1,54 @@
+<section data-ng-controller="BadgeController" data-ng-init="find()">
+	<div class="mainwrapper anchorTag">
+		<ol class="breadcrumb">
+			<li><i data-ng-click="redirectdashboard()"
+				class="fa fa-home link-pointer"></i></li>
+			<li>Badges</li>
+			<li></li>
+		</ol>
+	</div>
+	<div class="mainwrapper">
+			<h3  class="pull-left">Badges</h3>		
+			<button class="btn btn-info pull-right roleCreate" data-ng-click="newBadge()">Create Badge</button>
+	</div>
+
+	<table class="table table-bordered">
+		<tr>
+		<thead>
+			<th class="text-center">Name</th>
+			<th class="text-center">Description</th>
+			<th class="text-center">Qualified Skills</th>
+			<th class="text-center">Qualified Points</th>
+			<th class="text-center">Actions</th>
+		</thead>
+		</tr>
+		<tr data-ng-repeat="user in users" class="anchorTag" data-ng-show="users.length > 0">
+			<tbody>
+			<tr data-ng-repeat="badge in badges" class="" ng-class-odd="'odd'" ng-class-even="'even'">
+				<td>{{badge.badgeName}}</td>
+				<td>{{badge.description}}</td>
+				<td>{{badge.qualifySkills}}</td>
+				<td>{{badge.qualifyPoints}}</td>
+				<td><a href="/badge/{{badge._id}}/edit" class="linksGap link-pointer"><i
+					class="fa fa-pencil-square-o tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="Edit"></i> </a> 
+					<a href="" ng-click="modalDeleteBadge(badge)" class="linksGap link-pointer"><i class="fa fa-minus-circle tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="Delete"></i></a>
+				</td>
+			</tr>
+		</tbody>
+		</tr>
+	</table>
+
+
+	<!-- <div class="row text-right" style="margin-top: 39px !important;">
+		<a class="btn buttonHover col-sm-offset-4 col-sm-4 textFamily"
+			ng-show="totalPage > currentPage" >Show
+			More</a>
+	</div> -->
+	<div class = "col-xs-12 text-align">
+<h3 data-ng-hide="!badges || badges.length">
+		No badges yet. Why don't you 
+			<a href="/badge/create">Create One</a>?
+	</h3>
+	</div>
+	<div ng-include="'skill/views/deletebadge.html'"></div>
+</section>

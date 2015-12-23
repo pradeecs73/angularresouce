@@ -1,0 +1,70 @@
+<section data-ng-controller="SkillController" data-ng-init="findOne()">
+	<div class="mainwrapper anchorTag">
+		<ol class="breadcrumb">
+			<li><i data-ng-click="redirectdashboard()"
+				class="fa fa-home link-pointer"></i></li>
+			<li ><a href="/skill/list">Skills</a></li>
+			<li ng-disabled = "true">Edit Skill</li>
+		</ol>
+	</div>
+	<div class="mainwrapper">
+	<h3 class="pull-left ">Skill</h3>
+		<form name="skillForm" class="form-horizontal col-md-12"
+			data-ng-submit="update(skillForm.$valid)" novalidate>
+
+			<div>
+				<div class="form-group"
+					ng-class="{ 'has-error' : submitted && skillForm.name.$invalid }">
+					<label mean-token="'create-name'"
+						class="col-md-3 control-label err-msg-name"> Name</label>
+					<div class="col-md-9">
+						<input name="name" type="text" data-ng-model="skill.name "
+							id="name" placeholder="Name" class="form-control err-msg "
+							required>
+							<div class="errorRed" ng-repeat="err in error.data" ng-if="err.param =='name' || err.param == 'normalizedName'">{{err.msg}}</div> 
+						<div ng-show="submitted && skillForm.name.$invalid">
+							<span class="err-msg" ng-show="skillForm.name.$error.required">
+								Please enter the Name </span>
+						</div>
+					</div>
+				</div>
+				<div class="form-group"
+					ng-class="{ 'has-error' : submitted && skillForm.description.$invalid }">
+					<label mean-token="'create-description'"
+						class="col-md-3 control-label err-msg-description">Description</label>
+					<div class="col-md-9">
+						<textarea name="description" data-ng-model="skill.description"
+							id="description" cols="30" rows="5" placeholder="Description"
+							class="form-control err-msg " required></textarea>
+							<div class="errorRed" ng-repeat="err in error.data" ng-if="err.param =='description'">{{err.msg}}</div>
+						<div ng-show="submitted && skillForm.description.$invalid">
+							<span class="err-msg"
+								ng-show="skillForm.description.$error.required"> Please
+								enter the Description </span>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label mean-token="'create-keywords'"
+						class="col-md-3 control-label err-msg-keywords">Keywords</label>
+					<div class="col-md-9">
+                          <tags-input data-ng-model="skill.keywords" name="keywords" 
+					       replace-spaces-with-dashes="false" placeholder="Add a Skill" > 
+					      </tags-input>
+					      <div class="errorRed" ng-repeat="err in error.data" ng-if="err.param =='keywords'">{{err.msg}}</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-md-offset-3 col-md-9">
+						<button mean-token="'create-submit'" type="submit"
+							class="btn btn-info">Update</button>
+						<button type="button" class="btn btn-info"
+							ng-click="cancelSkill()">Cancel</button>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</section>
+
+

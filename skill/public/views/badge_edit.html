@@ -1,0 +1,64 @@
+<section data-ng-controller="BadgeController"  data-ng-init="findOne()">
+    <div class="mainwrapper">
+        <ol class="breadcrumb anchorTag">
+            <li><i data-ng-click="redirectdashboard()" class="fa fa-home link-pointer"></i></li>
+            <li><a href="/badges">Badges</a></li>
+            <li ng-disabled = "TRUE">Edit Badge</li>
+            <li></li>
+        </ol>
+    </div>
+     <div class="mainwrapper">
+        <h3>Edit Badge</h3>
+        </div>
+	<div ng-show="error" class="red col-md-9 col-md-offset-3" ng-repeat="err in error.data">{{err.msg}}</div> 
+	<div class="mainwrapper">
+		<form name="badgeForm" class="form-horizontal" novalidate>
+			<div class="form-group"	ng-class="{ 'has-error' : submitted && badgeForm.badgeName.$invalid }">
+				<label mean-token="'edit-badgeName'" class="col-md-2 err-msg-badgeName ">Badge Name</label>
+				<div class="col-md-6">
+					<input name="badgeName" type="text" data-ng-model="badge.badgeName " placeholder="Badge Name" class="form-control err-msg " required>
+					<div ng-show="submitted && badgeForm.badgeName.$invalid">
+						<span class="err-msg" ng-show="badgeForm.badgeName.$error.required">Enter the Badge Name </span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group" ng-class="{ 'has-error' : submitted && badgeForm.description.$invalid }">
+				<label mean-token="'edit-description'" class="col-md-2 err-msg-description">Description</label>
+				<div class="col-md-6">
+					<textarea name="description" data-ng-model="badge.description" cols="30" rows="5" placeholder="Description" class="form-control err-msg " required></textarea>
+					<div ng-show="submitted && badgeForm.description.$invalid">
+						<span class="err-msg" ng-show="badgeForm.description.$error.required">Enter the Description </span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group" ng-class="{ 'has-error' : submitted && badgeForm.qualifySkills.$invalid }">
+				<label mean-token="'edit-qualifySkills'" class="col-md-2 err-msg-qualifySkills">Qualified Skills</label>
+				<div class="col-md-6">
+					<input name="qualifySkills" type="text" data-ng-model="badge.qualifySkills"  placeholder="Qualified Skills" class="form-control err-msg " required>
+					<div ng-show="submitted && badgeForm.qualifySkills.$invalid">
+						<span class="err-msg" ng-show="badgeForm.qualifySkills.$error.required">
+							Please enter the Skills</span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group" ng-class="{ 'has-error' : submitted && badgeForm.qualifyPoints.$invalid }">
+				<label mean-token="'edit-qualifyPoints'" class="col-md-2 err-msg-qualifyPoints">Qualified Points</label>
+				<div class="col-md-6">
+					<input name="qualifyPoints" type="text" data-ng-model="badge.qualifyPoints"  placeholder="Qualified Points" class="form-control err-msg " required>
+					<div ng-show="submitted && badgeForm.qualifyPoints.$invalid">
+						<span class="err-msg" ng-show="badgeForm.qualifyPoints.$error.required">
+							Please enter the Points</span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-md-offset-2 col-md-9">
+					<button mean-token="'create-submit'" type="button" class="btn btn-info" ng-click="update(badgeForm.$valid)">Submit</button>
+					<button type="button" class="btn btn-info" ng-click="cancelBadge()">Cancel</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</section>
+
+
