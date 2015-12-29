@@ -21,6 +21,9 @@ module.exports = function(Jobs, app, auth, database) {
         });
     });
      app.route('/api/addjobs', auth.requiresLogin).get(jobslists.addjobs);
+
+     app.route('/api/jobs/pagination')
+        .get(jobslists.jobListByPagination);
     
      app.route('/api/jobs',auth.requiresLogin)
         .get(jobslists.displayjobs);

@@ -8,7 +8,7 @@
    		</ol>
    	</div>
       <h3 class="">List Of Jobs</h3>
-      <div class="" data-ng-repeat="jobs in joblist">
+      <div class="" data-ng-repeat="jobs in collection">
          <div class="col-md-12 jobs-bord job-blog1">
             <h3><a href="/job/{{jobs._id}}/details">{{jobs.title}}</a></h3>
             <p>{{jobs.description | limitTo: 160}}...</p>
@@ -22,5 +22,10 @@
             </div>
          </div>
       </div>
+   <div class="paginate usr">
+      <div ng-include="'system/views/paginationFilter.html'"></div>
+      <br>
+   </div>
+
    </div>
 </section>

@@ -1,4 +1,5 @@
 require('../../../../custom/skill/server/models/skill.js');
+var utility = require('../../../../core/system/server/controllers/util.js');
 var mongoose = require('mongoose');
 var jobModel = mongoose.model('job');
 var skillModel = mongoose.model('Skill')
@@ -22,6 +23,8 @@ module.exports = function(Jobs, app) {
                         next();
                     });
         },
+
+       /*adding a jobs*/
 
         addjobs: function(req, res) {
             var jobdetails = {
@@ -133,6 +136,9 @@ module.exports = function(Jobs, app) {
                 }
             });*/
         },
+
+        /*Retreiving all jobs */
+
         displayjobs: function(req, res) {
             jobModel.find({}, function(err, items) {
                 if (err) {
@@ -144,9 +150,24 @@ module.exports = function(Jobs, app) {
               });
       },
 
+      /*Retreiving particular job */
+
       singlejobdetail: function(req, res) {
         res.send(req.job);
-      }
+      },
+
+      /*Pagination */
+
+      jobListByPagination: function (req, res) {
+           var populateObj = {};
+           utility.pagination(req, res, jobModel, {}, {}, populateObj, function(result){
+               if(utility.isEmpty(result.collection)){
+                   //res.json(result);
+               }
+               
+               return res.json(result);
+           });
+       }
 
 	}
 };

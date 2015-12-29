@@ -1,9 +1,11 @@
 'use strict';
 /* jshint -W098 */
-angular.module('mean.jobs').controller('JobsController', ['$scope', '$location','Global', 'Jobs', '$http', 'PROFILE','$stateParams',
-    function($scope,$location, Global, Jobs, $http, PROFILE,$stateParams) {
+angular.module('mean.jobs').controller('JobsController', ['$scope', '$location','Global', 'Jobs', '$http','$rootScope','PROFILE','$stateParams',
+    function($scope,$location, Global, Jobs, $http,$rootScope,PROFILE,$stateParams) {
         $scope.global = Global;
         $scope.PROFILE = PROFILE;
+        $scope.SERVICE = Jobs;
+        initializePagination($scope, $rootScope, $scope.SERVICE);
         $scope.package = {
             name: 'jobs'
         };
@@ -20,14 +22,22 @@ angular.module('mean.jobs').controller('JobsController', ['$scope', '$location',
         };
 
          $scope.listjobs = function() {
-            Jobs.query(function(response){
-               $scope.joblist=response;
-             });
+            /*Jobs.jobdetails.query(function(response){
+               $scope.collection=response;
+             });*/
+             
+                $scope.currentPage = 1;
+                $scope.currentPageSize = 5; 
+                var query = {};
+                query.page = $scope.currentPage;
+                query.pageSize = $scope.currentPageSize;
+                $scope.loadPagination(query);
+
         };
 
         $scope.completejobdetail = function() {
             var jobidparams=$stateParams.jobId;
-            Jobs.get({'jobId':jobidparams},function(response) {
+            Jobs.jobdetails.get({'jobId':jobidparams},function(response) {
                 $scope.singlejobdetail=response;
             });
         };
