@@ -1,0 +1,26 @@
+<section class="">
+   <div class="" data-ng-controller="JobsController" data-ng-init="listjobs()">
+   	<div class="mainwrapper anchorTag">
+   		<ol class="breadcrumb">
+   			<li><i data-ng-click="redirectdashboard()"
+   				class="fa fa-home link-pointer"></i></li>
+   			<li ng-disable = "true">Jobs</li>
+   		</ol>
+   	</div>
+      <h3 class="">List Of Jobs</h3>
+      <div class="" data-ng-repeat="jobs in joblist">
+         <div class="col-md-12 jobs-bord job-blog1">
+            <h3><a href="/job/{{jobs._id}}/details">{{jobs.title}}</a></h3>
+            <p>{{jobs.description | limitTo: 160}}...</p>
+            <div class="col-md-12 price">
+               <h3 class="pull-left"><b>{{jobs.cost}}&nbsp;{{jobs.costCurrency}}</b></h3>
+               <h5 class="pull-right"><li class="skills" ng-repeat="skill in jobs.skills">{{skill.toUpperCase()}}</li></h5>
+            </div>
+            <div class="col-md-12 provider">
+               <h4 class="pull-left postdate black">Posted On: {{jobs.postedDate}}</h4>
+               <h4 class="pull-right provider-name black">Truelancer</h4>
+            </div>
+         </div>
+      </div>
+   </div>
+</section>

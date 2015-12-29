@@ -1,0 +1,65 @@
+<section class="row bg_grey_light tlpanel-success page_content">
+
+<div class="" data-ng-controller="JobsController" data-ng-init="completejobdetail()">
+	<div class="mainwrapper padding-allign anchorTag">
+		<ol class="breadcrumb">
+			<li><i data-ng-click="redirectdashboard()"
+				class="fa fa-home link-pointer"></i></li>
+			<li ><a href="/jobs">Jobs</a></li>
+			<li ng-disabled = "true">Job Detail</li>
+		</ol>
+	</div>
+
+   <div class="row">
+    <h3 class="col-md-8 left-width">{{singlejobdetail.title}}</h3>
+   </div>
+
+   <div class="row" >  
+     <div class="col-md-12 left-width"><b>Posted On:</b>&nbsp{{singlejobdetail.postedDate}}</div>
+   </div><br> 
+
+  <div class="row" >
+              <div class="col-md-8 left-width">
+                <div class="clearfix job-blog">
+                            <div class="text-center col-md-3">
+                                <span class="key"><h3>{{singlejobdetail.cost}}</h3></span>
+                                <span class="value">          
+                                        <span class="amount">Jobs Cost</span>
+                                </span>                                
+                            </div>
+                            <div class="text-center col-md-3 border-right border-left">
+                                <span class="key"><h3>{{singlejobdetail.costCurrency}}</h3></span>
+                                <span class="value">Cost Currency</span>
+                            </div>
+                            <div class="text-center col-md-3 border-right">
+                                <span class="key"><h3>{{singlejobdetail.status}}</h3></span>
+                                <span class="value">Jobs Status</span>
+                            </div>
+                            <div class="text-center col-md-3 jobStatus">
+                                 <span class="key"><h3>{{singlejobdetail.proposalCount}}</h3></span>
+                                 <span class="value">Proposal Count</span>
+                            </div>
+                      </div>
+                </div> 
+
+             <div class="col-md-3"><input type="button" value="Send Propasal" class="job-proposal"/>
+             </div>   
+     </div><br>  
+     
+            <div class="row" >
+                <div class="col-md-12 left-width">
+                    <b>Skills</b><br>
+                        <ul class="job-ul list-inline">
+                                <li class="job-li" data-ng-repeat="jobskills in singlejobdetail.skills">{{jobskills.toUpperCase()}}</li>
+                        </ul>
+                </div>
+             </div>   
+
+              <div class="row" >  
+                 <div class="col-md-12 left-width"><b>Job Description</b></div>
+                 <div class="col-md-8 left-width">{{singlejobdetail.description}}</div>
+              </div> 
+  
+  </div>
+</div><br>
+</section> 
