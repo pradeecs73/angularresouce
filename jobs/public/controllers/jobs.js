@@ -1,49 +1,79 @@
 'use strict';
 /* jshint -W098 */
-angular.module('mean.jobs').controller('JobsController', ['$scope', '$location','Global', 'Jobs', '$http','$rootScope','PROFILE','$stateParams',
-    function($scope,$location, Global, Jobs, $http,$rootScope,PROFILE,$stateParams) {
+angular.module('mean.jobs', ['ngTagsInput']).controller('JobsController', ['$scope', 'SkillService', '$location', 'Global', 'Jobs', '$http', '$rootScope', 'PROFILE', '$stateParams', 'JOBS',
+    function($scope, SkillService, $location, Global, Jobs, $http, $rootScope, PROFILE, $stateParams, JOBS) {
         $scope.global = Global;
         $scope.PROFILE = PROFILE;
         $scope.SERVICE = Jobs;
+        $scope.JOBS = JOBS;
+        $scope.jobsfilter = [];
         initializePagination($scope, $rootScope, $scope.SERVICE);
         $scope.package = {
             name: 'jobs'
         };
-  
+        $scope.skillsarray = [];
         $scope.addjobs = function() {
-            $http.get("/api/addjobs").success(function(response) {
-                console.log(response);
-            }).error(function(response) {
+            $http.get("/api/addjobs").success(function(response) {}).error(function(response) {});
+        };
+        $scope.loadInput = function($query) {
+            return $scope.skillList.filter(function(skill) {
+                return skill.name.toLowerCase().indexOf($query.toLowerCase()) != -1;
             });
         };
-
+        $scope.loadfilterSkills = function() {
+            SkillService.skill.query(function(skillList) {
+                $scope.skillList = skillList;
+            });
+        };
+        $scope.filterinputadded = function() {
+            var myfilterjobs = $scope.jobsfilter;
+            var myfilterarray = [];
+            for (var i = 0; i < myfilterjobs.length; i++) {
+                myfilterarray.push(myfilterjobs[i]._id);
+            }
+            var myfilter = {};
+            myfilter.filteredarray = myfilterarray;
+            var query = {};
+            query.page = $scope.currentPage;
+            query.pageSize = $scope.currentPageSize;
+            query.filterinput = myfilter;
+            $scope.loadPagination(query);
+        };
+        $scope.filterinputremoved = function() {
+            var myfilterjobs = $scope.jobsfilter;
+            var myfilterarray = [];
+            for (var i = 0; i < myfilterjobs.length; i++) {
+                myfilterarray.push(myfilterjobs[i]._id);
+            }
+            var myfilter = {};
+            myfilter.filteredarray = myfilterarray;
+            var query = {};
+            query.page = $scope.currentPage;
+            query.pageSize = $scope.currentPageSize;
+            query.filterinput = myfilter;
+            $scope.loadPagination(query);
+        };
         $scope.joblistpage = function() {
-           $location.path("/jobs")
+            $location.path(JOBS.URL_PATH.JOBSLIST)
         };
-
-         $scope.listjobs = function() {
-            /*Jobs.jobdetails.query(function(response){
-               $scope.collection=response;
-             });*/
-             
-                $scope.currentPage = 1;
-                $scope.currentPageSize = 5; 
-                var query = {};
-                query.page = $scope.currentPage;
-                query.pageSize = $scope.currentPageSize;
-                $scope.loadPagination(query);
-
+        $scope.listjobs = function() {
+            $scope.currentPage = 1;
+            $scope.currentPageSize = 10;
+            var query = {};
+            query.page = $scope.currentPage;
+            query.pageSize = $scope.currentPageSize;
+            $scope.loadPagination(query);
         };
-
         $scope.completejobdetail = function() {
-            var jobidparams=$stateParams.jobId;
-            Jobs.jobdetails.get({'jobId':jobidparams},function(response) {
-                $scope.singlejobdetail=response;
+            var jobidparams = $stateParams.jobId;
+            Jobs.jobdetails.get({
+                'jobId': jobidparams
+            }, function(response) {
+                $scope.singlejobdetail = response;
             });
         };
-        $scope.redirectdashboard = function(){
-	           $location.path(PROFILE.URL_PATH.DASHBOARD);
-	     }
-
+        $scope.redirectdashboard = function() {
+            $location.path(PROFILE.URL_PATH.DASHBOARD);
+        }
     }
 ]);

@@ -20,18 +20,11 @@ module.exports = function(Jobs, app, auth, database) {
             res.send(html);
         });
     });
-     app.route('/api/addjobs', auth.requiresLogin).get(jobslists.addjobs);
-
-     app.route('/api/jobs/pagination')
-        .get(jobslists.jobListByPagination);
-    
-     app.route('/api/jobs',auth.requiresLogin)
-        .get(jobslists.displayjobs);
-
-      app.route('/api/jobs/:jobId',auth.requiresLogin)
-         .get(jobslists.singlejobdetail);
-
-      app.param('jobId', jobslists.job);   
-        
-
+    app.route('/api/addjobs', auth.requiresLogin).get(jobslists.addjobs);
+    app.route('/api/jobs/pagination').get(jobslists.jobListByPagination);
+    app.route('/api/jobs', auth.requiresLogin).get(jobslists.displayjobs);
+    app.route('/api/jobs/:jobId', auth.requiresLogin).get(jobslists.singlejobdetail);
+    app.route('/api/recommendedjobs/pagination', auth.requiresLogin).get(jobslists.recommendedjobListByPagination);
+    app.route('/api/recommendedjobs/checked', auth.requiresLogin).get(jobslists.listingloginuserskills);
+    app.param('jobId', jobslists.job);
 };

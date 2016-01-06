@@ -1,11 +1,10 @@
 <section class="">
-   <div class="" data-ng-controller="JobsController" data-ng-init="listjobs();loadfilterSkills()">
+   <div class="" data-ng-controller="RecommendedJobsController" data-ng-init="recommendedlistjobs();recommendedjobscheck();">
       <div class="form-group">
-            <div class="col-md-12 row">
-                       <tags-input data-ng-model="jobsfilter" name="keywords" display-property="name"
-                   replace-spaces-with-dashes="false" on-tag-added="filterinputadded()" on-tag-removed="filterinputremoved()" placeholder="Filter with Skill" >
-                   <auto-complete source="loadInput($query)" min-length="1" load-on-focus="true" > </auto-complete>
-                  </tags-input>
+            <div  class="col-md-12 row">
+              <div data-ng-repeat="skills in checkedskilllist" class="col-md-2">
+                  <input type="checkbox"  value="{{skills._id}}" data-ng-model="skills.check"  data-ng-change="skillchange(skills.check);">{{skills.name}}
+              </div>     
             </div>
       </div><br><br>
       <h3 class="">List Of Jobs</h3>

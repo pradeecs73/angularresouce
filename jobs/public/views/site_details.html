@@ -1,0 +1,90 @@
+<section data-ng-controller="SiteController" data-ng-init="findOne()">
+	<div class="mainwrapper">
+		<ol class="breadcrumb anchorTag">
+			<li><i class="fa fa-home link-pointer"
+				data-ng-click="redirectdashboard()"></i></li>
+			<li><a href="/site/list">Sites</a></li>
+			<li>Site Details</li>
+		</ol>
+	</div>
+	<div class="mainwrapper">
+		<div>
+			<h3 class="pull-left">Site Detail</h3>
+			<div class="pull-right">
+				<a class="btn btn-info" href="/site/{{site._id}}/edit">Edit</a> <a
+					href="" class="btn btn-info" ng-click="modalDeleteSite(site)">Delete</a>
+			</div>
+		</div>
+	</div>
+	<div class="mainwrapper">
+		<form name="siteForm" class="form-horizontal leftAlign formAlign"
+			novalidate>
+			<div class="form-group">
+				<label mean-token="'show-websiteName'" class="col-md-2">WebsiteName
+					:</label>
+				<div class="col-md-10 viewRole">{{site.websiteName}}</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'show-websiteUrl'" class="col-md-2">WebsiteUrl
+					:</label>
+				<div class="col-md-10 viewRole">{{site.websiteUrl}}</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'show-username'" class="col-md-2">Username
+					:</label>
+				<div class="col-md-10 viewRole">{{site.username}}</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'show-password'" class="col-md-2">Password
+					:</label>
+				<div class="col-md-10 viewRole">********</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'show-checkLoginAPIendpoint'" class="col-md-2">Check
+					Login APIendpoint :</label>
+				<div class="col-md-10 viewRole">{{site.checkLoginAPIendpoint}}</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'show-checkLoginAPIJSON'" class="col-md-2">Check
+					Login APIJSON :</label>
+				<div class="col-md-10 viewRole">{{site.checkLoginAPIJSON}}</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'show-getUserInfoAPIendpointl'" class="col-md-2">Get
+					User Info APIendpoint :</label>
+				<div class="col-md-10 viewRole">{{site.getUserInfoAPIendpoint}}</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'show-getUserInfoAPIJSON'" class="col-md-2">Get
+					User Info APIJSON :</label>
+				<div class="col-md-10 viewRole">{{site.getUserInfoAPIJSON}}</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'show-getSingleJobAPIendpoint'" class="col-md-2">Get
+					SingleJob APIendpoint :</label>
+				<div class="col-md-10 viewRole">{{site.getSingleJobAPIendpoint}}</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'show-getSingleJobAPIJSON'" class="col-md-2">Get
+					SingleJob APIJSON :</label>
+				<div class="col-md-10 viewRole">{{site.getSingleJobAPIJSON}}</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'show-getAllJobsAPIendpoint'" class="col-md-2">Get
+					AllJobs APIendpoint :</label>
+				<div class="col-md-10 viewRole">{{site.getAllJobsAPIendpoint}}</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'show-getAllJobsAPIJSON'" class="col-md-2">Get
+					AllJobs APIJSON :</label>
+				<div class="col-md-10 viewRole">{{site.getAllJobsAPIJSON}}</div>
+			</div>
+			<div class="form-group">
+				<div class="col-md-offset-2 col-md-10">
+					<button type="button" class="btn btn-info" ng-click="cancelSite()">Back</button>
+				</div>
+			</div>
+		</form>
+	</div>
+	<div ng-include="'jobs/views/deletesite.html'"></div>
+</section>
