@@ -1,16 +1,9 @@
-<section data-ng-controller="SiteController" data-ng-init="find()">
+<section data-ng-controller="SiteController" data-ng-init="find(); loadNewSiteForm();">
 <div data-ng-include="'/system/views/alert.html'"></div>
-	<div class="mainwrapper anchorTag">
-		<ol class="breadcrumb">
-			<li><i data-ng-click="redirectdashboard()"
-				class="fa fa-home link-pointer"></i></li>
-			<li ng-disable = "true">Sites</li>
-			<li></li>
-		</ol>
-	</div>
-	<div class="mainwrapper">
+ <div ng-include="'/system/views/breadcrum.html'"></div>
+	<div class="mainwrapper social-group-header">
 	<h3 class="pull-left ">Sites</h3>
-	<button class="btn btn-info pro-top pull-right" data-ng-click="newSite()">Create
+	<button class="btn btn-info pro-top pull-right" ng-if="writePermission" data-ng-click="newSite()">Create
 			Site</button>
 		</div>
 	<table class="table table-bordered table-condensed">
@@ -33,21 +26,20 @@
 				<td class="text-center">**********</td>
 				<td ng-if="site.enabled" class="text-center"><i class="fa fa-check"></i></td>
 				<td ng-if="!site.enabled" class="text-center"><i class="fa fa-times"></i></td>
-			    <td class="text-center"><a href="/site/{{site._id}}/edit" class="linksGap">
+			    <td><a href="/admin/site/{{site._id}}/edit" class="linksGap"  ng-if="updatePermission">
 						<i class="fa fa-pencil-square-o"></i></a> 
-						<a href="" ng-click ="modalDeleteSite(site)" data-target="#deleteSite" class="linksGap">
+						<a href="" ng-click ="modalDeletePopup(site)" ng-if="deletePermission" class="linksGap">
 				 <i class="fa fa-minus-circle"></i></a>
 				 </td>
 			</tr>
+			<tr data-ng-hide="!collection || collection.length">
+                <td colspan="8">No Site found...</td>
+            </tr> 
 		</tbody>
 	</table>
-	<div class="paginate usr">
+	<div data-ng-show=" !collection || collection.length" class="paginate usr">
 		<div ng-include="'system/views/paginationFilter.html'"></div>
 		<br>
 	</div>
-	<h1 data-ng-hide="!collection || collection.length">
-		No sites yet. <br> Why don't you 
-		<a href="/site/create">Create One</a>?
-	</h1>
-	<div ng-include="'jobs/views/deletesite.html'"></div>
+	<div ng-include="'/system/views/delete-popup.html'"></div>
 </section>

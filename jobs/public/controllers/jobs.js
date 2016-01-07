@@ -1,16 +1,22 @@
 'use strict';
 /* jshint -W098 */
-angular.module('mean.jobs', ['ngTagsInput']).controller('JobsController', ['$scope', 'SkillService', '$location', 'Global', 'Jobs', '$http', '$rootScope', 'PROFILE', '$stateParams', 'JOBS',
-    function($scope, SkillService, $location, Global, Jobs, $http, $rootScope, PROFILE, $stateParams, JOBS) {
+angular.module('mean.jobs', ['ngTagsInput']).controller('JobsController', ['$scope', 'SkillService', '$location', 'Global', 'Jobs', '$http', '$rootScope', 'PROFILE', '$stateParams', 'JOBS','MESSAGES',
+    function($scope, SkillService, $location, Global, Jobs, $http, $rootScope, PROFILE, $stateParams, JOBS,MESSAGES) {
         $scope.global = Global;
         $scope.PROFILE = PROFILE;
         $scope.SERVICE = Jobs;
         $scope.JOBS = JOBS;
+        $scope.MESSAGES = MESSAGES;
         $scope.jobsfilter = [];
         initializePagination($scope, $rootScope, $scope.SERVICE);
+        
         $scope.package = {
-            name: 'jobs'
+            name: 'jobs',
+            modelName:'Jobs'
         };
+        initializeDeletePopup($scope,$scope.package.modelName,MESSAGES);
+    	initializeBreadCrum($scope,$scope.package.modelName,JOBS.URL_PATH.JOBSLIST);
+        
         $scope.skillsarray = [];
         $scope.addjobs = function() {
             $http.get("/api/addjobs").success(function(response) {}).error(function(response) {});
@@ -57,6 +63,7 @@ angular.module('mean.jobs', ['ngTagsInput']).controller('JobsController', ['$sco
             $location.path(JOBS.URL_PATH.JOBSLIST)
         };
         $scope.listjobs = function() {
+        	
             $scope.currentPage = 1;
             $scope.currentPageSize = 10;
             var query = {};
@@ -75,5 +82,8 @@ angular.module('mean.jobs', ['ngTagsInput']).controller('JobsController', ['$sco
         $scope.redirectdashboard = function() {
             $location.path(PROFILE.URL_PATH.DASHBOARD);
         }
+        $scope.createJob=function(){
+            $scope.breadCrumAdd("List");
+        };
     }
 ]);

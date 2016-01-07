@@ -1,18 +1,19 @@
-<section data-ng-controller="SiteController" data-ng-init="findOne()">
-	<div class="mainwrapper">
+<section data-ng-controller="SiteController" data-ng-init="findOne(); detailSite();">
+ <div ng-include="'/system/views/breadcrum.html'"></div>
+	<!-- <div class="mainwrapper">
 		<ol class="breadcrumb anchorTag">
 			<li><i class="fa fa-home link-pointer"
 				data-ng-click="redirectdashboard()"></i></li>
 			<li><a href="/site/list">Sites</a></li>
 			<li>Site Details</li>
 		</ol>
-	</div>
-	<div class="mainwrapper">
+	</div> -->
+	<div class="mainwrapper social-group-header">
 		<div>
 			<h3 class="pull-left">Site Detail</h3>
 			<div class="pull-right">
-				<a class="btn btn-info" href="/site/{{site._id}}/edit">Edit</a> <a
-					href="" class="btn btn-info" ng-click="modalDeleteSite(site)">Delete</a>
+				<a class="btn btn-info" href="/admin/site/{{site._id}}/edit">Edit</a> <a
+					href="" class="btn btn-info" ng-click="modalDeletePopup(site)">Delete</a>
 			</div>
 		</div>
 	</div>
@@ -86,5 +87,5 @@
 			</div>
 		</form>
 	</div>
-	<div ng-include="'jobs/views/deletesite.html'"></div>
+	<div ng-include="'/system/views/delete-popup.html'"></div>
 </section>

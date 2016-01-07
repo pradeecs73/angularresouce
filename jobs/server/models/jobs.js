@@ -25,7 +25,8 @@ var jobSchema = new Schema({
     }],
     skillsCT: [{
         type: Schema.ObjectId,
-        ref: 'Skill'
+        ref: 'Skill',
+        unique: true
     }],
     jobUrl: {
         type: String,

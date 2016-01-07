@@ -1,13 +1,6 @@
-<section data-ng-controller="SiteController" data-ng-init="findOne()">
-	<div class="mainwrapper anchorTag">
-		<ol class="breadcrumb">
-			<li><i class="fa fa-home link-pointer"
-				data-ng-click="redirectdashboard()"></i></li>
-			<li><a href="/site/list">Sites</a></li>
-			<li ng-disabled = "true">Edit site</li>
-		</ol>
-	</div>
-	<div class="mainwrapper">
+<section data-ng-controller="SiteController" data-ng-init="findOne(); editSite();">
+<div ng-include="'/system/views/breadcrum.html'"></div>
+	<div class="mainwrapper social-group-header">
 		<h3 class="pull-left ">Site</h3>
 	</div>
 	<div class="mainwrapper">

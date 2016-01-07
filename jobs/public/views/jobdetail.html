@@ -1,7 +1,7 @@
 <section class="row bg_grey_light tlpanel-success page_content">
 
 <div class="" data-ng-controller="JobsController" data-ng-init="completejobdetail()">
-	<div class="mainwrapper padding-allign anchorTag">
+	<div class="mainwrapper padding-allign-jobs anchorTag">
 		<ol class="breadcrumb">
 			<li><i data-ng-click="redirectdashboard()"
 				class="fa fa-home link-pointer"></i></li>
@@ -10,16 +10,15 @@
 		</ol>
 	</div>
 
-   <div class="row">
-    <h3 class="col-md-8 left-width">{{singlejobdetail.title}}</h3>
+   <div class="row col-md-12 padding-allign-jobs">
+    <h3 class="col-md-8">{{singlejobdetail.title}}</h3>
    </div>
 
-   <div class="row" >  
-     <div class="col-md-12 left-width"><b>Posted On:</b>&nbsp{{singlejobdetail.postedDate}}</div>
-   </div><br> 
-
-  <div class="row" >
-              <div class="col-md-8 left-width">
+   <div class="row col-md-12 padding-allign-jobs padding-allign-jobs-bottom" >  
+     <div class="col-md-12"><b>Posted On:</b>&nbsp{{singlejobdetail.postedDate}}</div>
+   </div>
+  <div class="row col-md-12 padding-allign-jobs padding-allign-jobs-bottom" >
+              <div class="col-md-8">
                 <div class="clearfix job-blog">
                             <div class="text-center col-md-3">
                                 <span class="key"><h3>{{singlejobdetail.cost}}</h3></span>
@@ -46,20 +45,24 @@
              </div>   
      </div><br>  
      
-            <div class="row" >
-                <div class="col-md-12 left-width">
-                    <b>Skills</b><br>
-                        <ul class="job-ul list-inline">
-                                <li class="job-li" data-ng-repeat="jobskills in singlejobdetail.skills">{{jobskills.toUpperCase()}}</li>
-                        </ul>
+               <div class="row col-md-12 padding-allign-jobs ">
+                   <div class="col-md-12 padding-allign-jobs-bottom"><b>Skills</b></div>
                 </div>
-             </div>   
+                <div class="row col-md-12 padding-allign-jobs padding-allign-jobs-bottom">
+                    <ul class="job-ul list-inline">
+                          <li class="job-li" data-ng-repeat="jobskills in singlejobdetail.skills">{{jobskills.toUpperCase()}}</li>
+                     </ul>
+                </div>
+           
 
-              <div class="row" >  
-                 <div class="col-md-12 left-width"><b>Job Description</b></div>
-                 <div class="col-md-8 left-width">{{singlejobdetail.description}}</div>
+              <div class="row col-md-12 padding-allign-jobs " >  
+                 <div class="col-md-12 padding-allign-jobs-bottom"><b>Job Description</b></div>
+               </div>
+               
+                <div class="row col-md-12 padding-allign-jobs"> 
+                 <div class="col-md-8">{{singlejobdetail.description}}</div>
               </div> 
   
   </div>
-</div><br>
+
 </section> 

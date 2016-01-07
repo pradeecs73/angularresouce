@@ -6,12 +6,16 @@ angular.module('mean.jobs').controller('SiteController', function($scope, Global
     $scope.PROFILE = PROFILE;
     $scope.MESSAGES = MESSAGES;
     $scope.JOBS=JOBS;
-
-	initializePagination($scope, $rootScope, $scope.SERVICE);
 	
     $scope.package = {
-        name: 'jobs'
+        name: 'jobs',
+        modelName: 'Site',
+        featureName: 'Sites'
     };
+    initializePermission($scope, $rootScope, $location, flash, $scope.package.featureName, MESSAGES);    
+    initializePagination($scope, $rootScope, $scope.SERVICE);
+	initializeDeletePopup($scope,$scope.package.modelName,MESSAGES);
+	initializeBreadCrum($scope,$scope.package.modelName,JOBS.URL_PATH.SITELIST);
     
     $scope.find = function () {
 		/*SiteService.query(function (sites) {
@@ -25,7 +29,25 @@ angular.module('mean.jobs').controller('SiteController', function($scope, Global
         $scope.loadPagination(query);
     };
     
+ // BreadCrumbs for Site
+    $scope.loadNewSiteForm = function() {
+		$scope.breadCrumAdd("List");
+	};
+    
+    $scope.createSite=function(){
+        $scope.breadCrumAdd("Create");
+    };
+    
+    $scope.editSite = function() {
+    $scope.breadCrumAdd("Edit");
+    };
+     
+    $scope.detailSite = function() {
+    $scope.breadCrumAdd("Details");
+    };
+    
     $scope.create = function(isValid) {
+         if ($scope.writePermission) {
         if (isValid) {
         	var site = new SiteService.site($scope.site)
             site.$save(function(response) {
@@ -38,10 +60,15 @@ angular.module('mean.jobs').controller('SiteController', function($scope, Global
         } else {
             $scope.submitted = true;
         }
+
+          } else {
+                flash.setMessage(MESSAGES.PERMISSION_DENIED, MESSAGES.ERROR);
+                $location.path(MESSAGES.DASHBOARD_URL);
+            }
     };
     
     $scope.remove = function(Site) {
-        if (Site) {
+        if (Site && $scope.deletePermission) {
         	var site = new SiteService.site(Site);
             site.$remove(function(response) {
                 for (var i in $scope.collection) {
@@ -49,13 +76,18 @@ angular.module('mean.jobs').controller('SiteController', function($scope, Global
                         $scope.collection.splice(i, 1);
                     }
                 }
-                $('#deleteSite').modal("hide");
+                $('#deletePopup').modal("hide");
                flash.setMessage(MESSAGES.SITE_DELETE_SUCCESS,MESSAGES.SUCCESS);
                $location.path(JOBS.URL_PATH.SITELIST);
             });
-        }
+
+        }else {
+                flash.setMessage(MESSAGES.PERMISSION_DENIED, MESSAGES.ERROR);
+                $location.path(MESSAGES.DASHBOARD_URL);
+            }
     };
     $scope.update = function(isValid) {
+        if ($scope.updatePermission) {
         if (isValid) {
             var site = $scope.site;
             if (!site.updated) {
@@ -72,13 +104,24 @@ angular.module('mean.jobs').controller('SiteController', function($scope, Global
         } else {
             $scope.submitted = true;
         }
+
+         } else {
+                flash.setMessage(MESSAGES.PERMISSION_DENIED, MESSAGES.ERROR);
+                $location.path(MESSAGES.DASHBOARD_URL);
+            }
     };
     $scope.findOne = function() {
+        if ($scope.updatePermission) {
         SiteService.site.get({
             siteId: $stateParams.siteId
         }, function(site) {
             $scope.site = site;
+           /* $scope.breadCrumAdd("Edit");*/
         });
+        } else {
+                flash.setMessage(MESSAGES.PERMISSION_DENIED, MESSAGES.ERROR);
+                $location.path(MESSAGES.DASHBOARD_URL);
+            }
     };
     $scope.cancelSite = function() {
         $location.path(JOBS.URL_PATH.SITELIST);
@@ -86,13 +129,13 @@ angular.module('mean.jobs').controller('SiteController', function($scope, Global
     $scope.newSite = function() {
         $location.path(JOBS.URL_PATH.SITECREATE);
     };
-    $scope.modalDeleteSite = function(site) {
+    /*$scope.modalDeleteSite = function(site) {
         $scope.site = site;
         $('#deleteSite').modal("show");
     };
     $scope.cancelDelete = function() {
         $('#deleteSite').modal("hide");
-    };
+    };*/
     $scope.redirectdashboard = function(){
         $location.path(PROFILE.URL_PATH.DASHBOARD);
   };

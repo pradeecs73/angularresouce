@@ -1,23 +1,20 @@
-<section class="">
-   	<div class="mainwrapper anchorTag">
-   		<ol class="breadcrumb">
-   			<li><i data-ng-click="redirectdashboard()"
-   				class="fa fa-home link-pointer"></i></li>
-   			<li ng-disable = "true">Jobs</li>
-   		</ol>
-   	  </div>
-   	  <div class="col-md-12 row">
-        <ul class="nav nav-tabs">
-            <li class="active"><a href="#1" data-toggle="tab">All Jobs</a></li>
-            <li ><a href="#2" data-toggle="tab">Recommended Jobs</a></li>
-       </ul>
-       <div class="tab-content">
-            <div class="col-md-12 tab-pane active row" id="1"></br>
-                <div data-ng-include="'/jobs/views/jobslist.html'"></div>
-            </div>
-            <div class="col-md-12 tab-pane row" id="2"></br>
-                <div data-ng-include="'/jobs/views/recommendedjobs.html'" ></div>
-            </div>
-        </div>     
-   	</div>
-   </section>
+
+<section class="" data-ng-controller="JobsController" data-ng-init="createJob();">
+ <div ng-include="'/system/views/breadcrum.html'"></div>
+   	  <div class="mainwrapper anchorTag">
+        <ul class="nav nav-tabs tab-nav-width">
+            <li class="active"><a href="#1" data-toggle="tab">Recommended Jobs</a></li>
+            <li ><a href="#2" data-toggle="tab">All Jobs</a></li>
+        </ul>  
+    <div class="tab-content projecttab">
+        <div class="mainwrapper anchorTag tab-pane active" id="1"><br />
+            <div data-ng-include="'/jobs/views/recommendedjobs.html'" ></div>
+        </div>
+        <div class="mainwrapper anchorTag tab-pane" id="2"><br />
+            <div data-ng-include="'/jobs/views/jobslist.html'"></div>
+        </div>
+
+    </div>
+  </div>
+</section>
+

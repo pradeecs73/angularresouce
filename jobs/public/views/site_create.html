@@ -1,13 +1,6 @@
-<section data-ng-controller="SiteController">
-	<div class="mainwrapper anchorTag">
-		<ol class="breadcrumb">
-			<li><i class="fa fa-home link-pointer"
-				data-ng-click="redirectdashboard()"></i></li>
-			<li><a href="/site/list">Sites</a></li>
-			<li ng-disabled = "true">Create site</li>
-		</ol>
-	</div>
-	<div class="mainwrapper">
+<section data-ng-controller="SiteController" data-ng-init="createSite()">
+<div ng-include="'/system/views/breadcrum.html'"></div>
+	<div class="mainwrapper social-group-header">
 		<h3 class="pull-left ">Site</h3>
 	</div>
 	<div class="mainwrapper">
@@ -15,7 +8,7 @@
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.websiteName.$invalid }">
 				<label mean-token="'create-websiteName'"
-					class="col-md-3 pull-left err-msg-websiteName">WebsiteName</label>
+					class="col-md-2 pull-left err-msg-websiteName">WebsiteName</label>
 				<div class="col-md-9">
 					<input name="websiteName" type="text" data-ng-model="site.websiteName"
 						id="websiteName" placeholder="websiteName"
@@ -26,13 +19,13 @@
 							enter the WebsiteName </span>
 					</div>
 				</div>
-				<div ng-show="error" class="red col-md-offset-3 col-md-9 "
+				<div ng-show="error" class="red col-md-offset-2 col-md-9 "
 		          ng-repeat="err in error.data">{{err.msg}}</div>
 			</div>
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.websiteUrl.$invalid }">
 				<label mean-token="'create-websiteUrl'"
-					class="col-md-3 pull-left err-msg-websiteUrl">WebsiteUrl</label>
+					class="col-md-2 pull-left err-msg-websiteUrl">WebsiteUrl</label>
 				<div class="col-md-9">
 					<input name="websiteUrl" type="text" data-ng-model="site.websiteUrl"
 						id="websiteUrl" placeholder="http://www.web.com"
@@ -47,7 +40,7 @@
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.username.$invalid }">
 				<label mean-token="'create-username'"
-					class="col-md-3 pull-left err-msg-username">Username</label>
+					class="col-md-2 pull-left err-msg-username">Username</label>
 				<div class="col-md-9">
 					<input name="username" type="text" data-ng-model="site.username"
 						id="username" placeholder="username"
@@ -62,7 +55,7 @@
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.password.$invalid }">
 				<label mean-token="'create-password'"
-					class="col-md-3 pull-left err-msg-password">Password</label>
+					class="col-md-2 pull-left err-msg-password">Password</label>
 				<div class="col-md-9">
 					<input name="password" type="password" data-ng-model="site.password"
 						id="password" placeholder="password"
@@ -77,7 +70,7 @@
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.checkLoginAPIendpoint.$invalid }">
 				<label mean-token="'create-checkLoginAPIendpoint'"
-					class="col-md-3 pull-left err-msg-checkLoginAPIendpoint">CheckLoginAPIendpoint</label>
+					class="col-md-2 pull-left err-msg-checkLoginAPIendpoint">CheckLoginAPIendpoint</label>
 				<div class="col-md-9">
 					<input name="checkLoginAPIendpoint" type="text" data-ng-model="site.checkLoginAPIendpoint"
 						id="checkLoginAPIendpoint" placeholder="checkLoginAPIendpoint"
@@ -92,7 +85,7 @@
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.checkLoginAPIJSON.$invalid }">
 				<label mean-token="'create-checkLoginAPIJSON'"
-					class="col-md-3 pull-left err-msg-checkLoginAPIJSON">CheckLoginAPIJSON</label>
+					class="col-md-2 pull-left err-msg-checkLoginAPIJSON">CheckLoginAPIJSON</label>
 				<div class="col-md-9">
 					<textarea name="checkLoginAPIJSON" data-ng-model="site.checkLoginAPIJSON"
 						id="checkLoginAPIJSON" cols="30" rows="3" placeholder="checkLoginAPIJSON"
@@ -107,7 +100,7 @@
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.getUserInfoAPIendpoint.$invalid }">
 				<label mean-token="'create-getUserInfoAPIendpoint'"
-					class="col-md-3 pull-left err-msg-getUserInfoAPIendpoint">GetUserInfoAPIendpoint</label>
+					class="col-md-2 pull-left err-msg-getUserInfoAPIendpoint">GetUserInfoAPIendpoint</label>
 				<div class="col-md-9">
 					<input name="getUserInfoAPIendpoint" type="text" data-ng-model="site.getUserInfoAPIendpoint"
 						id="getUserInfoAPIendpoint" placeholder="getUserInfoAPIendpoint"
@@ -122,7 +115,7 @@
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.getUserInfoAPIJSON.$invalid }">
 				<label mean-token="'create-getUserInfoAPIJSON'"
-					class="col-md-3 pull-left err-msg-getUserInfoAPIJSON">GetUserInfoAPIJSON</label>
+					class="col-md-2 pull-left err-msg-getUserInfoAPIJSON">GetUserInfoAPIJSON</label>
 				<div class="col-md-9">
 					<textarea name="getUserInfoAPIJSON" data-ng-model="site.getUserInfoAPIJSON"
 						id="getUserInfoAPIJSON" cols="30" rows="3" placeholder="getUserInfoAPIJSON"
@@ -137,7 +130,7 @@
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.getSingleJobAPIendpoint.$invalid }">
 				<label mean-token="'create-getSingleJobAPIendpoint'"
-					class="col-md-3 pull-left err-msg-getSingleJobAPIendpoint">GetSingleJobAPIendpoint</label>
+					class="col-md-2 pull-left err-msg-getSingleJobAPIendpoint">GetSingleJobAPIendpoint</label>
 				<div class="col-md-9">
 					<input name="getSingleJobAPIendpoint" type="text" data-ng-model="site.getSingleJobAPIendpoint"
 						id="getSingleJobAPIendpoint" placeholder="getSingleJobAPIendpoint"
@@ -152,7 +145,7 @@
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.getSingleJobAPIJSON.$invalid }">
 				<label mean-token="'create-getSingleJobAPIJSON'"
-					class="col-md-3 pull-left err-msg-getSingleJobAPIJSON">GetSingleJobAPIJSON</label>
+					class="col-md-2 pull-left err-msg-getSingleJobAPIJSON">GetSingleJobAPIJSON</label>
 				<div class="col-md-9">
 					<textarea name="getSingleJobAPIJSON" data-ng-model="site.getSingleJobAPIJSON"
 						id="getSingleJobAPIJSON" cols="30" rows="3" placeholder="getSingleJobAPIJSON"
@@ -167,7 +160,7 @@
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.getAllJobsAPIendpoint.$invalid }">
 				<label mean-token="'create-getAllJobsAPIendpoint'"
-					class="col-md-3 pull-left err-msg-getAllJobsAPIendpoint">GetAllJobsAPIendpoint</label>
+					class="col-md-2 pull-left err-msg-getAllJobsAPIendpoint">GetAllJobsAPIendpoint</label>
 				<div class="col-md-9">
 					<input name="getAllJobsAPIendpoint" type="text" data-ng-model="site.getAllJobsAPIendpoint"
 						id="getAllJobsAPIendpoint" placeholder="getAllJobsAPIendpoint"
@@ -182,7 +175,7 @@
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.getAllJobsAPIJSON.$invalid }">
 				<label mean-token="'create-getAllJobsAPIJSON'"
-					class="col-md-3 pull-left err-msg-getAllJobsAPIJSON">GetAllJobsAPIJSON</label>
+					class="col-md-2 pull-left err-msg-getAllJobsAPIJSON">GetAllJobsAPIJSON</label>
 				<div class="col-md-9">
 					<textarea name="getAllJobsAPIJSON" data-ng-model="site.getAllJobsAPIJSON"
 						id="getAllJobsAPIJSON" cols="30" rows="3" placeholder="getAllJobsAPIJSON"
@@ -195,13 +188,13 @@
 				</div>
 			</div>
 			<div class="form-group ">
-			<div class="col-md-offset-3 col-md-9">
+			<div class="col-md-offset-2 col-md-9">
 					<input name="enabled" type="checkbox" data-ng-model="site.enabled"
 						id="enabled" class=""> Enabled 
 			</div>
 			</div>
 		<div class="form-group">
-			<div class="col-md-offset-3 col-md-9 roleCreate text-center">
+			<div class="col-md-offset-2 col-md-9 roleCreate text-center">
 				<button mean-token="'create-submit'" type="button"
 					class="btn btn-info" ng-click="create(siteForm.$valid)">Submit</button>
 				<button type="button" class="btn btn-info"

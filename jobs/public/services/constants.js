@@ -13,7 +13,7 @@ angular.module('mean.jobs').constant('JOBS',{
     	 JOBDETAIL:'jobs/views/jobdetail.html',
     	 SITELIST:'jobs/views/site_list.html',
     	 SITECREATE:'jobs/views/site_create.html',    
-         SITEEDIT:'/admin/site/:siteId/edit',
+         SITEEDIT:'jobs/views/site_edit.html',
          SITEDETAILS: 'jobs/views/site_details.html'
     },
     STATE: {

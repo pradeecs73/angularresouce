@@ -2,15 +2,27 @@
     background-color: purple
 }
 
+ .tab-nav-width{
+ 	width:248px;
+ }
 
-.left-width{
-    margin-left:25px;
+ .jobs-not-found{
+ 	text-align:center;
  }
 
  .job-blog{
     background: #eee;
     padding: 5px; 
     border-radius: 8px; 
+ }
+
+ .padding-allign-jobs{
+
+ 	padding-left:20px;
+ }
+
+ .padding-allign-jobs-bottom{
+ 	padding-bottom:10px;
  }
 
 .skills{
@@ -34,10 +46,9 @@
 
 .job-blog1{
     background: #eee;
-    padding: 5px;
+    padding: 5px 10px 20px 30px;
     border-radius: 8px;
     border: 1px solid #ddd;
-    padding-bottom:20px;
  }
 
 
@@ -48,12 +59,12 @@
  	padding:18px;
     font-size:20px;
     color:white;
-    margin-top:15px;
+    margin-top:8px;
  }
 
  .job-ul
  {
- 	padding:0px;
+ 	padding-left:20px;
  }
 
  .job-li
