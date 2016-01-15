@@ -8,15 +8,15 @@
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.websiteName.$invalid }">
 				<label mean-token="'create-websiteName'"
-					class="col-md-2 pull-left err-msg-websiteName">WebsiteName</label>
+					class="col-md-2 pull-left err-msg-websiteName">Site Name</label>
 				<div class="col-md-9">
 					<input name="websiteName" type="text" data-ng-model="site.websiteName"
-						id="websiteName" placeholder="websiteName"
+						id="websiteName" placeholder="Site Name"
 						class="form-control err-msg " required />
 					<div ng-show="submitted && siteForm.websiteName.$invalid">
 						<span class="err-msg errorRed"
 							ng-show="siteForm.websiteName.$error.required"> Please
-							enter the WebsiteName </span>
+							enter the Site Name </span>
 					</div>
 				</div>
 				<div ng-show="error" class="red col-md-offset-2 col-md-9 "
@@ -25,64 +25,109 @@
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.websiteUrl.$invalid }">
 				<label mean-token="'create-websiteUrl'"
-					class="col-md-2 pull-left err-msg-websiteUrl">WebsiteUrl</label>
+					class="col-md-2 pull-left err-msg-websiteUrl">Site Url</label>
 				<div class="col-md-9">
-					<input name="websiteUrl" type="text" data-ng-model="site.websiteUrl"
-						id="websiteUrl" placeholder="http://www.web.com"
+					<input name="websiteUrl" type="url" data-ng-model="site.websiteUrl"
+						id="websiteUrl" placeholder="http://www.site.com"
 						class="form-control err-msg " required />
 					<div ng-show="submitted && siteForm.websiteUrl.$invalid">
 						<span class="err-msg errorRed"
 							ng-show="siteForm.websiteUrl.$error.required"> Please
-							enter the WebsiteUrl </span>
+							enter the Site Url </span>
 					</div>
 				</div>
 			</div>
 			<div class="form-group"
-				ng-class="{ 'has-error' : submitted && siteForm.username.$invalid }">
-				<label mean-token="'create-username'"
-					class="col-md-2 pull-left err-msg-username">Username</label>
+				ng-class="{ 'has-error' : submitted && siteForm.siteUsername.$invalid }">
+				<label mean-token="'create-siteUsername'"
+					class="col-md-2 pull-left err-msg-siteUsername">Site Username</label>
 				<div class="col-md-9">
-					<input name="username" type="text" data-ng-model="site.username"
-						id="username" placeholder="username"
+					<input name="siteUsername" type="text" data-ng-model="site.siteUsername"
+						id="siteUsername" placeholder="Site Username"
 						class="form-control err-msg " required />
-					<div ng-show="submitted && siteForm.username.$invalid">
+					<div ng-show="submitted && siteForm.siteUsername.$invalid">
 						<span class="err-msg errorRed"
-							ng-show="siteForm.username.$error.required"> Please
-							enter the Username </span>
+							ng-show="siteForm.siteUsername.$error.required"> Please
+							enter the Site Username </span>
 					</div>
 				</div>
 			</div>
 			<div class="form-group"
-				ng-class="{ 'has-error' : submitted && siteForm.password.$invalid }">
-				<label mean-token="'create-password'"
-					class="col-md-2 pull-left err-msg-password">Password</label>
+				ng-class="{ 'has-error' : submitted && siteForm.sitePassword.$invalid }">
+				<label mean-token="'create-sitePassword'"
+					class="col-md-2 pull-left err-msg-sitePassword">Site Password</label>
 				<div class="col-md-9">
-					<input name="password" type="password" data-ng-model="site.password"
-						id="password" placeholder="password"
+					<input name="sitePassword" type="Password" data-ng-model="site.sitePassword"
+						id="sitePassword" placeholder="Site Password"
 						class="form-control err-msg " required />
-					<div ng-show="submitted && siteForm.password.$invalid">
+					<div ng-show="submitted && siteForm.sitePassword.$invalid">
 						<span class="err-msg errorRed"
-							ng-show="siteForm.password.$error.required"> Please
-							enter the Password </span>
+							ng-show="siteForm.sitePassword.$error.required"> Please
+							enter the Site Password </span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group"
+				ng-class="{ 'has-error' : submitted && siteForm.apiUrl.$invalid }">
+				<label mean-token="'create-apiUrl'"
+					class="col-md-2 pull-left err-msg-apiUrl">API Url</label>
+				<div class="col-md-9">
+					<input name="apiUrl" type="text" data-ng-model="site.apiUrl"
+						id="apiUrl" placeholder="job.coderstrust.idc.tarento.com"
+						class="form-control err-msg " required />
+					<div ng-show="submitted && siteForm.apiUrl.$invalid">
+						<span class="err-msg errorRed"
+							ng-show="siteForm.apiUrl.$error.required"> Please
+							enter the API Url </span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group"
+				ng-class="{ 'has-error' : submitted && siteForm.apiSecret.$invalid }">
+				<label mean-token="'create-apiSecret'"
+					class="col-md-2 pull-left err-msg-apiSecret">API Secret</label>
+				<div class="col-md-9">
+					<input name="apiSecret" type="text" data-ng-model="site.apiSecret"
+						id="apiSecret" placeholder="API-SECRET-CODE"
+						class="form-control err-msg " required />
+					<div ng-show="submitted && siteForm.apiSecret.$invalid">
+						<span class="err-msg errorRed"
+							ng-show="siteForm.apiSecret.$error.required"> Please
+							enter the API Secret </span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group"
+				ng-class="{ 'has-error' : submitted && siteForm.apiSiteId.$invalid }">
+				<label mean-token="'create-apiSiteId'"
+					class="col-md-2 pull-left err-msg-SiteId">API Site Id</label>
+				<div class="col-md-9">
+					<input name="apiSiteId" type="text" data-ng-model="site.apiSiteId"
+						id="apiSiteId" placeholder="API-SITE-IDENTIFIER"
+						class="form-control err-msg " required />
+					<div ng-show="submitted && siteForm.apiSiteId.$invalid">
+						<span class="err-msg errorRed"
+							ng-show="siteForm.apiSiteId.$error.required"> Please
+							enter the API Site Id </span>
 					</div>
 				</div>
 			</div>
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.checkLoginAPIendpoint.$invalid }">
 				<label mean-token="'create-checkLoginAPIendpoint'"
-					class="col-md-2 pull-left err-msg-checkLoginAPIendpoint">CheckLoginAPIendpoint</label>
+					class="col-md-2 pull-left err-msg-checkLoginAPIendpoint">CheckLogin API Endpoint</label>
 				<div class="col-md-9">
 					<input name="checkLoginAPIendpoint" type="text" data-ng-model="site.checkLoginAPIendpoint"
-						id="checkLoginAPIendpoint" placeholder="checkLoginAPIendpoint"
+						id="checkLoginAPIendpoint" placeholder="/checkLogin.py"
 						class="form-control err-msg " required />
 					<div ng-show="submitted && siteForm.checkLoginAPIendpoint.$invalid">
 						<span class="err-msg errorRed"
 							ng-show="siteForm.checkLoginAPIendpoint.$error.required"> Please
-							enter the CheckLoginAPIendpoint </span>
+							enter the CheckLogin API Endpoint </span>
 					</div>
 				</div>
 			</div>
-			<div class="form-group"
+			<!-- <div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.checkLoginAPIJSON.$invalid }">
 				<label mean-token="'create-checkLoginAPIJSON'"
 					class="col-md-2 pull-left err-msg-checkLoginAPIJSON">CheckLoginAPIJSON</label>
@@ -96,23 +141,23 @@
 							enter the checkLoginAPIJSON </span>
 					</div>
 				</div>
-			</div>
+			</div> -->
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.getUserInfoAPIendpoint.$invalid }">
 				<label mean-token="'create-getUserInfoAPIendpoint'"
-					class="col-md-2 pull-left err-msg-getUserInfoAPIendpoint">GetUserInfoAPIendpoint</label>
+					class="col-md-2 pull-left err-msg-getUserInfoAPIendpoint">GetUserInfo API endpoint</label>
 				<div class="col-md-9">
 					<input name="getUserInfoAPIendpoint" type="text" data-ng-model="site.getUserInfoAPIendpoint"
-						id="getUserInfoAPIendpoint" placeholder="getUserInfoAPIendpoint"
+						id="getUserInfoAPIendpoint" placeholder="/getUserInfo.py"
 						class="form-control err-msg " required />
 					<div ng-show="submitted && siteForm.getUserInfoAPIendpoint.$invalid">
 						<span class="err-msg errorRed"
 							ng-show="siteForm.getUserInfoAPIendpoint.$error.required"> Please
-							enter the getUserInfoAPIendpoint </span>
+							enter the GetUserInfo API Endpoint </span>
 					</div>
 				</div>
 			</div>
-			<div class="form-group"
+			<!-- <div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.getUserInfoAPIJSON.$invalid }">
 				<label mean-token="'create-getUserInfoAPIJSON'"
 					class="col-md-2 pull-left err-msg-getUserInfoAPIJSON">GetUserInfoAPIJSON</label>
@@ -126,23 +171,23 @@
 							enter the getUserInfoAPIJSON </span>
 					</div>
 				</div>
-			</div>
+			</div> -->
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.getSingleJobAPIendpoint.$invalid }">
 				<label mean-token="'create-getSingleJobAPIendpoint'"
-					class="col-md-2 pull-left err-msg-getSingleJobAPIendpoint">GetSingleJobAPIendpoint</label>
+					class="col-md-2 pull-left err-msg-getSingleJobAPIendpoint">GetSingleJob API Endpoint</label>
 				<div class="col-md-9">
 					<input name="getSingleJobAPIendpoint" type="text" data-ng-model="site.getSingleJobAPIendpoint"
-						id="getSingleJobAPIendpoint" placeholder="getSingleJobAPIendpoint"
+						id="getSingleJobAPIendpoint" placeholder="/getSingleJob.py"
 						class="form-control err-msg " required />
 					<div ng-show="submitted && siteForm.getSingleJobAPIendpoint.$invalid">
 						<span class="err-msg errorRed"
 							ng-show="siteForm.getSingleJobAPIendpoint.$error.required"> Please
-							enter the getSingleJobAPIendpoint </span>
+							enter the GetSingleJob API Endpoint </span>
 					</div>
 				</div>
 			</div>
-			<div class="form-group"
+			<!-- <div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.getSingleJobAPIJSON.$invalid }">
 				<label mean-token="'create-getSingleJobAPIJSON'"
 					class="col-md-2 pull-left err-msg-getSingleJobAPIJSON">GetSingleJobAPIJSON</label>
@@ -156,23 +201,23 @@
 							enter the getSingleJobAPIJSON </span>
 					</div>
 				</div>
-			</div>
+			</div> -->
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.getAllJobsAPIendpoint.$invalid }">
 				<label mean-token="'create-getAllJobsAPIendpoint'"
-					class="col-md-2 pull-left err-msg-getAllJobsAPIendpoint">GetAllJobsAPIendpoint</label>
+					class="col-md-2 pull-left err-msg-getAllJobsAPIendpoint">GetAllJobs API Endpoint</label>
 				<div class="col-md-9">
 					<input name="getAllJobsAPIendpoint" type="text" data-ng-model="site.getAllJobsAPIendpoint"
-						id="getAllJobsAPIendpoint" placeholder="getAllJobsAPIendpoint"
+						id="getAllJobsAPIendpoint" placeholder="/getAllJobs.py"
 						class="form-control err-msg " required />
 					<div ng-show="submitted && siteForm.getAllJobsAPIendpoint.$invalid">
 						<span class="err-msg errorRed"
 							ng-show="siteForm.getAllJobsAPIendpoint.$error.required"> Please
-							enter the getAllJobsAPIendpoint </span>
+							enter the GetAllJobs API Endpoint </span>
 					</div>
 				</div>
 			</div>
-			<div class="form-group"
+			<!-- <div class="form-group"
 				ng-class="{ 'has-error' : submitted && siteForm.getAllJobsAPIJSON.$invalid }">
 				<label mean-token="'create-getAllJobsAPIJSON'"
 					class="col-md-2 pull-left err-msg-getAllJobsAPIJSON">GetAllJobsAPIJSON</label>
@@ -186,7 +231,7 @@
 							enter the getAllJobsAPIJSON </span>
 					</div>
 				</div>
-			</div>
+			</div> -->
 			<div class="form-group ">
 			<div class="col-md-offset-2 col-md-9">
 					<input name="enabled" type="checkbox" data-ng-model="site.enabled"

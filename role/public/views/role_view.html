@@ -1,0 +1,115 @@
+<section data-ng-controller="RoleController" data-ng-init="featureList();findOne();">
+    <div ng-include="'/system/views/breadcrum.html'"></div>
+    <div class="mainwrapper">
+        <div>
+            <h3 class="pull-left">Role</h3>
+
+            <div class="pull-right">
+                <a class="btn btn-info" href="/admin/role/{{role._id}}/edit">Edit Role</a>
+                <a href="" class="btn btn-info" ng-click="removepop(role)">Delete Role</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="mainwrapper">
+        <form name="roleForm" class="form-horizontal leftAlign formAlign" novalidate>
+            <div class="form-group">
+                <label mean-token="'show-role_name'" class="col-md-2">Name</label>
+                <div class="col-md-10 viewRole">
+                    {{role.name}}
+                </div>
+            </div>
+            <div class="form-group">
+                <label mean-token="'show-role_code'" class="col-md-2">Role Code</label>
+                <div class="col-md-10 viewRole">
+                    {{role.roleCode}}
+                </div>
+            </div>
+            <div class="form-group">
+                <label mean-token="'show-currency'" class="col-md-2">Description</label>
+                <div class="col-md-10 viewRole">
+                    {{role.description}}
+                </div>
+            </div>
+            <div class="mainwrapper">
+                <table class="table table-bordered">
+                    <tr>
+                        <th>Feature Name</th>
+                        <th>Feature Url</th>
+                        <th>Permissions</th>
+                    </tr>
+
+                    <tr data-ng-repeat="feature in roleFeatures " ng-if="feature.selected && !feature.feature.isComponent">
+                        <td>{{feature.feature.name}}</td>
+                        <td>{{feature.feature.url}}</td>
+                        <td>
+                            <span class="checkbox-inline">
+                                <input ng-checked="{{feature.isRead}}==true" data-ng-model="feature.isRead" id="isRead{{feature.feature._id}}" type="checkbox" name="check" value="true" disabled>
+                                <label for="isRead{{feature.feature._id}}">Read</label>
+                            </span>
+                            <span class="checkbox-inline">
+                                <input ng-checked="{{feature.isWrite}}==true" data-ng-model="feature.isWrite" id="isWrite{{feature.feature._id}}" type="checkbox" name="check" value="true" disabled>
+                                <label for="isWrite{{feature.feature._id}}">Write</label>
+                            </span>
+                            <span class="checkbox-inline">
+                                <input ng-checked="{{feature.isUpdate}}==true" data-ng-model="feature.isWrite" id="isUpdate{{feature.feature._id}}" type="checkbox" name="check" value="true" disabled>
+                                <label for="isUpdate{{feature.feature._id}}">Update</label>
+                            </span>
+                            <span class="checkbox-inline">
+                                <input ng-checked="{{feature.isDelete}}==true" data-ng-model="feature.isWrite" id="isDelete{{feature.feature._id}}" type="checkbox" name="check" value="true" disabled>
+                                <label for="isDelete{{feature.feature._id}}">Delete</label>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr data-ng-show="(roleFeatures|filter:{selected: true,feature:{isComponent: false}}).length <= 0">
+                        <td colspan="3"><h5>No Features available for this role</h5></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="mainwrapper">
+                <table class="table table-bordered">
+                    <tr>
+                        <th>Component Name</th>
+                        <th>Component Url</th>
+                        <th>Permissions</th>
+                    </tr>
+
+                    <tr data-ng-repeat="feature in roleFeatures " ng-if="feature.selected && feature.feature.isComponent">
+                        <td>{{feature.feature.name}}</td>
+                        <td>{{feature.feature.url}}</td>
+                        <td>
+                            <span class="checkbox-inline">
+                                <input ng-checked="{{feature.isRead}}==true" data-ng-model="feature.isRead" id="isRead{{feature.feature._id}}" type="checkbox" name="check" value="true" disabled>
+                                <label for="isRead{{feature.feature._id}}">Read</label>
+                            </span>
+                            <span class="checkbox-inline">
+                                <input ng-checked="{{feature.isWrite}}==true" data-ng-model="feature.isWrite" id="isWrite{{feature.feature._id}}" type="checkbox" name="check" value="true" disabled>
+                                <label for="isWrite{{feature.feature._id}}">Write</label>
+                            </span>
+                            <span class="checkbox-inline">
+                                <input ng-checked="{{feature.isUpdate}}==true" data-ng-model="feature.isWrite" id="isUpdate{{feature.feature._id}}" type="checkbox" name="check" value="true" disabled>
+                                <label for="isUpdate{{feature.feature._id}}">Read</label>
+                            </span>
+                            <span class="checkbox-inline">
+                                <input ng-checked="{{feature.isDelete}}==true" data-ng-model="feature.isWrite" id="isDelete{{feature.feature._id}}" type="checkbox" name="check" value="true" disabled>
+                                <label for="isDelete{{feature.feature._id}}">Delete</label>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr data-ng-show="(roleFeatures|filter:{selected: true,feature:{isComponent: true}}).length <= 0">
+                        <td colspan="3"><h5>No Component available for this role</h5></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="form-group">
+                <div class="col-md-offset-2 col-md-10">
+                    <button type="button" class="btn btn-info" ng-click="cancel()">Back</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    </div>
+    <div ng-include="'/system/views/delete-popup.html'"></div>
+</section>
+
+					

@@ -40,7 +40,7 @@ angular.module('mean.jobs', ['ngTagsInput']).controller('JobsController', ['$sco
             var myfilter = {};
             myfilter.filteredarray = myfilterarray;
             var query = {};
-            query.page = $scope.currentPage;
+            query.page = 1;
             query.pageSize = $scope.currentPageSize;
             query.filterinput = myfilter;
             $scope.loadPagination(query);
@@ -54,7 +54,7 @@ angular.module('mean.jobs', ['ngTagsInput']).controller('JobsController', ['$sco
             var myfilter = {};
             myfilter.filteredarray = myfilterarray;
             var query = {};
-            query.page = $scope.currentPage;
+            query.page = 1;
             query.pageSize = $scope.currentPageSize;
             query.filterinput = myfilter;
             $scope.loadPagination(query);
@@ -85,5 +85,9 @@ angular.module('mean.jobs', ['ngTagsInput']).controller('JobsController', ['$sco
         $scope.createJob=function(){
             $scope.breadCrumAdd("List");
         };
+        $scope.editJobs = function (urlPath, id) {
+	        urlPath = urlPath.replace(":jobId", id);
+	        $location.path(urlPath);
+	    };
     }
 ]);

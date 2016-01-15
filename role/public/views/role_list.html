@@ -1,0 +1,41 @@
+<section  data-ng-init="list(); ">
+    <div data-ng-include="'/system/views/alert.html'"></div>
+    <div ng-include="'/system/views/breadcrum.html'"></div>
+	<div class="mainwrapper">
+		<h3 class="pull-left">Roles</h3>
+		<button class="btn btn-info pull-right roleCreate" ng-if="writePermission" data-ng-click="newRole()">Create Role</button>
+	</div>
+	<table class="table table-bordered"  >
+		<thead>
+			<tr>
+				<th class="text-center">Name</th>
+				<th class="text-center">Role Code</th>
+				<th class="text-center">Description</th>
+				<th class="text-center">Actions</th>
+			</tr>
+		</thead>
+		<tbody class="anchorTag">
+			<tr data-ng-repeat="role in collection" class="" ng-class-odd="'odd'" ng-class-even="'even'" data-ng-show="collection || collection.length">
+				<td><a href="admin/role/{{role._id}}/view">{{role.name}}</a></td>
+				<td>{{role.roleCode}}</td>
+				<td>{{role.description | limitTo: 20}}...</td>
+				<!-- <td ><span ng-repeat = "feature in role.features">{{feature.feature.name}}<span ng-hide = "$last">,&nbsp;</span></span></td> -->
+				 <td><a href="" class="linksGap" ng-if="updatePermission" data-ng-click="editRole(ROLE.URL_PATH.EDITROLE,role._id)">
+					<i class="fa fa-pencil-square-o tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="Edit"></i></a> 
+					<a href="" ng-click = "removepop(role)" class="linksGap" ng-if="deletePermission">
+     					<i class="fa fa-minus-circle tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="Delete"></i></a>
+					<!-- <a href="" data-ng-click="remove(role)">Delete<i class="fa fa-minus-circle"></i></a> -->
+					
+				</td>
+			</tr>
+            <tr data-ng-hide="!collection || collection.length">
+                <td colspan="4">No roles found...</td>
+            </tr>
+		</tbody>
+	</table>
+    <div data-ng-show="!collection || collection.length" class="paginate usr">
+        <div ng-include="'system/views/paginationFilter.html'"></div>
+        <br>
+    </div>
+    <div ng-include="'/system/views/delete-popup.html'"></div>
+</section>

@@ -1,0 +1,48 @@
+<section data-ng-controller="FeaturecategoryController" data-ng-init="find(); loadNewFeaturecategoryForm();">
+	<div data-ng-include="'/system/views/alert.html'"></div>
+	<div ng-include="'/system/views/breadcrum.html'"></div>
+	<div class="mainwrapper social-group-header">
+		<h3 class="pull-left ">Feature Category</h3>
+		<button class="btn btn-info pro-top pull-right"
+			data-ng-click="newFeaturecategory()" ng-if="writePermission">Create</button>
+	</div>
+	<table class="table table-bordered table-condensed">
+		<thead>
+			<tr>
+				<th class="text-center">Name</th>
+				<th class="text-center">Icon</th>
+				<th class="text-center">Description</th>
+				<th class="text-center">Action</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr data-ng-repeat="featurecategory in collection" class=""
+				ng-class-odd="'odd'" ng-class-even="'even'">
+				<td><a href=""
+					data-ng-click="featurecategoryDetails(featurecategory)">{{featurecategory.name}}</a></td>
+				<td>{{featurecategory.icon}}</td>
+				<td>{{featurecategory.description | limitTo: 20}}...</td>
+				<td><a href=""
+					data-ng-click="newFeaturecategory(featurecategory)"
+					class="linksGap"><i class="fa fa-plus-square-o tooltip-right"
+						data-toggle="tooltip" data-placement="bottom" data-tooltip="Add"></i></a>
+					<a href="" class="linksGap"><i class="fa fa-list tooltip-right"
+						data-toggle="tooltip" data-placement="bottom" data-tooltip="List"></i></a>
+                    <a href="" class="linksGap" ng-if="updatePermission" data-ng-click="editFeatureCategory(ROLE.URL_PATH.FEATURECATEGORYEDIT,featurecategory._id)"> <i
+                         class="fa fa-pencil-square-o tooltip-right" data-toggle="tooltip"
+						data-placement="bottom" data-tooltip="Edit"></i></a> <a href=""
+					ng-click="modalDeletePopup(featurecategory)"class="linksGap"  ng-if="deletePermission">
+					 <i class="fa fa-minus-circle tooltip-right" 
+						data-placement="bottom" data-tooltip="Delete"></i></a></td>
+			</tr>
+			<tr data-ng-hide="!collection || collection.length">
+                <td colspan="8">No Feature Category found...</td>
+            </tr> 
+		</tbody>
+	</table>
+	<div data-ng-show=" !collection || collection.length" class="paginate usr">
+		<div ng-include="'system/views/paginationFilter.html'"></div>
+		<br>
+	</div>
+	<div ng-include="'/system/views/delete-popup.html'"></div>
+</section>

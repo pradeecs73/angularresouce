@@ -1,0 +1,56 @@
+<section data-ng-controller="FeatureController" data-ng-init="list()">
+    <div data-ng-include="'/system/views/alert.html'"></div>
+    <div ng-include="'/system/views/breadcrum.html'"></div>
+    <div class="mainwrapper social-group-header">
+        <h3 class="pull-left">Features</h3>
+        <button class="btn btn-info pull-right social-group-header-create "
+                data-ng-click="newFeature()" ng-if="writePermission">Create Feature
+        </button>
+    </div>
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+
+            <th class="text-center">Name</th>
+            <th class="text-center">URL</th>
+            <th class="text-center">Description</th>
+            <th class="text-center">Icon</th>
+            <th class="text-center">Color</th>
+            <th class="text-center">isComponent</th>
+            <th class="text-center">Actions</th>
+        </tr>
+        </thead>
+        <tbody class="anchorTag">
+        <tr data-ng-repeat="feature in collection" class="" ng-class-odd="'odd'"
+            ng-class-even="'even'">
+            <td>{{feature.name}}</td>
+            <td>{{feature.url}}</td>
+            <td>{{feature.description | limitTo: 20}}...</td>
+            <td>{{feature.icon}}</td>
+            <td>{{feature.color}}</td>
+            <td ng-if="feature.isComponent" class="text-center"><span class="glyphicon glyphicon-ok"></span></td>
+            <td ng-if="!feature.isComponent" class="text-center"><span class="glyphicon glyphicon-remove"></span></td>
+            <td><a href="/admin/feature/{{feature._id}}/view" class="linksGap"><i
+	class="fa fa-eye tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="View" ></i> </a>
+            
+            <a href="/admin/feature/{{feature._id}}/edit" class="linksGap"  ng-if="updatePermission"><i
+                    class="fa fa-pencil-square-o tooltip-right" data-toggle="tooltip" data-placement="bottom"
+                    data-tooltip="Edit"></i>
+            </a>
+                <a href="" ng-click="modalDeletePopup(feature)" class="linksGap" ng-if="deletePermission"> <i
+                        class="fa fa-minus-circle tooltip-right" data-toggle="tooltip" data-placement="bottom"
+                        data-tooltip="Delete"></i>
+                </a>
+            </td>
+        </tr>
+        <tr data-ng-hide="!collection || collection.length">
+            <td colspan="8">No Features found...</td>
+        </tr>
+        </tbody>
+    </table>
+    <div data-ng-show="!collection || collection.length" class="paginate usr">
+        <div ng-include="'system/views/paginationFilter.html'"></div>
+        <br>
+    </div>
+    <div ng-include="'/system/views/delete-popup.html'"></div>
+</section>

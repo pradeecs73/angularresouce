@@ -38,12 +38,27 @@ var SiteSchema = new Schema({
         default: '',
         trim: true
     },
-    username: {
+    siteUsername: {
         type: String,
         default: '',
         trim: true
     },
-    password: {
+    sitePassword: {
+        type: String,
+        default: '',
+        trim: true
+    },
+    apiUrl: {
+        type: String,
+        default: '',
+        trim: true
+    },
+    apiSecret: {
+        type: String,
+        default: '',
+        trim: true
+    },
+    apiSiteId: {
         type: String,
         default: '',
         trim: true
@@ -53,41 +68,41 @@ var SiteSchema = new Schema({
         default: '',
         trim: true
     },
-    checkLoginAPIJSON: {
+    /*checkLoginAPIJSON: {
         type: String,
         default: '',
         trim: true
-    },
+    },*/
     getUserInfoAPIendpoint: {
         type: String,
         default: '',
         trim: true
     },
-    getUserInfoAPIJSON: {
+    /*getUserInfoAPIJSON: {
         type: String,
         default: '',
         trim: true
-    },
+    },*/
     getSingleJobAPIendpoint: {
         type: String,
         default: '',
         trim: true
     },
-    getSingleJobAPIJSON: {
+    /*getSingleJobAPIJSON: {
         type: String,
         default: '',
         trim: true
-    },
+    },*/
     getAllJobsAPIendpoint: {
         type: String,
         default: '',
         trim: true
     },
-    getAllJobsAPIJSON: {
+    /*getAllJobsAPIJSON: {
         type: String,
         default: '',
         trim: true
-    },
+    },*/
     enabled: {
         type: Boolean,
         default: ''

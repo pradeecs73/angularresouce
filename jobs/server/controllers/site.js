@@ -29,26 +29,17 @@ module.exports = function(SiteCtrl) {
 			console.log(req.body);
 			var site = new SiteModel(req.body);
             // because we set our user.provider to local our models/user.js validation will always be true
-			req.assert('websiteName', 'Please enter website Name').notEmpty();
-			req.assert('websiteUrl', 'You must enter website Url').notEmpty();
-			req.assert('username', 'You must enter username').notEmpty();
-			req.assert('password', 'You must enter password').notEmpty();
-			req.assert('checkLoginAPIendpoint', 'You must enter checkLoginAPIendpoint')
-					.notEmpty();
-			req.assert('checkLoginAPIJSON', 'You must enter checkLoginAPIJSON')
-					.notEmpty();
-			req.assert('getUserInfoAPIendpoint', 'You must enter getUserInfoAPIendpoint')
-					.notEmpty();
-			req.assert('getUserInfoAPIJSON', 'You must enter getUserInfoAPIJSON')
-					.notEmpty();
-			req.assert('getSingleJobAPIendpoint', 'You must enter getSingleJobAPIendpoint')
-					.notEmpty();
-			req.assert('getSingleJobAPIJSON', 'You must enter getSingleJobAPIJSON')
-					.notEmpty();
-			req.assert('getAllJobsAPIendpoint', 'You must enter getAllJobsAPIendpoint')
-					.notEmpty();
-			req.assert('getAllJobsAPIJSON', 'You must enter getAllJobsAPIJSON')
-					.notEmpty();
+			req.assert('websiteName', 'Please enter Site Name').notEmpty();
+			req.assert('websiteUrl', 'You must enter Site Url').notEmpty();
+			req.assert('siteUsername', 'You must enter Site Username').notEmpty();
+			req.assert('sitePassword', 'You must enter Site Password').notEmpty();
+			req.assert('apiUrl', 'You must enter API Url').notEmpty();
+			req.assert('apiSecret', 'You must enter API Secret').notEmpty();
+			req.assert('apiSiteId', 'You must enter API Site Id').notEmpty();
+			req.assert('checkLoginAPIendpoint', 'You must enter checkLogin API Endpoint').notEmpty();
+			req.assert('getUserInfoAPIendpoint', 'You must enter GetUserInfo API Endpoint').notEmpty();
+			req.assert('getSingleJobAPIendpoint', 'You must enter GetSingleJob API Endpoint').notEmpty();
+			req.assert('getAllJobsAPIendpoint', 'You must enter GetAllJobs API Endpoint').notEmpty();
 			
 			var errors = req.validationErrors();
 			if (errors) {
@@ -90,28 +81,19 @@ module.exports = function(SiteCtrl) {
 		update : function(req, res) {
 			var site = req.site;
 			site = _.extend(site, req.body);
-			// because we set our user.provider to local our models/user.js validation will always be true
 			
 			req.assert('websiteName', 'Please enter website Name').notEmpty();
 			req.assert('websiteUrl', 'You must enter website Url').notEmpty();
-			req.assert('username', 'You must enter username').notEmpty();
-			req.assert('password', 'You must enter password').notEmpty();
-			req.assert('checkLoginAPIendpoint', 'You must enter checkLoginAPIendpoint')
-					.notEmpty();
-			req.assert('checkLoginAPIJSON', 'You must enter checkLoginAPIJSON')
-					.notEmpty();
-			req.assert('getUserInfoAPIendpoint', 'You must enter getUserInfoAPIendpoint')
-					.notEmpty();
-			req.assert('getUserInfoAPIJSON', 'You must enter getUserInfoAPIJSON')
-					.notEmpty();
-			req.assert('getSingleJobAPIendpoint', 'You must enter getSingleJobAPIendpoint')
-					.notEmpty();
-			req.assert('getSingleJobAPIJSON', 'You must enter getSingleJobAPIJSON')
-					.notEmpty();
-			req.assert('getAllJobsAPIendpoint', 'You must enter getAllJobsAPIendpoint')
-					.notEmpty();
-			req.assert('getAllJobsAPIJSON', 'You must enter getAllJobsAPIJSON')
-					.notEmpty();
+			req.assert('siteUsername', 'You must enter username').notEmpty();
+			req.assert('sitePassword', 'You must enter password').notEmpty();
+			req.assert('apiUrl', 'You must enter API Url').notEmpty();
+			req.assert('apiSecret', 'You must enter API Secret').notEmpty();
+			req.assert('apiSiteId', 'You must enter API Site Id').notEmpty();
+			req.assert('checkLoginAPIendpoint', 'You must enter checkLogin API Endpoint').notEmpty();
+			req.assert('getUserInfoAPIendpoint', 'You must enter GetUserInfo API Endpoint').notEmpty();
+			req.assert('getSingleJobAPIendpoint', 'You must enter GetSingleJob API Endpoint').notEmpty();
+			req.assert('getAllJobsAPIendpoint', 'You must enter GetAllJobs API Endpoint').notEmpty();
+
 			var errors = req.validationErrors();
 			if (errors) {
 				return res.status(400).send(errors);

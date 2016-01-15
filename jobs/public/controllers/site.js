@@ -38,7 +38,7 @@ angular.module('mean.jobs').controller('SiteController', function($scope, Global
         $scope.breadCrumAdd("Create");
     };
     
-    $scope.editSite = function() {
+    $scope.EditSite = function() {
     $scope.breadCrumAdd("Edit");
     };
      
@@ -143,4 +143,9 @@ angular.module('mean.jobs').controller('SiteController', function($scope, Global
 	$scope.site=site;
 	$location.path('/admin/site/'+ site._id +'/details');
   };
+  $scope.editSite = function (urlPath, id) {
+      urlPath = urlPath.replace(":siteId", id);
+      $location.path(urlPath);
+  };
+  
 });

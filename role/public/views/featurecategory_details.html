@@ -1,0 +1,47 @@
+<section data-ng-controller="FeaturecategoryController"
+	data-ng-init="findOne(); detailFeaturecategory();">
+	<div ng-include="'/system/views/breadcrum.html'"></div>
+	<div class="mainwrapper social-group-header">
+		<div>
+			<h3 class="pull-left">Feature Category</h3>
+			<div class="pull-right">
+				<a class="btn btn-info"
+					href="/admin/featurecategory/{{featurecategory._id}}/edit">Edit</a> <a
+					href="" class="btn btn-info"
+					ng-click="modalDeletePopup(featurecategory)">Delete</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="mainwrapper">
+		<form name="featurecategoryForm"
+			class="form-horizontal leftAlign formAlign" novalidate>
+			<div class="form-group">
+				<label mean-token="'show-name'" class="col-md-2">Name</label>
+				<div class="col-md-10 viewRole">{{featurecategory.name}}</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'show-icon'" class="col-md-2">Icon</label>
+				<div class="col-md-10 viewRole">{{featurecategory.icon}}</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'show-description'" class="col-md-2">Description</label>
+				<div class="col-md-10 viewRole">
+					{{featurecategory.description}}</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'show-parent'" class="col-md-2">Parent</label>
+				<div class="col-md-10 viewRole">{{featurecategory.parent}}</div>
+			</div>
+			<div class="form-group">
+				<div class="col-md-offset-2 col-md-10">
+					<button type="button" class="btn btn-info"
+						ng-click="cancelFeaturecategory()">Back</button>
+				</div>
+			</div>
+		</form>
+	</div>
+	<div ng-include="'/system/views/delete-popup.html'"></div>
+</section>
+
+

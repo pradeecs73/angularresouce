@@ -1,0 +1,111 @@
+<section data-ng-controller="FeatureController" data-ng-init="findOne()">
+    <div ng-include="'/system/views/breadcrum.html'"></div>
+    <div class="mainwrapper">
+        <h3 class="pull-left ">Feature</h3><br>
+    </div>
+    <div class="mainwrapper">
+        <form name="featureForm" class="form-horizontal editfeature"
+            data-ng-submit="update(featureForm.$valid)" novalidate>
+            <div class="form-group">
+                <label mean-token="'edit-feature_name'" class="col-md-2 pull-left">Name</label>
+                <div class="col-md-6">
+                    <input name="name" type="text" class="form-control"
+                    data-ng-model="feature.name" id="name" placeholder="Name" required>
+                    <div ng-show="submitted && featureForm.name.$invalid">
+                        <span class="err-msg errorText errorRed"
+                        ng-show="featureForm.name.$error.required"> Please
+                        enter the Name! </span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label mean-token="'edit-feature_url'" class="col-md-2 pull-left">URL</label>
+                <div class="col-md-6">
+                    <input name="feature_url" type="text" class="form-control"
+                    data-ng-model="feature.url" id="url" pattern="/.+"
+                    placeholder="URL" required>
+                    <div ng-show="submitted && featureForm.feature_url.$invalid">
+                        <span class="err-msg errorText errorRed"
+                        ng-show="featureForm.feature_url.$error.required"> Please
+                        enter the URL! </span>
+                    </div>
+                    <div ng-show="submitted && featureForm.feature_url.$invalid">
+                        <span class="err-msg errorText errorRed"
+                        ng-show="featureForm.feature_url.$error.pattern"> Please
+                        enter the valid URL! (ex: /example) </span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label mean-token="'edit-description'" class="col-md-2 pull-left">Description</label>
+                <div class="col-md-6">
+                    <textarea name="description" type="text" class="form-control"
+                    data-ng-model="feature.description" id="description" placeholder="Description" cols="30" rows="5"
+                    required></textarea>
+                    <div ng-show="submitted && featureForm.description.$invalid">
+                        <span class="err-msg errorText errorRed"
+                        ng-show="featureForm.description.$error.required"> Please
+                        enter Description! </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label mean-token="'edit-icon'" class="col-md-2 pull-left">Icon</label>
+                <div class="col-md-6">
+                    <input name="icon" type="text" class="form-control"
+                    data-ng-model="feature.icon" id="description" placeholder="Icon"
+                    required>
+                    <div ng-show="submitted && featureForm.icon.$invalid">
+                        <span class="err-msg errorText errorRed"
+                        ng-show="featureForm.icon.$error.required"> Please
+                        enter icon name! </span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label mean-token="'edit-color'" class="col-md-2 pull-left">Color</label>
+                <div class="col-md-6">
+                    <input name="color" type="text" class="form-control"
+                    data-ng-model="feature.color" id="description" placeholder="color"
+                    required>
+                    <div ng-show="submitted && featureForm.color.$invalid">
+                        <span class="err-msg errorText errorRed"
+                        ng-show="featureForm.color.$error.required"> Please
+                        enter color code! </span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label mean-token="'edit-isComponent'" class="col-md-2 pull-left">isComponent</label>
+                <div class="col-md-6">
+                    <input name="feature_isComponent" type="checkbox" class="" ng-checked="feature.isComponent"
+                    data-ng-model="feature.isComponent" id="isComponent">
+                    <!-- <div ng-show="submitted && featureForm.color.$invalid">
+                        <span class="err-msg errorText errorRed"
+                        ng-show="featureForm.color.$error.required"> Please
+                        enter a valid color code! </span>
+                    </div> -->
+                </div>
+            </div>
+            <div class="form-group" ng-show = "feature.isComponent">
+                <label mean-token="'edit-width'" class="col-md-2 pull-left">Width</label>
+                <div class="col-md-6">
+                    <select ng-options="width.option as width.value for width in componentWidth" ng-model="feature.width">
+					   <option style="display:none" value="">{{feature.width}}</option>
+					</select>
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                <div class="col-md-offset-2 col-md-10">
+                    <button mean-token="'edit-submit'" type="submit"
+                    class="btn btn-info">Submit</button>
+                    <button type="button" class="btn btn-info" ng-click="cancel()">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</section>

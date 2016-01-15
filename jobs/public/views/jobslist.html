@@ -3,7 +3,7 @@
       <div class="form-group">
             <div class="mainwrapper anchorTag">
                      <tags-input data-ng-model="jobsfilter" name="keywords" display-property="name"
-                   replace-spaces-with-dashes="false" on-tag-added="filterinputadded()" on-tag-removed="filterinputremoved()" placeholder="Filter with Skill" >
+                   replace-spaces-with-dashes="false" on-tag-added="filterinputadded()" on-tag-removed="filterinputremoved()" placeholder="Filter with Skill" min-length="1">
                    <auto-complete source="loadInput($query)" min-length="1" load-on-focus="true" > </auto-complete>
                   </tags-input>
             </div>
@@ -24,7 +24,7 @@
                </div>
                <div class="col-md-12 provider">
                   <h4 class="pull-left postdate black">Posted On: {{jobs.postedDate}}</h4>
-                  <h4 class="pull-right provider-name black">Truelancer</h4>
+                  <h4 class="pull-right provider-name black">{{jobs.jobUrl.split(".")[1]}}</h4>
                </div>
             </div> 
       </div>

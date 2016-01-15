@@ -1,0 +1,66 @@
+<section data-ng-controller="FeaturecategoryController" data-ng-init="findOne(); editFeaturecategory();" >
+	<div ng-include="'/system/views/breadcrum.html'"></div>
+	<div class="mainwrapper social-group-header">
+		<h3 class="pull-left ">Feature Category</h3>
+	</div>
+	<div class="mainwrapper">
+		<form name="featurecategoryForm" class="form-horizontal formAlign"
+			novalidate>
+			<div class="form-group"
+				ng-class="{ 'has-error' : submitted && featurecategoryForm.name.$invalid }">
+				<label mean-token="'create-name'"
+					class="col-md-2 pull-left err-msg-name">Name</label>
+				<div class="col-md-9">
+					<input name="name" type="text" data-ng-model="featurecategory.name"
+						id="name" placeholder="Name" class="form-control err-msg "
+						required />
+					<div ng-show="submitted && featurecategoryForm.name.$invalid">
+						<span class="err-msg errorRed"
+							ng-show="featurecategoryForm.name.$error.required"> Please
+							enter the Name </span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group"
+				ng-class="{ 'has-error' : submitted && featurecategoryForm.icon.$invalid }">
+				<label mean-token="'create-icon'"
+					class="col-md-2 pull-left err-msg-icon">Icon</label>
+				<div class="col-md-9">
+					<input name="icon" type="text" data-ng-model="featurecategory.icon"
+						id="icon" placeholder="icon" class="form-control err-msg "
+						required />
+					<div ng-show="submitted && featurecategoryForm.icon.$invalid">
+						<span class="err-msg errorRed"
+							ng-show="featurecategoryForm.icon.$error.required"> Please
+							enter the icon </span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group"
+				ng-class="{ 'has-error' : submitted && featurecategoryForm.description.$invalid }">
+				<label mean-token="'create-description'"
+					class="col-md-2 pull-left err-msg-description">Description</label>
+				<div class="col-md-9">
+					<textarea name="description" type="text"
+						data-ng-model="featurecategory.description" id="description"
+						cols="30" rows="3" placeholder="Description"
+						class="form-control err-msg " required></textarea>
+					<div
+						ng-show="submitted && featurecategoryForm.description.$invalid">
+						<span class="err-msg errorRed"
+							ng-show="featurecategoryForm.description.$error.required">
+							Please enter the Description </span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-md-offset-2 col-md-9 roleCreate">
+					<button mean-token="'create-submit'" type="button"
+						class="btn btn-info" ng-click="update(featurecategoryForm.$valid)">Submit</button>
+					<button type="button" class="btn btn-info"
+						ng-click="cancelFeaturecategory()">Cancel</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</section>
