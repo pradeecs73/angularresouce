@@ -6,6 +6,7 @@ angular.module('mean.jobs',['ngTagsInput']).controller('SkillSetController', ['$
         $scope.PROFILE = PROFILE;
         $scope.SERVICE = SkillSet;
         initializePagination($scope, $rootScope, $scope.SERVICE);
+        $scope.skillsetarray=[{'main':false}];
 
         $scope.loadInput = function($query) {
             return $scope.skillList.filter(function(skill) {
@@ -22,7 +23,8 @@ angular.module('mean.jobs',['ngTagsInput']).controller('SkillSetController', ['$
         $scope.create = function(isValid) {
 
 				if (isValid) {
-					console.log("1");
+					console.log($scope.skillset);
+					console.log($scope.skillsetarray);
 				} else {
 					$scope.submitted = true;
 				}
@@ -31,6 +33,15 @@ angular.module('mean.jobs',['ngTagsInput']).controller('SkillSetController', ['$
         $scope.cancelSkillSet = function() {
 				$location.path(SKILL.URL_PATH.SKILLLIST);
 			};
+
+	    $scope.addskillrow = function(index) {
+				$scope.skillsetarray.push({'main':false});
+			};
+			
+
+		$scope.removeskillrow = function(index) {
+			$scope.skillsetarray.splice(index,1);
+		};		
 
     }
     ]);
