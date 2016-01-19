@@ -26,5 +26,7 @@ module.exports = function(Jobs, app, auth, database) {
     app.route('/api/jobs/:jobId', auth.requiresLogin).get(jobslists.singlejobdetail);
     app.route('/api/recommendedjobs/pagination', auth.requiresLogin).get(jobslists.recommendedjobListByPagination);
     app.route('/api/recommendedjobs/checked', auth.requiresLogin).get(jobslists.listingloginuserskills);
+    app.route('/api/matchingjobs/email', auth.requiresLogin).get(jobslists.emailtriggerformatchedjobs);
+    app.route('/api/forcastingjobs/email', auth.requiresLogin).get(jobslists.forecastingjobsemailtrigger);
     app.param('jobId', jobslists.job);
 };

@@ -1,6 +1,6 @@
 'use strict';
 /* jshint -W098 */
-angular.module('mean.jobs', ['ngTagsInput']).controller('JobsController', ['$scope', 'SkillService', '$location', 'Global', 'Jobs', '$http', '$rootScope', 'PROFILE', '$stateParams', 'JOBS','MESSAGES',
+angular.module('mean.jobs').controller('JobsController', ['$scope', 'SkillService', '$location', 'Global', 'Jobs', '$http', '$rootScope', 'PROFILE', '$stateParams', 'JOBS','MESSAGES',
     function($scope, SkillService, $location, Global, Jobs, $http, $rootScope, PROFILE, $stateParams, JOBS,MESSAGES) {
         $scope.global = Global;
         $scope.PROFILE = PROFILE;
