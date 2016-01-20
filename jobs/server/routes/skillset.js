@@ -10,6 +10,12 @@ module.exports = function(Skillset, app, auth, database) {
 	   
 	  app.route('/api/skillset')
 	  	.post(SkillsetCtrl.create);
-	   
+	  	
+	  	app.route('/api/skillset/:skillsetId')
+	  	    .delete(SkillsetCtrl.skillsetdelete);
 
+	   app.route('/api/skillset/pagination')
+	  	.get(SkillsetCtrl.fetchallskillset); 	
+	   
+        app.param('skillsetId', SkillsetCtrl.skillset);
 };

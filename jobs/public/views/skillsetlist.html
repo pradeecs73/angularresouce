@@ -1,0 +1,36 @@
+<section  data-ng-controller = 'SkillSetController' data-ng-init="list(); ">
+    <div data-ng-include="'/system/views/alert.html'"></div>
+    <div ng-include="'/system/views/breadcrum.html'"></div>
+	<div class="mainwrapper">
+		<h3 class="pull-left">Roles</h3>
+		<button class="btn btn-info pull-right roleCreate" ng-if="writePermission" data-ng-click="newskillSet()">Create Skillset</button>
+	</div>
+	<table class="table table-bordered"  >
+		<thead>
+			<tr>
+				<th>Name</th>
+                <th>Cost</th>
+			</tr>
+		</thead>
+		<tbody class="anchorTag">
+			<tr data-ng-repeat="skillset in collection" class="" ng-class-odd="'odd'" ng-class-even="'even'" data-ng-show="collection || collection.length">
+				
+				 <td>{{skillset.name}}</td>
+                 <td>{{skillset.cost}}</td>
+				 <td><a href="" class="linksGap" ng-if="updatePermission" data-ng-click="">
+					<i class="fa fa-pencil-square-o tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="Edit"></i></a> 
+					<a href="" ng-click = "removepop(skillset)" class="linksGap" ng-if="deletePermission">
+     					<i class="fa fa-minus-circle tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="Delete"></i></a>		
+				</td>
+			</tr>
+            <tr data-ng-hide="collection.length > 0">
+                <td colspan="4">No Skillset found...</td>
+            </tr>
+		</tbody>
+	</table>
+    <div data-ng-show="collection.length > 0" class="paginate usr">
+        <div ng-include="'system/views/paginationFilter.html'"></div>
+        <br>
+    </div>
+    <div ng-include="'/system/views/delete-popup.html'"></div>
+</section>

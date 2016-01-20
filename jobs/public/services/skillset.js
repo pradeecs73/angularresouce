@@ -1,5 +1,5 @@
 'use strict';
-angular.module('mean.jobs').factory('SkillSet', ['$resource',
+angular.module('mean.jobs').factory('SkillSetService', ['$resource',
     function($resource) {
         return {
             page: $resource('/api/skillset/pagination', {}, {

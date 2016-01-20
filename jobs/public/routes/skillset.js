@@ -9,5 +9,13 @@ angular.module('mean.jobs').config(
                     return MeanUser.checkLoggedin();
                 }
             }
+        }).state(SKILLSET.STATE.SKILLSETLIST, {
+            url: SKILLSET.URL_PATH.SKILLSETLIST,
+            templateUrl: SKILLSET.FILE_PATH.SKILLSETLIST,
+            resolve: {
+                loggedin: function(MeanUser) {
+                    return MeanUser.checkLoggedin();
+                }
+            }
         });
     }]);

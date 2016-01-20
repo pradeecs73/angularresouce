@@ -1,104 +1,101 @@
 <section data-ng-controller="SkillSetController" data-ng-init="loadfilterSkills();">
-	<div ng-include="'/system/views/breadcrum.html'"></div>
-
-	<div class="mainwrapper">
-		<h3 class="pull-left ">Skill Set</h3>
-	</div>
-	<div class="mainwrapper">
-		<form name="skillsetForm" class="form-horizontal formAlign"
-			data-ng-submit="create(skillsetForm.$valid)" novalidate>
-			<div class="form-group "
-				ng-class="{ 'has-error' : submitted && skillsetForm.name.$invalid }">
-				<label mean-token="'create-name'"
-					class="col-md-2 pull-left err-msg-name"> Name</label>
-				<div class="col-md-9">
-					<input name="name" type="text" data-ng-model="skillset.name "
-						id="name" placeholder="Name" class="form-control err-msg "
-						required>
-					<div class="errorRed" ng-repeat="err in error.data"
-						ng-if="err.param =='name' || err.param == 'normalizedName'">{{err.msg}}</div>
-					<div ng-show="submitted && skillsetForm.name.$invalid">
-						<span class="err-msg" ng-show="skillsetForm.name.$error.required">
-							Please enter the Skill set Name </span>
-					</div>
-				</div>
-			</div>
-			<div class="form-group "
-				ng-class="{ 'has-error' : submitted && skillsetForm.cost.$invalid }">
-				<label mean-token="'create-cost'"
-					class="col-md-2 pull-left err-msg-cost">Cost in $</label>
-				<div class="col-md-9">
-				     <input name="cost" type="number" data-ng-model="skillset.cost"
-						id="cost" placeholder="Cost" class="form-control err-msg "
-						required>		
-					<div class="errorRed" ng-repeat="err in error.data"
-						ng-if="err.param =='cost'">{{err.msg}}</div>
-					<div ng-show="submitted && skillsetForm.cost.$invalid">
-						<span class="err-msg"
-							ng-show="skillsetForm.cost.$error.required"> Please
-							enter the cost</span>
-					</div>
-				</div>
-			</div>
-		<div  ng-repeat="skill in skillsetarray">
-			<div class="form-group">
-				<label mean-token="'create-keywords'"
-					class="col-md-2 pull-left err-msg-keywords">Skills</label>
-				<div class="col-md-5">
-					<tags-input data-ng-model="skillsettagsinput" name="keywords" display-property="name"
-                   replace-spaces-with-dashes="false" placeholder="Add a skill" min-length="1">
-					<auto-complete source="loadInput($query)" min-length="1" load-on-focus="true" > </auto-complete>
-						</tags-input>
-					<div class="errorRed" ng-repeat="err in error.data"
-						ng-if="err.param =='keywords'">{{err.msg}}</div>
-				</div>
-				<div class="col-md-1">
-				   <select name="level" data-ng-model="skill.skilllevel" required>
-				      <option value="">Select Level</option>
-					  <option value="1">1</option>
-					  <option value="2">2</option>
-					  <option value="3">3</option>
-					  <option value="4">4</option>
-					  <option value="5">5</option>
-				   </select>
-				   <div ng-show="submitted && skillsetForm.level.$invalid">
-						<span class="err-msg"
-							ng-show="skillsetForm.level.$error.required"> Please
-							select the level</span>
-					</div>
-				</div>
-				<div class="col-md-1">
-				  Main Skill <input type="checkbox" name="maincourse" data-ng-model="skill.main">
-				</div>
-				<div class="ulPagnate">
-					<label>&nbsp;</label>
-						<div class="col-md-2" ng-show="$last">
-							<button class="pull-left" type="button" ng-click="removeskillrow($index)"
-								ng-show="$index>0">
-
-							<i class="fa edu-action fa-minus-circle"></i>
-							</button>
-							<button type="button" ng-click="addskillrow($index)">
-								<i class="fa edu-action fa-plus-circle"></i>
-							</button>
-						</div>
-						<div class="col-md-1">
-						<button class="martop25" type="button" ng-click="removeskillrow($index)" ng-hide="$last">
-							<i class="fa edu-action fa-minus-circle"></i>
-						</button>
-						</div>
-				</div>	
-			</div>
-		</div>
-
-			<div class="form-group left1">
-				<div class="col-md-offset-2 col-md-9">
-
-					<button mean-token="'create-submit'" type="submit"
-						class="btn btn-info">Submit</button>
-					<button type="button" class="btn btn-info" ng-click="cancelSkillSet()">Cancel</button>
-				</div>
-			</div>
-		</form>
-	</div>
+    <div ng-include="'/system/views/breadcrum.html'"></div>
+    <div class="mainwrapper">
+        <h3 class="pull-left ">Skill Set</h3>
+    </div>
+    <div class="mainwrapper">
+        <form name="skillsetForm" class="form-horizontal formAlign"
+            data-ng-submit="create(skillsetForm.$valid)" novalidate>
+            <div class="form-group "
+                ng-class="{ 'has-error' : submitted && skillsetForm.name.$invalid }">
+                <label mean-token="'create-name'"
+                class="col-md-2 pull-left err-msg-name"> Name</label>
+                <div class="col-md-9">
+                    <input name="name" type="text" data-ng-model="skillset.name"
+                    id="name" placeholder="Name" class="form-control err-msg "
+                    required>
+                    <div class="errorRed" ng-repeat="err in error.data"
+                    ng-if="err.param =='name' || err.param == 'normalizedName'">{{err.msg}}</div>
+                    <div ng-show="submitted && skillsetForm.name.$invalid">
+                        <span class="err-msg" ng-show="skillsetForm.name.$error.required">
+                        Please enter the Skill set Name </span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group "
+                ng-class="{ 'has-error' : submitted && skillsetForm.cost.$invalid }">
+                <label mean-token="'create-cost'"
+                class="col-md-2 pull-left err-msg-cost">Cost in $</label>
+                <div class="col-md-9">
+                    <input name="cost" type="number" data-ng-model="skillset.cost"
+                    id="cost" placeholder="Cost" class="form-control err-msg "
+                    required>
+                    <div class="errorRed" ng-repeat="err in error.data"
+                    ng-if="err.param =='cost'">{{err.msg}}</div>
+                    <div ng-show="submitted && skillsetForm.cost.$invalid">
+                        <span class="err-msg"
+                        ng-show="skillsetForm.cost.$error.required"> Please
+                        enter the cost</span>
+                    </div>
+                </div>
+            </div>
+            <div  ng-repeat="skill in skillsetarray">
+                <div class="form-group">
+                    <label mean-token="'create-keywords'"
+                    class="col-md-2 pull-left err-msg-keywords">Skills</label>
+                    <div class="col-md-5">
+                        <!--<tags-input data-ng-model="skill.skillid" name="keywords" display-property="name"
+                        replace-spaces-with-dashes="false" placeholder="Add a skill" min-length="1" add-from-autocomplete-only="true" >
+                        <auto-complete source="loadInput($query)" min-length="1" load-on-focus="true" > </auto-complete>
+                        </tags-input>-->
+                        <angucomplete-alt id="ex1" placeholder="Search countries"  pause="100" data-ng-model="skill.skillid"  selected-object="skillselected"  local-data="skillsetskilllist" search-fields="name" title-field="name"  minlength="1" input-class="form-control form-control-small"/>
+                        <div class="errorRed" ng-repeat="err in error.data"
+                        ng-if="err.param =='keywords'">{{err.msg}}</div>
+                    </div>
+                    <div class="col-md-1">
+                        <select name="level" data-ng-model="skill.skilllevel" required>
+                            <option value="">Select Level</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                        <div ng-show="submitted && skillsetForm.level.$invalid">
+                            <span class="err-msg"
+                            ng-show="skillsetForm.level.$error.required"> Please
+                            select the level</span>
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        Main Skill <input type="checkbox" name="maincourse" data-ng-model="skill.main">
+                    </div>
+                    <div class="ulPagnate">
+                        <label>&nbsp;</label>
+                        <div class="col-md-2" ng-show="$last">
+                            <button class="pull-left" type="button" ng-click="removeskillrow($index)"
+                            ng-show="$index>0">
+                            <i class="fa edu-action fa-minus-circle"></i>
+                            </button>
+                            <button type="button" ng-click="addskillrow($index)">
+                            <i class="fa edu-action fa-plus-circle"></i>
+                            </button>
+                        </div>
+                        <div class="col-md-1">
+                            <button class="martop25" type="button" ng-click="removeskillrow($index)" ng-hide="$last">
+                            <i class="fa edu-action fa-minus-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group left1">
+                <div class="col-md-offset-2 col-md-9">
+                    <button mean-token="'create-submit'" type="submit"
+                    class="btn btn-info">Submit</button>
+                    <button type="button" class="btn btn-info" ng-click="cancelSkillSet()">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
 </section>

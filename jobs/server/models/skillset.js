@@ -9,7 +9,6 @@ var skillsetSchema = new Schema({
     },
     skill:[{
          skillid:{type:Schema.ObjectId,ref:'skill'},
-         name:{type:String,trim: true},
          skilllevel:{type:Number},
          main:{type:Boolean}
     }],
