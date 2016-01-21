@@ -30,10 +30,37 @@ module.exports = function(Jobs, app) {
             });
         },
         create: function(req, res) {
+            req.assert('name', 'Please enter Skill Set name').notEmpty();
+            req.assert('cost', 'Please enter Skill Set cost').notEmpty();
+            var errors = req.validationErrors();
+            if (errors) {
+                return res.status(400).send(errors);
+            }
             var skillsetcreate = new skillsetModel(req.body);
             skillsetcreate.save(function(err, items) {
                 if (err) {
-                    console.log(err);
+                    switch (err.code) {
+                        case 11000:
+                        case 11001:
+                            res.status(400).json([{
+                                msg: 'Skill Set already exists',
+                                param: 'name'
+                            }]);
+                            break;
+                        default:
+                            var modelErrors = [];
+                            if (err.errors) {
+                                for (var x in err.errors) {
+                                    modelErrors.push({
+                                        param: x,
+                                        msg: err.errors[x].message,
+                                        value: err.errors[x].value
+                                    });
+                                }
+                                res.status(400).json(modelErrors);
+                            }
+                    }
+                    return res.status(400);
                 } else {
                     res.send(items);
                 }
@@ -49,21 +76,58 @@ module.exports = function(Jobs, app) {
             });
         },
         skillsetdelete: function(req, res) {
-         var skillset = req.skillset;
-
-         skillset.remove(function(err,deletedskillset) {
+            var skillset = req.skillset;
+            skillset.remove(function(err, deletedskillset) {
                 if (err) {
                     return res.status(500).json({
                         error: 'Cannot delete the skillset'
                     });
-                }
-                else{ 
+                } else {
                     res.send(deletedskillset);
                 }
-               
             });
-
-
+        },
+        singleskillsetdetail: function(req, res) {
+            res.send(req.skillset);
+        },
+        skillsetupdate: function(req, res) {
+            req.assert('name', 'Please enter Skill Set name').notEmpty();
+            req.assert('cost', 'Please enter Skill Set cost').notEmpty();
+            var errors = req.validationErrors();
+            if (errors) {
+                return res.status(400).send(errors);
+            }
+            var skillset = req.skillset;
+            var savingskillset = _.extend(skillset, req.body);
+            console.log(savingskillset);
+            savingskillset.save(function(err, items) {
+                if (err) {
+                    switch (err.code) {
+                        case 11000:
+                        case 11001:
+                            res.status(400).json([{
+                                msg: 'Skill Set already exists',
+                                param: 'name'
+                            }]);
+                            break;
+                        default:
+                            var modelErrors = [];
+                            if (err.errors) {
+                                for (var x in err.errors) {
+                                    modelErrors.push({
+                                        param: x,
+                                        msg: err.errors[x].message,
+                                        value: err.errors[x].value
+                                    });
+                                }
+                                res.status(400).json(modelErrors);
+                            }
+                    }
+                    return res.status(400);
+                } else {
+                    res.send(items);
+                }
+            });
         }
     }
 };

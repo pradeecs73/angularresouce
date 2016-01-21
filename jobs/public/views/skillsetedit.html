@@ -1,17 +1,17 @@
-<section data-ng-controller="SkillSetController" data-ng-init="loadfilterSkills();">
+<section data-ng-controller="SkillSetController" data-ng-init="findskillSet();loadfilterSkills();">
     <div ng-include="'/system/views/breadcrum.html'"></div>
     <div class="mainwrapper">
         <h3 class="pull-left ">Skill Set</h3>
     </div>
     <div class="mainwrapper">
         <form name="skillsetForm" class="form-horizontal formAlign"
-            data-ng-submit="create(skillsetForm.$valid)" novalidate>
+            data-ng-submit="saveeditedskillset(skillsetForm.$valid)" novalidate>
             <div class="form-group "
                 ng-class="{ 'has-error' : submitted && skillsetForm.name.$invalid }">
                 <label mean-token="'create-name'"
                 class="col-md-2 pull-left err-msg-name"> Name</label>
                 <div class="col-md-9">
-                    <input name="name" type="text" data-ng-model="skillset.name"
+                    <input name="name" type="text" data-ng-model="singleskillsetdetail.name"
                     id="name" placeholder="Name" class="form-control err-msg "
                     required>
                     <div class="errorRed" ng-repeat="err in error.data"
@@ -27,7 +27,7 @@
                 <label mean-token="'create-cost'"
                 class="col-md-2 pull-left err-msg-cost">Cost in $</label>
                 <div class="col-md-9">
-                    <input name="cost" type="number" data-ng-model="skillset.cost"
+                    <input name="cost" type="number" data-ng-model="singleskillsetdetail.cost"
                     id="cost" placeholder="Cost" class="form-control err-msg "
                     required>
                     <div class="errorRed" ng-repeat="err in error.data"
@@ -39,17 +39,17 @@
                     </div>
                 </div>
             </div>
-            <div  ng-repeat="skill in skillsetarray track by $index">
+           <div  ng-repeat="skillset in singleskillsetdetail.skill track by $index">
                 <div class="form-group">
                     <label mean-token="'create-keywords'"
                     class="col-md-2 pull-left err-msg-keywords">Skills</label>
                     <div class="col-md-5">
-                        <angucomplete-alt id="ex1" name="skillautoselect" placeholder="Search Skills"  pause="100"  selected-object="skillselected"  local-data="skillsetskilllist" search-fields="name" title-field="name" minlength="1" input-class="form-control form-control-small" required/>
+                        <angucomplete-alt id="ex1" placeholder="Search Skills"  pause="100" selected-object="editskillselected" initial-value="skillset" local-data="skillsetskilllist" search-fields="name" title-field="name" minlength="1" input-class="form-control form-control-small"/>
                         <div class="errorRed" ng-repeat="err in error.data"
                         ng-if="err.param =='keywords'">{{err.msg}}</div>
                     </div>
                     <div class="col-md-1">
-                        <select name="level" data-ng-model="skill.skilllevel" required>
+                        <select name="level" data-ng-model="skillset.skilllevel" required>
                             <option value="">Select Level</option>
                             <option value="1">1</option>
                             <option value="2">2</option>
@@ -62,21 +62,21 @@
                         </div>
                     </div>
                     <div class="col-md-1">
-                        Main Skill <input type="checkbox" name="maincourse" data-ng-model="skill.main">
+                        Main Skill <input type="checkbox" name="maincourse" data-ng-model="skillset.main">
                     </div>
                     <div class="ulPagnate">
                         <label>&nbsp;</label>
                         <div class="col-md-2" ng-show="$last">
-                            <button class="pull-left" type="button" ng-click="removeskillrow($index)"
+                            <button class="pull-left" type="button" ng-click="removeeditskillrow($index)"
                             ng-show="$index>0">
                             <i class="fa edu-action fa-minus-circle"></i>
                             </button>
-                            <button type="button" ng-click="addskillrow($index)">
+                            <button type="button" ng-click="addeditskillrow($index)">
                             <i class="fa edu-action fa-plus-circle"></i>
                             </button>
                         </div>
                         <div class="col-md-1">
-                            <button class="martop25" type="button" ng-click="removeskillrow($index)" ng-hide="$last">
+                            <button class="martop25" type="button" ng-click="removeeditskillrow($index)" ng-hide="$last">
                             <i class="fa edu-action fa-minus-circle"></i>
                             </button>
                         </div>
@@ -87,7 +87,7 @@
                 <div class="col-md-offset-2 col-md-9">
                     <button mean-token="'create-submit'" type="submit"
                     class="btn btn-info">Submit</button>
-                    <button type="button" class="btn btn-info" ng-click="cancelSkillSet()">Cancel</button>
+                    <button type="button" class="btn btn-info" data-ng-click="cancelSkillSet()">Cancel</button>
                 </div>
             </div>
         </form>

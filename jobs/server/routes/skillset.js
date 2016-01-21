@@ -8,13 +8,16 @@ module.exports = function(Skillset, app, auth, database) {
 	 
 	//Pagination API
 	   
-	  app.route('/api/skillset')
+	  app.route('/api/skillset',auth.requiresLogin)
 	  	.post(SkillsetCtrl.create);
 	  	
-	  	app.route('/api/skillset/:skillsetId')
+	  	app.route('/api/skillset/:skillsetId',auth.requiresLogin)
+	  	    .get(SkillsetCtrl.singleskillsetdetail)
+	  	    .put(SkillsetCtrl.skillsetupdate)
 	  	    .delete(SkillsetCtrl.skillsetdelete);
 
-	   app.route('/api/skillset/pagination')
+
+	   app.route('/api/skillsetdetails/pagination',auth.requiresLogin)
 	  	.get(SkillsetCtrl.fetchallskillset); 	
 	   
         app.param('skillsetId', SkillsetCtrl.skillset);

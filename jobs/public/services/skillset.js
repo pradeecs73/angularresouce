@@ -2,7 +2,7 @@
 angular.module('mean.jobs').factory('SkillSetService', ['$resource',
     function($resource) {
         return {
-            page: $resource('/api/skillset/pagination', {}, {
+            page: $resource('/api/skillsetdetails/pagination', {}, {
                 update: {
                     method: 'PUT' // this method issues a PUT request
                 },
