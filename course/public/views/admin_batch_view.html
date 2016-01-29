@@ -1,0 +1,354 @@
+<section data-ng-controller="BatchController" data-ng-init="findOne(); viewBatchBread();">
+    <div data-ng-include="'/system/views/alert.html'"></div>
+    <div ng-include="'/system/views/breadcrum.html'"></div>
+        <div class = "col-xs-12 padding-align ">
+        <button mean-token="'edit-submit'"  class="btn btn-default pull-right" data-ng-click="editbatch(COURSE.URL_PATH.ADMIN_BATCH_EDIT,batch._id)">
+            Edit
+        </button>
+    </div>
+            <div class="mainwrapper padding-align">
+                <div class="col-md-4 ">
+                    <h3 class="pull-left">
+                        Batch
+                    </h3>
+                </div>
+                <div class="col-md-4">
+                    <h3 class="text-center">
+                        Course: {{batch.course.name}}
+                    </h3>
+                </div>
+                <div class="col-md-4 pull-right mrg-tp22">
+                <div class = "col-md-2">Branches</div>
+                    <input name="batch.branch.branchName" class = "col-md-10" type="text" class="form-control" data-ng-model="batch.branch.branchName" id="name" placeholder="Name" required ng-disabled=true />
+                </div>
+            </div>
+    <div class="mainwrapper padding-align">
+        <form name="BatchEditForm" class="form-horizontal col-md-12 padding-align" role="form" data-ng-submit="update(BatchEditForm.$valid)" novalidate>
+            <div class="form-group col-xs-12 padding-align">
+                <label mean-token="'edit-name'" class="col-md-3 ">Name</label>
+                <div class="col-md-6">
+                    <input name="batch_name" type="text" class="form-control" data-ng-model="batch.batch_name" id="name" placeholder="Name" required ng-disabled=true />
+                </div>
+            </div>
+            <div class="form-group col-xs-12"
+                ng-class="{ 'has-error' : submitted && holidayForm.start_date.$invalid }">
+                <label mean-token="'edit-start_date'" class="col-md-3 ">
+                    Start_date
+                </label>
+                                 <div class="col-md-6">
+                    {{batch.start_date  | date : 'dd MMMM yyyy'}} 
+                </div>
+                    
+                </div>
+                <div class="col-xs-12 ">
+                    <div clas= "col-md-2 padding-align">
+                        <h3 class="text-left">
+                            Batch Timings
+                        </h3>
+                    </div>
+                    <div class = "col-md-10 padding-align">
+                        <table class="table table-bordered " >
+                            <thead>
+                                <tr>
+                                    <th>
+                                        Mon
+                                    </th>
+                                    <th >
+                                        Tue
+                                    </th>
+                                    <th class="col-md-2 ">
+                                        Wed
+                                    </th>
+                                    <th >
+                                        Thu
+                                    </th>
+                                    <th >
+                                        Fri
+                                    </th>
+                                    <th >
+                                        Sat
+                                    </th>
+                                    <th >
+                                        Sun
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="anchorTag">
+                                <tr>
+                                    <td >
+                                        <div class = 'brdr_top'  ng-repeat = 'batchtime in batch.batchSchedule.mon'>
+                                            <div class="form-group">
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinhrs.option as timeinhrs.value for timeinhrs in timeinhrs"  ng-model="batchtime.startHH" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinmins.option as timeinmins.value for timeinmins in timeinmins"  ng-model="batchtime.startMM" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinhrs.option as timeinhrs.value for timeinhrs in timeinhrs"  ng-model="batchtime.endHH" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinmins.option as timeinmins.value for timeinmins in timeinmins"  ng-model="batchtime.endMM" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td >
+                                        <div class = 'brdr_top' ng-repeat = 'batchtime in batch.batchSchedule.tue'>
+                                            <div class="form-group">
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinhrs.option as timeinhrs.value for timeinhrs in timeinhrs"  ng-model="batchtime.startHH" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinmins.option as timeinmins.value for timeinmins in timeinmins"  ng-model="batchtime.startMM" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinhrs.option as timeinhrs.value for timeinhrs in timeinhrs"  ng-model="batchtime.endHH" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinmins.option as timeinmins.value for timeinmins in timeinmins"  ng-model="batchtime.endMM" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td >
+                                        <div class = 'brdr_top' ng-repeat = 'batchtime in batch.batchSchedule.wed'>
+                                            <div class="form-group">
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinhrs.option as timeinhrs.value for timeinhrs in timeinhrs"  ng-model="batchtime.startHH" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinmins.option as timeinmins.value for timeinmins in timeinmins"  ng-model="batchtime.startMM" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinhrs.option as timeinhrs.value for timeinhrs in timeinhrs"  ng-model="batchtime.endHH" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinmins.option as timeinmins.value for timeinmins in timeinmins"  ng-model="batchtime.endMM" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td >
+                                        <div class = 'brdr_top' ng-repeat = 'batchtime in batch.batchSchedule.thu'>
+                                            <div class="form-group">
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinhrs.option as timeinhrs.value for timeinhrs in timeinhrs"  ng-model="batchtime.startHH" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinmins.option as timeinmins.value for timeinmins in timeinmins"   ng-model="batchtime.startMM" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinhrs.option as timeinhrs.value for timeinhrs in timeinhrs"  ng-model="batchtime.endHH" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinmins.option as timeinmins.value for timeinmins in timeinmins"  ng-model="batchtime.endMM" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td >
+                                        <div class = 'brdr_top' ng-repeat = 'batchtime in batch.batchSchedule.fri'>
+                                            <div class="form-group">
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinhrs.option as timeinhrs.value for timeinhrs in timeinhrs"  ng-model="batchtime.startHH" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinmins.option as timeinmins.value for timeinmins in timeinmins"  ng-model="batchtime.startMM" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinhrs.option as timeinhrs.value for timeinhrs in timeinhrs"  ng-model="batchtime.endHH" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinmins.option as timeinmins.value for timeinmins in timeinmins"   ng-model="batchtime.endMM" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td >
+                                        <div class = 'brdr_top' ng-repeat = 'batchtime in batch.batchSchedule.sat'>
+                                            <div class="form-group">
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinhrs.option as timeinhrs.value for timeinhrs in timeinhrs"  ng-model="batchtime.startHH" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinmins.option as timeinmins.value for timeinmins in timeinmins"  ng-model="batchtime.startMM" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinhrs.option as timeinhrs.value for timeinhrs in timeinhrs"  ng-model="batchtime.endHH" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinmins.option as timeinmins.value for timeinmins in timeinmins"  ng-model="batchtime.endMM" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td >
+                                        <div class = 'brdr_top' ng-repeat = 'batchtime in batch.batchSchedule.sun'>
+                                            <div class="form-group">
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinhrs.option as timeinhrs.value for timeinhrs in timeinhrs"  ng-model="batchtime.startHH" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinmins.option as timeinmins.value for timeinmins in timeinmins"  ng-model="batchtime.startMM" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinhrs.option as timeinhrs.value for timeinhrs in timeinhrs"  ng-model="batchtime.endHH" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <select ng-options="timeinmins.option as timeinmins.value for timeinmins in timeinmins"  ng-model="batchtime.endMM" ng-disabled=true>
+                                                        <option style="display:none" value="">
+                                                            00
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                <div class="form-group">
+                <div class="col-md-offset-2 col-md-10 CreateBtnDiv">
+                    <button mean-token="'delete-submit'" type="reset" class="btn btn-info" data-ng-Click="cancel(COURSE.URL_PATH.ADMIN_BATCH_LIST)">Back</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div ng-include="'/system/views/delete-popup.html'"></div>
+</section>

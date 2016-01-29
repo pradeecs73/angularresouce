@@ -1,0 +1,77 @@
+<section data-ng-controller="CourseBranchController"
+	data-ng-init="courseBreadcrumb(); loadAvailableCourse(); listBranches();">
+	<div ng-include="'/system/views/breadcrum.html'"></div>
+	<!-- <div class="col-md-3">
+		<select ng-model="city._id" class="col-md-10"
+			ng-change="cityFilter(city)">
+			<option value="">City</option>
+			<option ng-repeat="city in cities" value="{{city._id}}">{{city.cityName}}</option>
+		</select>
+	</div> -->
+	<div class="col-md-3">
+		<select ng-model="branch._id" class="col-md-10"
+			ng-change="branchFilter(branch._id)">
+			<option value="">Branch</option>
+			<option ng-repeat="branch in branches" value="{{branch._id}}">{{branch.branchName}}</option>
+		</select>
+	</div>
+	<div class="col-md-12 onlinemargin">
+		<div class="col-md-6">
+			<h3>Available Course</h3>
+			<div class="row onlinetestborder" data-ng-repeat="availableCourse in availableCourses">
+				<div class="checkbox">
+					<div class="col-sm-6"> {{availableCourse.name}} </div>
+					<div class="col-sm-6">
+					<button class="btn btn-info pull-right btnMargin" ng-disabled="availableCourse.assigned"
+						data-ng-click="assign(availableCourse._id)">Assign</button>
+						</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<h3>Selected Course <span ng-show="isBranchSelected">for</span> {{branchObj.branchName}}</h3>
+			<div class="row onlinetestborder" data-ng-repeat="selectedCourse in selectedCourses" ng-show="isBranchSelected">
+
+				<div class="checkbox">
+					<div class="col-sm-6"> {{selectedCourse.name}} </div>
+					<div class="col-sm-6">
+					<button class="btn btn-info pull-right btnMargin"
+						data-ng-click="remove(selectedCourse._id)">Remove</button>
+						</div>
+				</div>
+			</div>
+			<div class="col-sm-12" ng-hide="isBranchSelected">
+				<div class="col-sm-12">
+					<div class="row">
+						<span> Select branch </span>
+					</div>
+				</div>
+			</div>
+			<div class="col-sm-12" ng-show="isBranchSelected && (selectedCourse.length <= 0)">
+				<div class="col-sm-12">
+					<div class="row">
+						<span> No course available </span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="frgtpswdlabel" id="branchSelectPopup">
+	    <div class="modal-dialog modelShow" role="document">
+	        <div class="modal-content modal-margntop">
+	            <div class="modal-header conf"><h4><b>{{title}}</b></h4></div>
+	            <div class="modal-body conf">
+	                <h5>{{message}}</h5>
+	                <button class="btn btn-info pull-right" ng-click="ok()">Ok</button>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+
+	<!-- <div class="form-group">
+		<div class="col-md-11">
+			<button type="button" class="btn btn-info pull-right testbutton" ng-click="cancel()">Cancel</button>
+		</div>
+	</div> -->
+</section>

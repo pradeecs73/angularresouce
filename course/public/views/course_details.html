@@ -1,0 +1,170 @@
+<section data-ng-controller="CourseController">
+	<div class="col-xs-12">
+		<ol class="breadcrumb">
+			<li><i class="fa fa-home link-pointer"
+				data-ng-click="redirectdashboard()"></i></li>
+			<li><a href="/course/courseList">Available Courses</a></li>
+		</ol>
+	</div>
+	<div class="col-md-12">
+		<h2 class="text-center">Front End</h2>
+	</div>
+	<div class="col-md-12">
+		<i class="fa fa-book user-font-course pull-left"></i>
+		<button class="btn btn-info pull-right enrol"
+			data-ng-click="courseEnrollment()">Enroll Now</button>
+	</div>
+	<div class="col-md-12">
+		<div class="col-md-6 details1">
+			<h4 class="text-center">About This Course</h4>
+			<p>Want to learn advanced HTML5 techniques? Discover the powerful
+				Web features that will help you create great content and apps.This
+				course follows HTML5 Part 1: HTML5 Coding Essentials and Best
+				Practices. In HTML5 Part 2, the experts from the World Wide Web
+				Consortium continue the exploration of HTML5-based APIs, but also
+				introduce other advanced features related to HTML5, such as Web
+				components, advanced multimedia, audio for music and games, and
+				more.You will learn by doing, study interactive examples, and have
+				fun with proposed development projects. During this HTML5 course you
+				will create an HTML5 game, so jump in and start learning!</p>
+		</div>
+		<div class="col-md-6">
+			<ul class="details-course">
+				<li>
+					<h4 class="text-center">Course Details</h4>
+				</li>
+				<li class="details-list">Course duration :90 Days</li>
+				<li class="details-list">Effort :2 hours/day</li>
+				<li class="details-list">Online Class : NO</li>
+				<li class="details-list">Online Mentor Support :No</li>
+				<li class="details-list">Project Based Learning:Yes</li>
+				<li class="details-list">Delivery Method:Offline</li>
+				<li>Price:$ 45</li>
+			</ul>
+
+		</div>
+	</div>
+	<div class="col-md-12">
+	<div class="col-md-6 details-course2">
+		<h4 class="text-center">Curriculum</h4>
+		<table class="table table-bordered table-condensed">
+			<thead>
+				<tr>
+					<th>Session</th>
+					<th>Duration</th>
+					<th>Hours/day</th>
+					<th>Start Date</th>
+					<th>Details</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr class="">
+					<td>Session 1(HTML)</td>
+					<td>30 Days</td>
+					<td>3hrs</td>
+					<td>15th December 2015</td>
+					<td><button class="btn btn-info  show-more "
+							data-ng-click="curriculumDetails()">View Schedule</button></td>
+				</tr>
+				<tr class="">
+					<td>Session 2(CSS)</td>
+					<td>30 Days</td>
+					<td>3hrs</td>
+					<td>15th January 2015</td>
+					<td><button class="btn btn-info  show-more "
+							data-ng-click="curriculumDetails()">View Schedule</button></td>
+				</tr>
+				<tr class="">
+					<td>Session 3(Boostrap)</td>
+					<td>30 Days</td>
+					<td>3hrs</td>
+					<td>15th March 2016</td>
+					<td><button class="btn btn-info  show-more "
+							data-ng-click="curriculumDetails()">View Schedule</button></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+	<!-- <div class="col-md-4 details">
+	  <h4 class="text-center">Apply For Counselling</h4>
+	  <div class=" alert-success animated fadeIn text-center" ng-show="counsellingmessage">{{counsellingmessage}}</div>
+	  <form name="counsellingForm" class="form-horizontal col-md-12"
+			data-ng-submit="" novalidate>
+           		   <div class="form-group">
+						<div class="col-md-12">
+						<label >Select Available Date:</label>
+						<input name="Select Date" type="date" class="form-control" placeholder="Select Date">
+						</div>
+					</div>
+					<div class="form-group">
+					<div class="col-md-12">
+						<label for="sel1">Select Available Slot:</label>
+                           <select class="form-control" id="sel1">
+                            <option>10am-11am</option>
+                            <option>12pm-1pm</option>
+                            <option>3pm-4pm</option>
+                       </select>
+                       </div>
+					</div>	
+					<div class="form-group">
+					<div class="col-md-offset-3 col-md-12">
+						<button  type="submit" class="btn btn-info" data-ng-click="Counselling()">Apply</button>
+			
+					</div>
+				</div>
+	  </form>
+	 </div>  -->
+	<div class="col-md-6 ">
+		<ul class="details-course1">
+			<li>
+				<h4 class="text-center">Apply For Counselling</h4>
+			</li>
+			<li>
+			<div class="form-group">
+						<div class="col-md-8">
+							<label for="Add Branch">Add Branch:</label><select
+								class="form-control" id="add branch">
+								<option>Jayanagar</option>
+								<option>Whitefield</option>
+								<option>Kormangala</option>
+							</select>
+						</div>
+					</div>
+				<div class=" alert-success animated fadeIn text-center"
+					ng-show="counsellingmessage">{{counsellingmessage}}</div>
+				<form name="counsellingForm" class="form-horizontal col-md-12"
+					data-ng-submit="" novalidate>
+					<div class="form-group">
+						<div class="col-md-8">
+							<label>Select Available Date:</label> <input name="Select Date"
+								type="date" class="form-control" placeholder="Select Date">
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-md-8">
+							<label for="sel1">Select Available Slot:</label> <select
+								class="form-control" id="sel1">
+								<option>10am-11am</option>
+								<option>12pm-1pm</option>
+								<option>3pm-4pm</option>
+							</select>
+						</div>
+					</div>
+					
+					<div class="form-group">
+					<div class="col-md-offset-3 col-md-8">
+							<button type="submit" class="btn btn-info"
+								data-ng-click="Counselling()">Apply</button>
+								</div>
+								</div>
+
+				
+					
+				</form>
+			</li>
+		</ul>
+
+	</div>
+	</div>
+</section>

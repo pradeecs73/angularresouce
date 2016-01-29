@@ -1,0 +1,45 @@
+<section data-ng-controller="FranchiseController" data-ng-init="list();">
+<div data-ng-include="'/system/views/alert.html'"></div>
+<div data-ng-include="'/system/views/breadcrum.html'"></div>
+    <div class="mainwrapper social-group-header">
+        <h3 class="pull-left">Franchises</h3>
+        	<button class="btn btn-info pro-top pull-right" data-ng-click="newFranchise() " data-ng-if= "writePermission">Create
+			Franchise</button>
+    </div>
+    <table class="table table-bordered">
+     <thead>
+     <tr>
+         <th class="text-center">Name</th>
+         <th class="text-center">WebSite URL</th>
+         <th class="text-center">Email</th>
+         <th class="text-center">Actions</th>
+     </tr>
+     </thead>
+     <tbody class="anchorTag"> 
+     <tr data-ng-repeat="franchise in collection" class="" data-ng-class-odd="'odd'"  data-ng-class-even="'even'">
+         <td>{{franchise.name}}</td>
+         <td>{{franchise.url}}</td>
+         <td>{{franchise.email}}</td>
+     <td>
+     <a data-ng-click="viewFranchise(COURSE.URL_PATH.ADMIN_FRANCHISE_VIEW,franchise._id)" class="linksGap"><i
+	class="fa fa-eye tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="View" ></i> </a>
+    <a  href="" class="linksGap" data-ng-click="editFranchise(COURSE.URL_PATH.ADMIN_FRANCHISE_EDIT,franchise._id)" data-ng-if="updatePermission">
+     <i class="fa fa-pencil-square-o tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="Edit"></i></a> 
+     <a href="" data-ng-click="modalDeletePopup(franchise)" class="linksGap" data-ng-if="deletePermission">
+          <i class="fa fa-minus-circle tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="Delete"></i></a>
+    </td>
+     </tr>
+     <tr data-ng-hide="!collection || collection.length">
+		<td colspan="10">No Franchise available</td>
+	 </tr>
+     </tbody>
+</table>
+  <div data-ng-show="!collection || collection.length" class="paginate usr">
+        <div data-ng-include="'system/views/paginationFilter.html'"></div>
+        <br>
+    </div>
+        <div data-ng-include="'/system/views/delete-popup.html'"></div>
+</section>
+
+
+

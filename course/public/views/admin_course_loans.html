@@ -1,0 +1,56 @@
+<section data-ng-controller="CourseController">
+	<div class="col-xs-12">
+		<ol class="breadcrumb">
+			<li><i class="fa fa-home link-pointer" data-ng-click="redirectdashboard()"></i></li>
+			<li><a href="/admin/course">Courses</a></li>
+			<li>Course Loans</li>
+			<li></li>
+		</ol>
+	</div>
+	<div class="row mb20">
+		<div class="col-xs-12">
+			<ul class="nav nav-tabs">
+				<li><a href="/admin/course/course-management">Course Installment</a></li>
+				<li class="active"><a href="/admin/course/loans">Course Loan</a></li>
+				<li><a href="/admin/course/discount">Course Discount</a></li>
+			</ul>
+		</div>
+	</div>
+	<div class="col-xs-12 social-group-header">
+		<h3 class="pull-left ">Loans for Course: Basic HTML Course</h3>
+		<button class="btn btn-info pull-right "
+			data-ng-click="newCourseLoan()">Create Loan</button>
+	</div>
+	<div class="col-xs-12">
+		<table class="table table-bordered">
+			<thead>
+				<tr>
+					<th>Loan ID</th>
+					<th>Description</th>
+					<th>Interest Rate</th>
+					<th>Loan Term (months)</th>
+					<th>Loan Amount</th>
+					<th>Pre-EMI period (months)</th>
+					<th>EMI Amount</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>123123123123123</td>
+					<td>3 months loan</td>
+					<td>12%</td>
+					<td>3</td>
+					<td>$300</td>
+					<td>1</td>
+					<td>$102</td>
+					<td>
+						<a class="btn" href="#"> 
+						<i class="fa fa-pencil-square-o"></i></a> 
+						<a class="btn" href="#"> 
+						<i class="fa fa-minus-circle"></i></a></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</section>

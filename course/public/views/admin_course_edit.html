@@ -1,0 +1,243 @@
+<section data-ng-controller="CourseController" data-ng-init="setSkill(); loadSkill(); editCourseBreadcrumb(
+); findOne();">
+<div ng-include="'/system/views/breadcrum.html'"></div>
+	<div class="col-xs-10">
+		<h1 class="text-left">Course</h1>
+	</div>
+	<div class="col-xs-12 mb65 row">
+		<form name="courseForm" class="form-horizontal col-md-12" data-ng-submit="update(courseForm.$valid)" novalidate>
+			<div class="form-group">
+				<label mean-token="'edit-course_type'" class="col-md-3">Course Type </label>
+					<div class="col-md-9">
+						<label class="radio-inline mr150"><input type="radio" name="course_type" data-ng-model="course.course_type" value="CodersTrust Course" ng-checked="true">CodersTrust Course</label>
+						<label class="radio-inline mr150"><input type="radio" name="course_type" data-ng-model="course.course_type" value="Franchise Course">Franchise Course</label>
+						<label class="radio-inline mr150"><input type="radio" name="course_type" data-ng-model="course.course_type" value="Third Party Course">3rd Party Course</label>
+					</div>
+			</div>
+			<div class="form-group" ng-class="{ 'has-error' : submitted && courseForm.name.$invalid }">
+				<label mean-token="'edit-name'" class="col-md-3">Name</label>
+				<div class="col-md-9">
+					<input name="name" type="text" class="form-control err-msg"
+						data-ng-model="course.name" id="name" placeholder="Name" required>
+					<div class="errorRed" ng-repeat="err in error.data" ng-if="err.param =='name'">{{err.msg}}</div>
+					<div ng-show="submitted && courseForm.name.$invalid">
+						<span class="err-msg red" ng-show="courseForm.name.$error.required">Please enter the Course Name </span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group" ng-class="{'has-error' : submitted && courseForm.description.$invalid }">
+				<label mean-token="'edit-description'" class="col-md-3">Description</label>
+				<div class="col-md-9">
+					<textarea name="description" data-ng-model="course.description" id="description" cols="30" rows="5" placeholder="Description" class="form-control err-msg" required></textarea>
+					<div ng-show="submitted && courseForm.description.$invalid">
+						<span class="err-msg red" ng-show="courseForm.description.$error.required">Please enter the Description </span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group" ng-class="{ 'has-error' : submitted && courseForm.qualification.$invalid }">
+				<label mean-token="'edit-qualification'"
+					class="col-md-3">Qualification</label>
+				<div class="col-md-9">
+					<input name="qualification" type="text" class="form-control err-msg"
+						data-ng-model="course.qualification"
+						placeholder="Enter Qualification" required>
+						<div ng-show="submitted && courseForm.qualification.$invalid">
+						<span class="err-msg red" ng-show="courseForm.qualification.$error.required">Please enter the Qualification </span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'edit-delivery_method'"
+					class="col-md-3">Delivery Method</label>
+				<div class="col-md-9">
+					<label class="radio-inline"><input type="radio" name="delivery_method" data-ng-model="course.delivery_method" value="Online" ng-checked="true">Online</label>
+				    <label class="radio-inline"><input type="radio" name="delivery_method" data-ng-model="course.delivery_method" value="Offline">Offline</label>
+				</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'edit-online_mentor_support'"
+					class="col-md-3">Online Mentor Support</label>
+				<div class="col-md-9">
+					<label class="radio-inline"><input type="radio" name="online_mentor_support" data-ng-model="course.online_mentor_support" value="No" ng-checked="true">No</label>
+				    <label class="radio-inline"><input type="radio" name="online_mentor_support" data-ng-model="course.online_mentor_support" value="Yes">Yes</label>
+				</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'edit-project_based_learning'"
+					class="col-md-3">Project Based Learning</label>
+				<div class="col-md-9">
+					<label class="radio-inline"><input type="radio" name="project_based_learning" data-ng-model="course.project_based_learning" value="No" ng-checked="true">No</label>
+				    <label class="radio-inline"><input type="radio" name="project_based_learning" data-ng-model="course.project_based_learning" value="Yes">Yes</label>
+				</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'edit-counselling'"
+					class="col-md-3">Counselling</label>
+				<div class="col-md-9">
+					<label class="radio-inline"><input type="radio" name="counselling" data-ng-model="course.counselling" value="No" ng-checked="No">No</label>
+				    <label class="radio-inline"><input type="radio" name="counselling" data-ng-model="course.counselling" value="Yes">Yes</label>
+				</div>
+			</div>
+			<div class="form-group">
+				<label mean-token="'edit-name'" class="col-md-3">Cost Type </label>
+					<div class="col-md-2">
+						<label class="radio-inline"><input type="radio" name="costType" data-ng-model="course.costType" value="Free" ng-checked="true">Free</label>
+						<label class="radio-inline"><input type="radio" name="coursetype" data-ng-model="course.costType" value="Paid">Paid</label>
+				</div>
+			</div>
+			<div class="form-group" ng-class="{ 'has-error' : submitted && courseForm.course_startDate.$invalid }">
+				<label mean-token="'edit-course_startDate'"
+					class="col-md-3"> Course Start Date</label>
+				<div class="col-md-4">
+					<input name=" course_startDate" type="date" class="form-control"
+						data-ng-model="course.course_startDate" id=" course_startDate"
+						placeholder=" Please Select the Start Date" required format-date>
+					<div style="color:red" ng-show="courseForm.course_startDate.$error.type.required">Enter date in correct format</div>
+					<div ng-show="submitted && courseForm.course_startDate.$invalid">
+						<span class="err-msg red" ng-show="courseForm.course_startDate.$error.required">Please select the Date </span>
+					</div>
+				</div>
+			</div><hr>
+			<div class="form-group">
+				<label class="col-md-3">Skill-Set</label></br></br>
+				<div class="row rolesA" ng-repeat="skill in course.courseSkill">
+					<div class="col-md-4" ng-class="{ 'has-error' : submitted && courseForm.courseSkill.$invalid && skill.pre_requisite === undefined}">
+						<label mean-token="'edit-courseSkill'" class="col-md-2">Skill</label>
+						<div class="col-md-10 input-skills skills-top">
+      						<select name="courseSkill" data-ng-model="skill.skillName" class="form-control" required>
+								<option value="" disabled selected>Please Select</option>
+								<option name="courseSkill" data-ng-repeat="skill in skills" value="{{skill.name}}">{{skill.name}}</option>
+							</select>
+							<div ng-show="submitted && skill.skillName === undefined" class="col-md-12">
+								<span class="err-msg red" ng-show="courseForm.courseSkill.$error.required">Please enter the Skill</span>
+							</div>
+						</div>
+					</div>
+					<div class="form-group col-md-4 pre-req" ng-class="{ 'has-error' : submitted && courseForm.pre_requisite.$invalid && skill.pre_requisite === undefined}">
+						<label mean-token="'edit-pre_requisite'" class="col-md-6 row">Pre-requisite</br>Level</label>
+						<div class="col-md-6">
+							<input name="pre_requisite" type="number" class="form-control" data-ng-model="skill.pre_requisite" id="pre_requisite" min="1" placeholder="Pre-requisite Level" required>
+						</div>
+						<div ng-show="submitted && skill.pre_requisite === undefined">
+							<span class="err-msg red pull-left" ng-show="courseForm.pre_requisite.$error.required">Please enter the Pre-requisite level</span>
+						</div>
+					</div>
+					<div class="form-group col-md-3 row" ng-class="{ 'has-error' : submitted && courseForm.target_value.$invalid && skill.pre_requisite === undefined && skill.pre_requisite > skill.target_value}">
+						<label mean-token="'edit-target_value'" class="col-md-5 row">Target Level</label>
+						<div class="col-md-7">
+							<input name="target_value" type="number" class="form-control target" data-ng-model="skill.target_value" id="target_value" min="{{skill.pre_requisite + 1}}" placeholder="Target Level">
+							<div class="errorRed target pull-left" ng-repeat="err in error.data | limitTo:1" ng-if="err.param =='target_value' && skill.target_value < skill.pre_requisite">{{err.msg}}</div>
+						</div>
+						<div ng-if="submitted && skill.target_value === undefined">
+							<span class="err-msg red pull-left" ng-show="courseForm.target_value.$error.required">Please enter the Target level</span>
+							<span class="err-msg red pull-left" ng-show="courseForm.target_value.$error.min || skill.pre_requisite > skill.target_value">Target level must be greater than Pre-requisite level</span>
+						</div>
+					</div>
+
+					<div class="ulPagnate">
+						<label>&nbsp;</label>
+						<div class="col-md-2" ng-show="$last">
+							<button class="pull-left" type="button" ng-click="removeSkillsSet(skill)" ng-show="$index>0">
+								<i class="fa edu-action fa-minus-circle"></i>
+							</button>
+							<button type="button" ng-click="addSkillSet()">
+								<i class="fa edu-action fa-plus-circle"></i>
+							</button>
+						</div>
+						<div class="col-md-1">
+							<button type="button" ng-click="removeSkillsSet(skill)" ng-hide="$last">
+								<i class="fa edu-action fa-minus-circle"></i>
+							</button>
+						</div>
+					</div>			
+				</div>
+			</div><hr>
+			<div class="mainwrapper" data-ng-if="course.course_type == 'Franchise Course' || course.course_type == 'Third Party Course'">
+				<div class="form-group" ng-class="{ 'has-error' : submitted && courseForm.companyName.$invalid }">
+					<label mean-token="'edit-companyName'" class="col-md-3">Company Name</label>
+					<div class="col-md-9">
+						<input name="companyName" type="text" class="form-control err-msg"
+							data-ng-model="course.companyName" placeholder="Enter Company Name" required>
+						<div ng-show="submitted && courseForm.companyName.$invalid">
+							<span class="err-msg red" ng-show="courseForm.companyName.$error.required">Please enter the Company name</span>
+						</div>
+					</div>
+				</div>
+				<div class="form-group" ng-class="{ 'has-error' : submitted && courseForm.course_thirdparty_url.$invalid }">
+					<label mean-token="'edit-course_thirdparty_url'" class="col-md-3">Website Url</label>
+					<div class="col-md-9">
+						<input name="course_thirdparty_url" type="url" class="form-control err-msg"
+							data-ng-model="course.course_thirdparty_url" placeholder="http://www.example.com" pattern="https?://.+" required="">
+						<div style="color:red" ng-show="courseForm.course_thirdparty_url.$error.pattern">Website is Invalid</div>
+						<div ng-show="submitted && courseForm.course_thirdparty_url.$invalid">
+							<span class="err-msg red" ng-show="courseForm.course_thirdparty_url.$error.required">Please enter the Website Url</span>
+						</div>
+					</div>
+				</div>
+				<div class="form-group" ng-class="{ 'has-error' : submitted && courseForm.payment.$invalid }">
+					<label mean-token="'edit-payment'" class="col-md-3">Payement url</label>
+					<div class="col-md-9">
+						<input name="payment" type="url" class="form-control err-msg" data-ng-model="course.payment" placeholder="http://www.example.com" pattern="https?://.+" required>
+						<div style="color:red" ng-show="courseForm.payment.$error.pattern">Website is Invalid</div>
+						<div ng-show="submitted && courseForm.payment.$invalid">
+							<span class="err-msg red" ng-show="courseForm.payment.$error.required">Please enter the Payement Url</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-md-12">
+					<div class="col-md-6 row">
+						<label mean-token="'create-course_picture'" class="col-md-3 pull-left row err-msg-url">Banner</label>
+						<div class="col-md-offset-3 banner">
+							<div class="col-md-6">
+								<div class="btn btn-info" ngf-select ngf-change="onCourseBannerSelect($files)" accept="image/png, image/jpeg">Upload</div>
+								<span data-ng-if="uploadInProgress">Upload progress:{{uploadProgress }}</span>
+							</div>
+							<div class="col-md-6">
+								<img src="{{course.course_picture}}" data-ng-if="course.course_picture" width="50px" height="50px" />
+							</div>
+						</div>
+					</div>
+					<div class="col-md-5 row">
+						<div data-ng-include="'/system/views/alert.html'"></div>
+					</div>
+				</div>
+				<div class="col-md-12">
+					<div ng-show="submitted && !course.course_picture" class="col-md-9 pull-right">
+	          			<span class="err-msg red"> Please upload course banner</span>
+	         		</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-md-12">
+					<div class="col-md-6 row">
+						<label mean-token="'create-course_icon'" class="col-md-3 pull-left fetureAlign err-msg-url">Icon</label>
+						<div class="col-md-offset-3 banner">
+							<div class="col-md-6">
+								<div class="btn btn-info" ngf-select ngf-change="onCourseIconSelect($files)" accept="image/png, image/jpeg">Upload</div>
+								<span data-ng-if="uploadInProgress">Upload progress:{{uploadProgress }}</span>
+							</div>
+							<div class="col-md-6">
+								<img src="{{course.course_icon}}" data-ng-if="course.course_icon" width="50px" height="50px" />
+							</div>
+						</div>
+					</div>
+					<div class="col-md-12">
+						<div ng-show="submitted && !course.course_icon" class="col-md-9 wor pull-right">
+	          				<span class="err-msg red"> Please upload course icon</span>
+	         			</div>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-md-offset-3 col-md-9">
+					<button mean-token="'create-submit'" type="submit"
+						class="btn btn-info">Submit</button>
+					<button type="button" class="btn btn-info"
+						ng-click="cancelCourse()">Cancel</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</section>

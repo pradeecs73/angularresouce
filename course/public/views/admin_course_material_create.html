@@ -1,0 +1,60 @@
+<section data-ng-controller="CourseController">
+	<div class="col-xs-12">
+		<ol class="breadcrumb">
+			<li><i class="fa fa-home link-pointer" data-ng-click="redirectdashboard()"></i></li>
+			<li><a href="/admin/course">Course</a></li>
+			<li><a href="/admin/course/material">Course Material</a></li>
+			<li>Edit</li>
+			<li></li>
+		</ol>
+	</div>
+	<div class="col-xs-10">
+		<div>
+			<h1 class="text-left">Course Material</h1>
+		</div>
+	</div>
+	<div class="col-xs-10 mb65">
+		<form name="courseCurriculumForm" class="form-horizontal col-md-12"
+			data-ng-submit="" novalidate>
+			<div>
+				<div class="form-group">
+					<label mean-token="'create-name'" class="col-md-3 control-label">Name</label>
+					<div class="col-md-9">
+						<input name="name" type="text" class="form-control"
+							data-ng-model="course.name" id="name" placeholder="Name" required>
+					</div>
+				</div>
+				<div class="form-group">
+					<label mean-token="'create-description'"
+						class="col-md-3 control-label">Description</label>
+					<div class="col-md-9">
+						<textarea name="description" data-ng-model="course.description"
+							id="description" cols="30" rows="5" placeholder="Description"
+							class="form-control" required></textarea>
+					</div>
+				</div>
+				<div class="form-group">
+					<label mean-token="'create-duration'" class="col-md-3 control-label">Duration</label>
+					<div class="col-md-9">
+						<input name="duration" type="text" class="form-control"
+							data-ng-model="" id="duration" placeholder="Duration"
+							required>
+					</div>
+				</div>
+				
+				
+
+				<div class="form-group">
+					<div class="col-md-offset-3 col-md-9">
+						<button mean-token="'create-submit'" type="submit"
+							class="btn btn-info">Submit</button>
+						<button type="button" class="btn btn-info"
+							ng-click="newCourseMaterialCancel()">Cancel</button>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</section>
+
+

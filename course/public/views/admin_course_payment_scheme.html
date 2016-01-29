@@ -1,0 +1,165 @@
+
+<section data-ng-controller="CourseBranchController" data-ng-init="intializeNewPaymentScheme()">
+	<div>
+		<h1 class="pull-left">Course Payment Scheme</h1>
+	</div>
+	<div class="col-xs-12">
+		<form name="paymentForm" class="form-horizontal col-md-12 " novalidate>
+
+			<div class="form-group" ng-class="{ 'has-error' : submitted && paymentForm.cost.$invalid }">
+				<label mean-token="'create-cost'" class="col-md-2 control-label">Cost</label>
+				<div class="col-md-2">
+					<input name="cost" type="number" class="form-control" id="cost" placeholder="Cost" data-ng-model="paymentScheme.cost" required>
+					<div ng-show="submitted && paymentForm.cost.$invalid">
+						<span class="err-msg errorText"
+							ng-show="paymentForm.cost.$error.required"> Please enter
+							the Cost </span>
+					</div>
+				</div>
+			</div>
+
+			<div data-ng-repeat="paymentScheme in course.paymentSchemes">
+				<div class="form-group">
+					<h3 class="col-md-2 control-label">Payment Scheme</h3>
+					<div class="col-md-1">
+						<button ng-click="removePaymentScheme(paymentScheme)"
+							ng-hide="$last">
+							<i class="fa fa-minus-circle"></i></span>
+							<button type="button" ng-click="addPaymentScheme()" ng-show="$last">
+								<span class="fa fa-plus-circle">
+							</button>
+						</button>
+					</div>
+				</div>
+				
+				<div  data-ng-repeat="installment in paymentScheme.installments">
+					<div class="form-group">
+						<h3 class="col-md-2 control-label">{{getLabel($index)}}</h3>
+						<div class="col-md-1" data-ng-if="$index != 0">
+							<button ng-click="removeInstallment(installment)"
+								ng-hide="$last">
+								<i class="fa fa-minus-circle"></i></span>
+								<button type="button" ng-click="addInstallment()" ng-show="$last">
+									<span class="fa fa-plus-circle">
+								</button>
+							</button>
+						</div>
+					</div>
+					<div class="row">
+						<div class="form-group" ng-class="{ 'has-error' : submitted && paymentForm.installmentAmount.$invalid }">
+							<label mean-token="'create-installmentAmount'"
+								class="col-md-2 control-label">{{getLabel($index)}} Amount</label>
+							<div class="col-md-2">
+								<input name="installmentAmount" type="number" class="form-control" data-ng-model="installment.installmentAmount"
+									id="installmentAmount" placeholder="{{getLabel($index)}} Amount" required>
+								<div ng-show="submitted && paymentForm.installmentAmount.$invalid">
+									<span class="err-msg errorText"
+										ng-show="paymentForm.installmentAmount.$error.required">
+										Please enter the Installment Amount </span>
+								</div>
+							</div>
+							<div>
+								<label mean-token="'create-loan'" class="">Loan</label>
+								<input ng-checked="" id="" type="checkbox" name="check" ng-model="installment.isLoan" value=""> 
+							</div>
+						</div>
+						<div class="form-group" data-ng-if="$index != 0">
+							<div ng-class="{ 'has-error' : submitted && paymentForm.fineAmount.$invalid }">
+								<label mean-token="'create-fineAmount'"
+									class="col-md-2 control-label">Fine Amount</label>
+								<div class="col-md-2">
+									<input name="fineAmount" type="number" class="form-control" data-ng-model="installment.fineAmount"
+										id="fineAmount" placeholder="Fine Amount" required>
+									<div ng-show="submitted && paymentForm.fineAmount.$invalid">
+										<span class="err-msg errorText"
+											ng-show="paymentForm.fineAmount.$error.required">
+											Please enter the fine amount </span>
+									</div>
+								</div>
+							</div>
+							<div ng-class="{ 'has-error' : submitted && paymentForm.dueDate.$invalid }">
+								<label mean-token="'create-dueDate'"
+									class="col-md-2 control-label">Due Date</label>
+								<div class="col-md-2">
+									<input name="dueDate" type="number" class="form-control" data-ng-model="installment.dueDate"
+										id="dueDate" placeholder="Due Date" required>
+									<div ng-show="submitted && paymentForm.dueDate.$invalid">
+										<span class="err-msg errorText"
+											ng-show="paymentForm.dueDate.$error.required">
+											Please enter the Due Date </span>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="form-group" data-ng-if="installment.isLoan">
+							<h3 class="col-md-3 control-label">Loan Detail</h3>
+						</div>
+						<div class="form-group" data-ng-if="installment.isLoan"
+							ng-class="{ 'has-error' : submitted && paymentForm.loanAmount.$invalid }">
+							<label mean-token="'create-loanAmount'"
+								class="col-md-3 control-label">Loan Amount</label>
+							<div class="col-md-3">
+								<input name="loanAmount" type="number" class="form-control" data-ng-model="installment.installmentAmount"
+									id="loanAmount" placeholder="Loan Amount" required>
+								<div ng-show="submitted && paymentForm.loanAmount.$invalid">
+									<span class="err-msg errorText"
+										ng-show="paymentForm.loanAmount.$error.required"> Please
+										enter the Loan Amount </span>
+								</div>
+							</div>
+						</div>
+						<div class="form-group">
+							<h3 class="col-md-3 control-label">Discount</h3>
+						</div>
+						<div class="form-group" data-ng-repeat="discount in installment.discounts">
+							<div ng-class="{ 'has-error' : submitted && paymentForm.discount.$invalid }">
+								<label mean-token="'create-discount'"
+									class="col-md-3 control-label">Marks Range</label>
+								<div class="col-md-2">
+									<input name="marksFrom" type="number" class="form-control" data-ng-model="discount.marks_form"
+										id="marksFrom" placeholder="From" required>
+									<input name="marksTo" type="number" class="form-control" data-ng-model="discount.marks_to"
+										id="marksTo" placeholder="To" required>
+									<div ng-show="submitted && paymentForm.discount.$invalid">
+										<span class="err-msg errorText"
+											ng-show="paymentForm.discount.$error.required"> 
+											Please enter the Marks Range </span>
+									</div>
+								</div>
+							</div>
+							<div ng-class="{ 'has-error' : submitted && paymentForm.rate.$invalid }">
+								<label mean-token="'create-rate'"
+									class="col-md-1 control-label">Rate</label>
+								<div class="col-md-2">
+									<input name="rate" type="number" class="form-control" data-ng-model="discount.rate"
+										id="rate" placeholder="Rate" required>
+									<div ng-show="submitted && paymentForm.rate.$invalid">
+										<span class="err-msg errorText"
+											ng-show="paymentForm.rate.$error.required">
+											Please enter the Rate </span>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-1">
+								<button ng-click="removeDiscount(discount, $parent.$index)"
+									ng-hide="$last">
+									<i class="fa fa-minus-circle"></i></span>
+									<button type="button" ng-click="addDiscount($parent.$index)" ng-show="$last">
+										<span class="fa fa-plus-circle">
+									</button>
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-md-offset-3 col-md-9">
+					<button mean-token="'edit-submit'" type="submit"
+						ng-click="submit()" class="btn btn-info">Submit</button>
+					<button type="button" class="btn btn-info" ng-click="cancel()">Cancel</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</section>

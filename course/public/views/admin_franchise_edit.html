@@ -1,0 +1,252 @@
+<section data-ng-controller="FranchiseController"
+	data-ng-init="findOne(); editBreadcrumb();">
+	<div data-ng-include="'/system/views/breadcrum.html'"></div>
+	<div class="mainwrapper">
+		<h3 class="pull-left ">Franchise</h3>
+	</div>
+	<div class="mainwrapper">
+		<form name="franchiseForm" class="form-horizontal formAlign"
+			data-ng-submit="update(franchiseForm.$valid)" novalidate>
+
+			<!-- Franchise Type -->
+
+			<div class="form-group">
+				<label class="col-md-2 pull-left">Franchise Type </label>
+				<div class = "col-md-6">
+				<label class="radio-inline"><input type="radio" name="franchise_type" data-ng-model="franchise.franchise_type" value="Franchise" ng-checked="true">Franchise</label>
+						<label class="radio-inline"><input type="radio" name="franchise_type" data-ng-model="franchise.franchise_type" value="Third Party Provider">Third Party Provider</label>
+				</div>
+			</div>
+
+			<!-- Franchise Name -->
+
+			<div class="form-group"
+				data-ng-class="{ 'has-error' : submitted && franchiseForm.name.$invalid }">
+				<label class="col-md-2 pull-left">Name</label>
+				<div class="col-md-6">
+					<input name="name" type="text" class="form-control"
+						data-ng-model="franchise.name" id="name" placeholder="Name"
+						required>
+					<div data-ng-show="error" class="errorRed "
+						data-ng-repeat="err in error.data" data-ng-if="err.param =='name'">
+						{{err.msg}}</div>
+					<div data-ng-show="submitted && franchiseForm.name.$invalid">
+						<span class="err-msg errorText red"
+							data-ng-show="franchiseForm.name.$error.required"> Please
+							enter the Name </span>
+					</div>
+				</div>
+			</div>
+
+
+			<!-- Web Site URL -->
+
+			<div class="form-group"
+				data-ng-class="{ 'has-error' : submitted && franchiseForm.url.$invalid }">
+				<label class="col-md-2 pull-left">WebSite URL</label>
+				<div class="col-md-6">
+					<input name="url" type="url" class="form-control"
+						data-ng-model="franchise.url" id="url"
+						placeholder="WebSite URL" pattern="https?://.+" required>
+
+					<div data-ng-show="error" class="errorRed "
+						data-ng-repeat="err in error.data" data-ng-if="err.param =='url'">
+						{{err.msg}}</div>
+
+					<div data-ng-show="submitted && franchiseForm.url.$invalid">
+						<span class="err-msg errorText red"
+							data-ng-show="franchiseForm.url.$error.required"> Please
+							enter the WebSite URL </span>
+					</div>
+					<div data-ng-show="submitted && franchiseForm.url.$invalid">
+						<span class="err-msg errorText red"
+							data-ng-show="franchiseForm.url.$error.pattern"> Please
+							enter the valid WebSite URL </span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Email -->
+
+			<div class="form-group"
+				data-ng-class="{ 'has-error' : submitted && franchiseForm.email.$invalid }">
+				<label class="col-md-2 pull-left">Email</label>
+				<div class="col-md-6">
+					<input name="email" type="email" class="form-control"
+						data-ng-model="franchise.email" id="email"
+						placeholder="Email"
+						pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$" required>
+					<div data-ng-show="error" class="errorRed "
+						data-ng-repeat="err in error.data"
+						data-ng-if="err.param =='email'">{{err.msg}}</div>
+
+					<div data-ng-show="submitted && franchiseForm.email.$invalid">
+						<span class="err-msg errorText red"
+							data-ng-show="franchiseForm.email.$error.required"> Please
+							enter the Email </span>
+					</div>
+
+					<div data-ng-show="submitted && franchiseForm.email.$invalid">
+						<span class="err-msg errorText red"
+							data-ng-show="franchiseForm.email.$error.pattern"> Please
+							enter the valid Email </span>
+					</div>
+
+				</div>
+			</div>
+
+			<!-- Contact Details -->
+
+
+			<div class="form-group">
+				<label class="col-md-2 pull-left">Contact Details</label>
+			</div>
+			<div data-ng-repeat="contactDetail in franchise.contactDetails">
+
+				<!-- Person Name -->
+
+				<div class="form-group"
+					data-ng-class="{ 'has-error' : submitted && franchiseForm.personName.$invalid }">
+					<label class="col-md-2">Person Name</label>
+					<div class="col-md-2">
+						<input name="personName" type="text" class="form-control"
+							id="personName" placeholder="Person Name"
+							data-ng-model="contactDetail.personName" required>
+						<div data-ng-show="submitted && franchiseForm.personName.$invalid">
+							<span class="err-msg errorText red"
+								data-ng-show="franchiseForm.personName.$error.required">
+								Please enter the Name </span>
+						</div>
+					</div>
+
+					<!-- Designation -->
+
+					<div class="form-group"
+						data-ng-class="{ 'has-error' : submitted && franchiseForm.designation.$invalid }">
+						<label class="col-md-2">Designation</label>
+						<div class="col-md-2">
+							<input name="designation" type="text" class="form-control"
+								id="designation" placeholder="Designation"
+								data-ng-model="contactDetail.designation" required>
+
+							<div
+								data-ng-show="submitted && franchiseForm.designation.$invalid">
+								<span class="err-msg errorText red"
+									data-ng-show="franchiseForm.designation.$error.required">
+									Please enter the Designation </span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Primary Contact Number -->
+
+				<div class="form-group"
+					data-ng-class="{ 'has-error' : submitted && franchiseForm.phoneNumber.$invalid }">
+					<label class="col-md-2">Primary Contact Number</label>
+					<div class="col-md-2">
+						<input name="phoneNumber" type="tel" class="form-control"
+							id="phoneNumber" placeholder="Phone Number"
+							data-ng-model="contactDetail.phoneNumber" pattern= "[0-9]{11}" required>
+
+						<div
+							data-ng-show="submitted && franchiseForm.phoneNumber.$invalid">
+							<span class="err-msg errorText red"
+								data-ng-show="franchiseForm.phoneNumber.$error.required">
+								Please enter the Phone Number </span>
+						</div>
+						
+						<div data-ng-show="submitted && franchiseForm.phoneNumber.$invalid">
+						<span class="err-msg errorText red"
+							data-ng-show="franchiseForm.phoneNumber.$error.pattern"> Please
+							enter the valid Phone Number </span>
+					</div> 
+					</div>
+
+					<!-- Alternate Contact Number -->
+
+					<div class="form-group"
+						data-ng-class="{ 'has-error' : submitted && franchiseForm.mobileNumber.$invalid }">
+						<label class="col-md-2">Alternate Contact Number</label>
+						<div class="col-md-2">
+							<input name="mobileNumber" type="tel" class="form-control"
+								id="mobileNumber" placeholder="Phone Number"
+								data-ng-model="contactDetail.mobileNumber"pattern= "[0-9]{11}" required>
+
+							<div
+								data-ng-show="submitted && franchiseForm.mobileNumber.$invalid">
+								<span class="err-msg errorText red"
+									data-ng-show="franchiseForm.mobileNumber.$error.required">
+									Please enter the Phone Number </span>
+							</div>
+							<div data-ng-show="submitted && franchiseForm.mobileNumber.$invalid">
+						    <span class="err-msg errorText red"
+							data-ng-show="franchiseForm.mobileNumber.$error.pattern"> Please
+							enter the valid Phone Number </span>
+
+						</div>
+						</div>
+						</div>
+						</div>
+						<!-- Add Email Id-->
+						
+						<div class="form-group"
+						data-ng-class="{ 'has-error' : submitted && franchiseForm.mobileNumber.$invalid }">
+						<label class="col-md-2">Email Id</label>
+						<div class="col-md-2">
+							<input name="emailId" type="email" class="form-control"
+								id="emailId" placeholder="Email Id"
+								data-ng-model="contactDetail.emailId" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$"  required>
+							<div
+								data-ng-show="submitted && franchiseForm.emailId.$invalid">
+								<span class="err-msg errorText red"
+									data-ng-show="franchiseForm.emailId.$error.required">
+									Please enter the Email Id </span>
+							</div>
+							
+						<div data-ng-show="submitted && franchiseForm.emailId.$invalid">
+						<span class="err-msg errorText red"
+							data-ng-show="franchiseForm.emailId.$error.pattern"> Please
+							enter the valid Email Id </span>
+					</div> 
+
+						</div>
+
+						<!-- Add and Remove Contact Details -->
+
+						<div class="col-md-2">
+							<div data-ng-show="$last">
+								<button type="button"
+									data-ng-click="removeContactDetails(contactDetails)"
+									data-ng-show="$index>0">
+
+									<i class="fa edu-action fa-minus-circle"></i>
+								</button>
+								<button type="button" data-ng-click="addContactDetails()">
+									<i class="fa edu-action fa-plus-circle"></i>
+								</button>
+							</div>
+							
+							<button type="button"
+								data-ng-click="removeContactDetails(contactDetails)"
+								data-ng-hide="$last">
+								<i class="fa edu-action fa-minus-circle"></i>
+							</button>
+						
+						</div>
+
+					</div>
+				
+			</div>
+			
+			<div class="form-group">
+				<div class="col-md-offset-2 col-md-10">
+					<button mean-token="'edit-submit'" type="submit"
+						class="btn btn-info">Update</button>
+					<button type="button" class="btn btn-info"
+						data-ng-click="cancelFranchise()">Cancel</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</section>

@@ -1,0 +1,47 @@
+<section data-ng-controller="CourseController">
+<div class="col-xs-12">
+		<ol class="breadcrumb">
+			<li><i class="fa fa-home link-pointer" data-ng-click="redirectdashboard()"></i></li>
+			<li><a href="/admin/course">Course</a></li>
+			<li>Course Material</li>
+			<li></li>
+		</ol>
+	</div>
+	<div class="row mb20">
+		<div class="col-xs-12">
+			<ul class="nav nav-tabs">
+				<li><a href="/admin/course/curriculum">Curriculum</a></li>
+				<li class="active"><a href="/admin/course/material">Course Material</a></li>
+			</ul>
+		</div>
+	</div>
+	<div class="col-xs-12 social-group-header">
+		<h3 class="pull-left ">Course Material</h3>
+		<button class="btn btn-info pull-right "
+			data-ng-click="newCourseMaterial()">Create Course Material</button>
+	</div>
+	<table class="table table-bordered table-condensed">
+		<thead>
+			<tr>
+			    <th>CourseId</th>
+				<th>Name</th>
+				<th>Description</th>
+				<th>Duration</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+			    <td>1232</td>
+				<td>Frontend</td>
+				<td>Basics of html,css,boostrap</td>
+				<td>3Months</td>
+				<td><a class="btn" href="/admin/course/material/edit">
+					<i class="fa fa-pencil-square-o"></i></a>  
+					<a href="/admin/topic/list" >
+					<i class="fa fa-minus-circle"></i></a>
+				</td>
+
+			</tr>
+		</tbody>
+	</table>
+</section>	
