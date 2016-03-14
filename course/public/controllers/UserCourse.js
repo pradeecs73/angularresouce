@@ -1,6 +1,6 @@
 'use strict';
 /* jshint -W098 */
-angular.module('mean.course').controller('UserCourseController', function($scope, $stateParams, Global, UserCourseService, $location, $rootScope) {
+angular.module('mean.course').controller('UserCourseController', function($scope, $stateParams, Global, UserCourseService, $location, $rootScope,$translate) {
     $scope.global = Global;
     $scope.package = {
         name: 'course'
@@ -12,13 +12,13 @@ angular.module('mean.course').controller('UserCourseController', function($scope
         return MeanUser.isAdmin || usercourse.user._id === MeanUser.user._id;
     };
     $scope.coursePayment = function() {
-        $location.path('/course/payment');
+        $location.path('/admin/course/payment');
     };
     $scope.courseCheckout = function() {
-        $location.path('/course/test/redirect');
+        $location.path('/admin/course/test/redirect');
     };
     $scope.courseOnline = function() {
-        $location.path('/student/onlinetest');
+        $location.path('/admin/student/onlinetest');
     };
 
     $scope.checked = false;
@@ -31,7 +31,7 @@ angular.module('mean.course').controller('UserCourseController', function($scope
             $scope.usercourse.user = user;
             var usercourse = new UserCourseService($scope.usercourse);
             usercourse.$save(function(response) {
-                $location.path('/course/myCourses');
+                $location.path('/admin/course/myCourses');
                 $scope.usercourse = {};
             });
         } else {
@@ -46,11 +46,11 @@ angular.module('mean.course').controller('UserCourseController', function($scope
                         $scope.usercourses.splice(i, 1);
                     }
                 }
-                $location.path(COURSE.URL_PATH.ADMIN_COURSE_LIST);
+                $location.path(COURSE.PATH.ADMIN_COURSE_LIST);
             });
         } else {
             $scope.usercourse.$remove(function(response) {
-                $location.path(COURSE.URL_PATH.ADMIN_COURSE_LIST);
+                $location.path(COURSE.PATH.ADMIN_COURSE_LIST);
             });
         }
     };
@@ -62,7 +62,7 @@ angular.module('mean.course').controller('UserCourseController', function($scope
             }
             usercourse.updated.push(new Date().getTime());
             usercourse.$update(function() {
-                $location.path(COURSE.URL_PATH.ADMIN_COURSE_LIST);
+                $location.path(COURSE.PATH.ADMIN_COURSE_LIST);
             });
         } else {
             $scope.submitted = true;

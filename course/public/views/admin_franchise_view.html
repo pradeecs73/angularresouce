@@ -1,11 +1,11 @@
-<section data-ng-controller="FranchiseController" data-ng-init="findShow();">
+<section data-ng-controller="FranchiseeController" data-ng-init="findShow();">
 	<div data-ng-include="'/system/views/breadcrum.html'"></div>
 	<div class="mainwrapper social-group-header">
 		<div>
 			<h3 class="pull-left">Franchise Detail</h3>
 			<div class="pull-right">
 				<a class="btn btn-info" href="" data-ng-if="updatePermission"
-					data-ng-click="editFranchise(COURSE.URL_PATH.ADMIN_FRANCHISE_EDIT,franchise._id)">Edit</a>
+					data-ng-click="editFranchise(COURSE.PATH.ADMIN_FRANCHISE_EDIT,franchise._id)">Edit</a>
 				<a href="" class="btn btn-info" data-ng-if="deletePermission"
 					data-ng-click="modalDeletePopup(franchise)">Delete</a>
 			</div>
@@ -80,5 +80,4 @@
 			</div>
 		</form>
 	</div>
-	<div data-ng-include="'/system/views/delete-popup.html'"></div>
 </section>

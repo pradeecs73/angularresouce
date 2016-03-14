@@ -38,7 +38,6 @@ module.exports = function (UserCourse) {
          */
         create: function (req, res) {
             var userCourse = new UserCourseModel(req.body);
-            console.log(req.body);
             if(userCourse.payment_method=='true'){
             	userCourse.payment_method='loan';
             }

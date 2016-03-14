@@ -1,14 +1,12 @@
 'use strict';
 /* jshint -W098 */
-angular.module('mean.course').controller('CourseController', function ($scope, $stateParams, Global, CourseService, UserCourseService, $location, $rootScope, $timeout, COURSE, SkillService, flash, MESSAGES, Upload) {
-    $scope.global = Global;
+
+angular.module('mean.course').controller('CourseController', function ($scope, $stateParams, CourseService, UserCourseService,CoursePublishService, $location, $rootScope, $timeout, SkillService, flash,Upload, FranchiseService, BranchService,$cookies,MeanUser, CountryService, CourseBranchService, BATCHService, CourseTopicService,URLFactory){
     $scope.package = {
         name: 'course',
         modelName: 'Course',
         featureName: 'Courses'
     };
-    $scope.COURSE = COURSE;
-    $scope.MESSAGES = MESSAGES;
     $scope.courseTypeId = 0;
     $scope.costTypeId = 0;
     $scope.costType = false;
@@ -16,14 +14,12 @@ angular.module('mean.course').controller('CourseController', function ($scope, $
     $scope.thirdPartyCourseType = false;
     $scope.course = {};
     $scope.course.courseSkill = [];
-    $scope.SERVICE = CourseService;
 
-    initializeBreadCrum($scope, $scope.package.modelName, COURSE.URL_PATH.ADMIN_COURSE_LIST);
-
-    initializePermission($scope, $rootScope, $location, flash, $scope.package.featureName, MESSAGES);
-
-    initializePagination($scope, $rootScope, $scope.SERVICE);
-    initializeDeletePopup($scope, $scope.package.modelName, MESSAGES);
+    initializeBreadCrum($scope, $scope.package.modelName, URLFactory.COURSE.PATH.ADMIN_COURSE_LIST);
+    pageTitleMessage($scope,URLFactory.translate,'course.courses.WELCOME','course.courses.TITLE_DESC');
+    initializePermission($scope, $rootScope, $location, flash, $scope.package.featureName, URLFactory.MESSAGES);
+    initializePagination($scope, $rootScope, CourseService);
+    initializeDeletePopup($scope, $scope.package.modelName, URLFactory.MESSAGES,URLFactory.uibModal);
     $scope.courseTypes = [{
         _id: '1',
         name: 'CodersTrust Course'
@@ -64,7 +60,7 @@ angular.module('mean.course').controller('CourseController', function ($scope, $
                 $scope.course.course_picture = data;
                 $scope.course.thumbcourse_picture = data.thumbcourse_picture;
                 $scope.course.thumb150course_picture = data.thumb150course_picture;
-                flash.setMessage(MESSAGES.PROJECT_IMAGE_ADD, MESSAGES.SUCCESS);
+                flash.setMessage(URLFactory.MESSAGES.PROJECT_IMAGE_ADD, URLFactory.MESSAGES.SUCCESS);
             }, 3000);
         }).error(function (err) {
             $scope.uploadInProgress = false;
@@ -98,7 +94,7 @@ angular.module('mean.course').controller('CourseController', function ($scope, $
                 $scope.course.course_icon = data;
                 $scope.course.thumbcourse_icon = data.thumbcourse_icon;
                 $scope.course.thumb150course_icon = data.thumb150course_icon;
-                flash.setMessage(MESSAGES.PROJECT_IMAGE_ADD, MESSAGES.SUCCESS);
+                flash.setMessage(URLFactory.MESSAGES.PROJECT_IMAGE_ADD, URLFactory.MESSAGES.SUCCESS);
             }, 3000);
         }).error(function (err) {
             $scope.uploadInProgress = false;
@@ -112,27 +108,31 @@ angular.module('mean.course').controller('CourseController', function ($scope, $
         $scope.editCourseBreadcrumb = function(){
             $scope.breadCrumAdd("Edit");
         };
+            $scope.courseDetailBreadcrumb = function(){
+        $scope.breadCrumAdd("Details");
+    };
+
 // **************BreadCrum Function***********
     $scope.newCourseMaterialCancel = function() {
-        $location.path(COURSE.ADMIN_COURSE_CREATE);
+        $location.path(URLFactory.COURSE.ADMIN_COURSE_CREATE);
     };
     $scope.newCourseMaterial = function() {
-        $location.path(COURSE.URL_PATH.ADMIN_COURSE_MATERIAL_CREATE);
+        $location.path(URLFactory.COURSE.PATH.ADMIN_COURSE_MATERIAL_CREATE);
     };
     $scope.newSession = function() {
-        $location.path(COURSE.URL_PATH.ADMIN_COURSE_CURRICULUM_SESSION_CREATE);
+        $location.path(URLFactory.COURSE.PATH.ADMIN_COURSE_CURRICULUM_SESSION_CREATE);
     };
     $scope.newSessionCancel = function() {
-        $location.path(COURSE.URL_PATH.ADMIN_COURSE_CURRICULUM_SESSION);
+        $location.path(URLFactory.COURSE.PATH.ADMIN_COURSE_CURRICULUM_SESSION);
     };
     $scope.newTopic = function() {
-        $location.path(COURSE.URL_PATH.ADMIN_COURSE_CURRICULUM_SESSION_TOPIC_CREATE);
+        $location.path(URLFactory.COURSE.PATH.ADMIN_COURSE_CURRICULUM_SESSION_TOPIC_CREATE);
     };
     $scope.newTopicCancel = function() {
-        $location.path(COURSE.URL_PATH.ADMIN_COURSE_CURRICULUM_SESSION_TOPIC);
+        $location.path(URLFactory.COURSE.PATH.ADMIN_COURSE_CURRICULUM_SESSION_TOPIC);
     };
     $scope.newCurriculum = function() {
-        $location.path(COURSE.URL_PATH.ADMIN_COURSE_CURRICULUM_CREATE);
+        $location.path(URLFactory.COURSE.PATH.ADMIN_COURSE_CURRICULUM_CREATE);
     };
   
     $scope.showDropDown = false;
@@ -174,17 +174,17 @@ angular.module('mean.course').controller('CourseController', function ($scope, $
         $scope.costType = true;
     };
     $scope.clicked = function() {
-        $location.path(COURSE.URL_PATH.ADMIN_STUDENT_MANAGE);
+        $location.path(URLFactory.COURSE.PATH.ADMIN_STUDENT_MANAGE);
     };
     $scope.showCourseDetails = function(course) {
         $rootScope.course = course;
-        $location.path(COURSE.URL_PATH.COURSE_LIST_DETAILS);
+        $location.path(URLFactory.COURSE.PATH.COURSE_LIST_DETAILS);
     };
     $scope.courseEnrollment = function() {
-        $location.path(COURSE.URL_PATH.COURSE_SELECTED);
+        $location.path(URLFactory.COURSE.PATH.COURSE_SELECTED);
     };
     $scope.curriculumDetails = function() {
-        $location.path(COURSE.URL_PATH.COURSE_CURRICULUM);
+        $location.path(URLFactory.COURSE.PATH.COURSE_CURRICULUM);
     };
     $scope.Counselling = function() {
         $scope.counsellingmessage = "Request raised for counselling";
@@ -198,12 +198,12 @@ angular.module('mean.course').controller('CourseController', function ($scope, $
             $scope.counsellingmessage = "";
         }, 3000);
     };
-    $scope.find = function() {
+/*    $scope.find = function() {
        var query = {};
             query.page = 1;
             query.pageSize = 10;
             $scope.loadPagination(query);
-    };
+    };*/
 
     $scope.showCourses = function() {
         $scope.find();
@@ -219,8 +219,8 @@ angular.module('mean.course').controller('CourseController', function ($scope, $
             if (isValid) {
                 var course = new CourseService.course($scope.course);
                     course.$save(function (response) {
-                        flash.setMessage(MESSAGES.COURSE_ADD_SUCCESS, MESSAGES.SUCCESS);
-                        $location.path(COURSE.URL_PATH.ADMIN_COURSE_LIST);
+                        flash.setMessage(URLFactory.MESSAGES.COURSE_ADD_SUCCESS, URLFactory.MESSAGES.SUCCESS);
+                        $location.path(URLFactory.COURSE.PATH.ADMIN_COURSE_LIST);
                         $scope.course = {};
                     }, function (error) {
                         $scope.error = error;
@@ -229,8 +229,8 @@ angular.module('mean.course').controller('CourseController', function ($scope, $
                 $scope.submitted = true;
             }
         } else {
-            flash.setMessage(MESSAGES.PERMISSION_DENIED, MESSAGES.ERROR);
-            $location.path(MESSAGES.DASHBOARD_URL);
+            flash.setMessage(URLFactory.MESSAGES.PERMISSION_DENIED, URLFactory.MESSAGES.ERROR);
+            $location.path(URLFactory.MESSAGES.DASHBOARD_URL);
         }
     };
 
@@ -246,13 +246,13 @@ angular.module('mean.course').controller('CourseController', function ($scope, $
                 }
                 deleteObjectFromArray($scope.collection, Course);
                 $('#deletePopup').modal("hide");
-                    flash.setMessage(MESSAGES.COURSE_DELETE_SUCCESS, MESSAGES.SUCCESS);
-                    $location.path(COURSE.URL_PATH.ADMIN_COURSE_LIST);
+                    flash.setMessage(URLFactory.MESSAGES.COURSE_DELETE_SUCCESS, URLFactory.MESSAGES.SUCCESS);
+                    $location.path(URLFactory.COURSE.PATH.ADMIN_COURSE_LIST);
                 })
             };
         }else {
-            flash.setMessage(MESSAGES.PERMISSION_DENIED, MESSAGES.ERROR);
-            $location.path(MESSAGES.DASHBOARD_URL);
+            flash.setMessage(URLFactory.MESSAGES.PERMISSION_DENIED, URLFactory.MESSAGES.ERROR);
+            $location.path(URLFactory.MESSAGES.DASHBOARD_URL);
         }
     };
 
@@ -267,8 +267,8 @@ angular.module('mean.course').controller('CourseController', function ($scope, $
                 course.$update({
                         courseId: $stateParams.courseId
                     }, function () {
-                        flash.setMessage(MESSAGES.COURSE_UPDATE_SUCCESS, MESSAGES.SUCCESS);
-                            $location.path(COURSE.URL_PATH.ADMIN_COURSE_LIST);
+                        flash.setMessage(URLFactory.MESSAGES.COURSE_UPDATE_SUCCESS, URLFactory.MESSAGES.SUCCESS);
+                            $location.path(URLFactory.COURSE.PATH.ADMIN_COURSE_LIST);
                     }, function (error) {
                         $scope.error = error;
                     });
@@ -276,8 +276,8 @@ angular.module('mean.course').controller('CourseController', function ($scope, $
                 $scope.submitted = true;
             }
         } else {
-            flash.setMessage(MESSAGES.PERMISSION_DENIED, MESSAGES.ERROR);
-            $location.path(MESSAGES.DASHBOARD_URL);
+            flash.setMessage(URLFactory.MESSAGES.PERMISSION_DENIED, URLFactory.MESSAGES.ERROR);
+            $location.path(URLFactory.MESSAGES.DASHBOARD_URL);
         }
     };
 
@@ -287,14 +287,21 @@ angular.module('mean.course').controller('CourseController', function ($scope, $
                 courseId: $stateParams.courseId
             }, function(course) {
                 $scope.course = course;
+                if ($scope.course.publish == 'True'){
+                    $scope.courseDisabled = "true";
+                    $scope.Publish = "Published";
+                }
+                else{
+                    $scope.Publish = "Publish";   
+                }
             });
         } else {
-            flash.setMessage(MESSAGES.PERMISSION_DENIED, MESSAGES.ERROR);
-            $location.path(MESSAGES.DASHBOARD_URL);
+            flash.setMessage(URLFactory.MESSAGES.PERMISSION_DENIED, URLFactory.MESSAGES.ERROR);
+            $location.path(URLFactory.MESSAGES.DASHBOARD_URL);
         }
     };
     $scope.cancelCourse = function() {
-        $location.path(COURSE.URL_PATH.ADMIN_COURSE_LIST);
+        $location.path(URLFactory.COURSE.PATH.ADMIN_COURSE_LIST);
     };
     $scope.addSkill = function() {
         $scope.showDropDown = true;
@@ -305,10 +312,10 @@ angular.module('mean.course').controller('CourseController', function ($scope, $
         $scope.course.skill = $rootScope.course.skill;
     };
     $scope.cancelCreateLoan = function() {
-        $location.path(COURSE.URL_PATH.ADMIN_COURSELOAN);
+        $location.path(URLFactory.COURSE.PATH.ADMIN_COURSE_LOAN);
     };
     $scope.newCourse = function() {
-        $location.path(COURSE.URL_PATH.ADMIN_COURSE_CREATE);
+        $location.path(URLFactory.COURSE.PATH.ADMIN_COURSE_CREATE);
     };
     $scope.addSkillSets = function() {
         $scope.course.skillSets.push({});
@@ -318,7 +325,7 @@ angular.module('mean.course').controller('CourseController', function ($scope, $
         $scope.course.skillSets.splice(index, 1);
     };
     $scope.newCourseLoan = function() {
-        $location.path(COURSE.URL_PATH.ADMIN_COURSELOAN_CREATE);
+        $location.path(URLFactory.COURSE.PATH.ADMIN_COURSE_LOAN_CREATE);
     };
     $scope.course.onlineTests = [{}];
     $scope.addTetsSets = function(index) {
@@ -363,19 +370,210 @@ angular.module('mean.course').controller('CourseController', function ($scope, $
     $scope.cancelDelete = function() {
         $('#deletePopup').modal("hide");
     };
-
-
-    //****************** Edit Course ************************
-
-    $scope.editCourse = function (urlPath, id) {
+     //****************** Edit Course ************************
+    //******************Course constant function ************************
+     $scope.editCourse = function (urlPath, id) {
         urlPath = urlPath.replace(":courseId", id);
         $location.path(urlPath);
     };
 
+    //********************Load franchise or third party*******************
+    $scope.loadFranchise = function () {
+       FranchiseService.franchise.query(function (franchises) {
+           $scope.franchises = [];
+           if ($scope.course.course_type == "Franchise Course") {
+               for (var i = 0; i < franchises.length; i++) {
+                   if (franchises[i].franchise_type == "Franchise") {
+                       $scope.franchises.push(franchises[i]);
+                   }
+               }
+           } 
+           else if($scope.course.course_type == "Third Party Course") {
+               for (var i = 0; i < franchises.length; i++) {
+                   if (franchises[i].franchise_type == "Third Party Provider") {
+                       $scope.franchises.push(franchises[i]);
+                   }
+
+               }
+           }
+
+
+       });
+   };
      $scope.batchList = function(urlPath, course) {
+        if($rootScope.branchobj){
+            delete $rootScope.branchobj;
+        }
         $rootScope.courseobj = course;
         urlPath = urlPath.replace(":courseId", course._id);
         $location.path(urlPath);
     };
-});
+      
 
+// ***************Branch & Country fetch list***************
+    $scope.listBranches = function () {
+        $scope.user = MeanUser.user;
+            $scope.branches = $scope.user.branch;
+    };
+
+    $scope.listCountry = function () {
+        $scope.user = MeanUser.user;
+        $scope.countries = $scope.user.city;
+    };
+
+
+// ***************Branch & Country filter***************
+    $scope.branchFilter = function (branchId, courseId) {
+        $scope.branchId = branchId;
+        $scope.courseId = courseId;
+        $scope.paymentSchemes = [];
+        var payments=[];
+        var courseBatchList = [];
+        $scope.courseBatchList = courseBatchList;
+        $scope.payments = payments;
+        $scope.branchObj = {};
+        CourseBranchService.payment.query({courseId: $scope.courseId}, function (paymentSchemes) {
+            $scope.paymentSchemes = paymentSchemes;
+            BranchService.branch.get({branchId: branchId}, function (branch) {
+                $scope.branchObj = branch;
+                for (var i = 0; i <$scope.paymentSchemes.length; i++) {
+                    if ($scope.paymentSchemes[i].branch == $scope.branchObj._id){
+                        payments.push($scope.paymentSchemes[i]);
+                    }
+                }
+            });
+        });
+        BATCHService.all.query(function (batch){
+            $scope.batch = batch;
+            for (var i = 0; i <$scope.batch.length; i++) {
+                if ($scope.batch[i].branch == $scope.branchId && $scope.batch[i].course == $scope.courseId){
+                    courseBatchList.push($scope.batch[i]);
+                }
+            }
+        });
+    };   
+
+     $scope.countryFilter = function (countryId, courseId) {
+        $scope.countryId = countryId;
+        $scope.courseId = courseId;
+        $scope.paymentSchemes = [];
+        var payments=[];
+        $scope.payments = payments;
+        $scope.countryObj = {};
+        CourseBranchService.payment.query({courseId: $scope.courseId}, function (paymentSchemes) {
+            $scope.paymentSchemes = paymentSchemes;
+            CountryService.country.get({countryId: countryId}, function (country) {
+                $scope.countryObj = country;
+                for (var i = 0; i <$scope.paymentSchemes.length; i++) {
+                    if ($scope.paymentSchemes[i].country == $scope.countryObj._id){
+                        payments.push($scope.paymentSchemes[i]);
+                    }
+                }
+            });
+        });
+    };
+
+
+    // **************Publish course globally function***************
+
+    $scope.publish = function (){
+            $scope.course.publish = 'True';
+            var course = new CoursePublishService.publishcourse($scope.course);
+                if (!course.updated) {
+                    course.updated = [];
+                }
+                course.$update({
+                        coursePublishId: $stateParams.courseId
+                    }, function () {
+                        flash.setMessage(URLFactory.MESSAGES.COURSE_PUBLISH_SUCCESS, URLFactory.MESSAGES.SUCCESS);
+                            $location.path(URLFactory.COURSE.PATH.ADMIN_COURSE_LIST);
+                    }, function (error) {
+                        $scope.error = error;
+                    });
+            };
+
+
+// **************Load filter based on admin type***************
+
+     $scope.loadFilter = function (){
+                $scope.user = MeanUser.user;
+                if($scope.user.branch.length > 0 && $scope.user.country.length == 0){
+                    $scope.listBranches();
+                    $scope.isBranchDropDown = true;
+                    $scope.isCountryDropDown = false;
+                }
+                if($scope.user.country.length > 0){
+                    $scope.listCountry();
+                    $scope.isBranchDropDown = false;
+                    $scope.isCountryDropDown = true;
+                }
+            }; 
+
+    $scope.branch = function(){
+        var courseBranch = [];
+        $scope.courseBranch = courseBranch;
+        $scope.courseId = $stateParams.courseId;
+        BranchService.all.query(function (branch) {
+            $scope.branchList = branch;
+            for (var i = 0; i <$scope.branchList.length; i++) {
+                for (var j = 0; j <$scope.branchList[i].course.length; j++) {
+                        if ($scope.branchList[i].course[j]._id == $scope.courseId){
+                            courseBranch.push($scope.branchList[i]);
+                    }
+                }
+            }
+        });
+    };
+
+// **************Fetch curriculum of course***************
+    $scope.curriculum = function(){
+        var courseCurriculums = [];
+        var subTopics = [];
+        $scope.subTopics = subTopics;
+        $scope.courseId = $stateParams.courseId;
+        CourseTopicService.curriculum.query({courseId: $scope.courseId},function (curriculum){
+            $scope.curriculums = curriculum;
+            courseCurriculums.push($scope.curriculums);
+            CourseTopicService.subTopic.query({courseId: $scope.courseId},function (subtopics){
+                $scope.subtopics = subtopics;
+                for (var i = 0; i <$scope.curriculums.length; i++) {
+                    if ($scope.curriculums[i].topic){
+                        for (var j = 0; j <$scope.subtopics.length; j++) {
+                            if ($scope.curriculums[i].topic._id == $scope.subtopics[j].parent){
+                                subTopics.push($scope.subtopics[j]);
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    };
+   
+    //*******curriculum of course*******
+    
+    $scope.redirectCurriculum = function(urlPath, course) {
+        $rootScope.courseobj = course;
+        urlPath = urlPath.replace(":courseId", course._id);
+        $location.path(urlPath);
+    };
+
+    $scope. redirectCounsellingChecklist = function(urlPath, course) {
+        $rootScope.courseobj = course;
+        urlPath = urlPath.replace(":courseId", course._id);
+        $location.path(urlPath);
+    };
+    /***
+     * Load student list by course
+     * */
+    $scope.studentList = function(urlPath,course){
+		 urlPath = urlPath.replace(":courseId", course._id);
+		 $location.path(urlPath);
+	};
+     $scope.showDetails = function(urlPath, course) {
+        $cookies.put('enrollCourseId', course._id);
+        $rootScope.enrollCourseId = course._id;
+        $rootScope.courseobj = course;
+        urlPath = urlPath.replace(":courseId", course._id);
+         $location.path(urlPath);
+            };
+});

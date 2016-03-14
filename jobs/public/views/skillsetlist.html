@@ -1,15 +1,17 @@
 <section  data-ng-controller = 'SkillSetController' data-ng-init="list(); ">
     <div data-ng-include="'/system/views/alert.html'"></div>
     <div ng-include="'/system/views/breadcrum.html'"></div>
-	<div class="mainwrapper">
-		<h3 class="pull-left">Roles</h3>
-		<button class="btn btn-info pull-right roleCreate" ng-if="writePermission" data-ng-click="newskillSet()">Create Skillset</button>
+	<div class="mainwrapper social-group-header">
+		<h3 class="pull-left">{{ 'jobs.skill.SKILL_SET' | translate }}</h3>
+		<button class="btn btn-info pull-right" ng-if="writePermission" data-ng-click="newskillSet()">{{ 'common.CREATE' | translate }} {{ 'jobs.skill.SKILL_SET' | translate }}</button>
 	</div>
 	<table class="table table-bordered"  >
 		<thead>
 			<tr>
-				<th>Name</th>
-                <th>Cost</th>
+				<th>{{ 'common.NAME' | translate }}</th>
+                <th>{{ 'jobs.skill.COST' | translate }}</th>
+                <th>{{ 'jobs.skill.SKILLS' | translate }}</th>
+                <th>{{ 'common.ACTIONS' | translate }}</th>
 			</tr>
 		</thead>
 		<tbody class="anchorTag">
@@ -17,14 +19,52 @@
 				
 				 <td>{{skillset.name}}</td>
                  <td>{{skillset.cost}}</td>
-				 <td><a href="" class="linksGap" ng-if="updatePermission" data-ng-click="">
-					<i class="fa fa-pencil-square-o tooltip-right"  data-ng-click="editSkillset(SKILLSET.URL_PATH.SKILLSETEDIT,skillset._id)" data-toggle="tooltip" data-placement="bottom" data-tooltip="Edit"></i></a> 
-					<a href="" ng-click = "removepop(skillset)" class="linksGap" ng-if="deletePermission">
-     					<i class="fa fa-minus-circle tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="Delete"></i></a>		
-				</td>
+                 <td>
+                 	<li class="skills" ng-repeat="skillname in skillset.skill">{{skillname.skillid.name.toUpperCase()}}</li>
+                 </td>
+<td width="10%" align="center">
+                    <div class="dropdown" uib-dropdown on-toggle="toggled(open)">
+                        <a href class="dropdown-toggle btn btn-wide btn-default" uib-dropdown-toggle>
+                            <i class="fa fa-arrow-circle-right">
+                            </i>
+                            <span>
+                                {{ 'common.ACTIONS' | translate }}
+                            </span>
+                        </a>
+                        <ul role="menu" class="dropdown-menu dropdown-light animated fadeInUpShort ">
+                            <li ng-if="readPermission">
+                                <a class="menu-toggler"   data-ng-click="editSkillset(SKILLSET.URL_PATH.SKILLSETDETAILS,skillset._id)">
+                                    <i class="fa fa-plus-square-o">
+                                    </i>
+                                    <span>
+                                        {{ 'jobs.VIEWINFO' | translate }}
+                                    </span>
+                                </a>
+                            </li>
+                            <li ng-if="updatePermission">
+                                <a class="menu-toggler" data-ng-click="editSkillset(SKILLSET.URL_PATH.SKILLSETEDIT,skillset._id)">
+                                    <i class="fa fa-pencil-square-o">
+                                    </i>
+                                    <span>
+                                        {{ 'common.EDITINFO' | translate }}
+                                    </span>
+                                </a>
+                            </li>
+                            <li ng-if="deletePermission">
+                                <a class="menu-toggler" ng-click = "removepop(skillset)">
+                                    <i class="fa fa-minus-square-o">
+                                    </i>
+                                    <span>
+                                        {{ 'common.DELETE' | translate }}
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </td>
 			</tr>
             <tr data-ng-hide="collection.length > 0">
-                <td colspan="4">No Skillset found...</td>
+                <td colspan="4">{{ 'jobs.skill.NO_SKILLSET' | translate }}</td>
             </tr>
 		</tbody>
 	</table>
@@ -32,5 +72,4 @@
         <div ng-include="'system/views/paginationFilter.html'"></div>
         <br>
     </div>
-    <div ng-include="'/system/views/delete-popup.html'"></div>
 </section>

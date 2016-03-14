@@ -1,18 +1,24 @@
-angular.module('mean.jobs').constant('SKILLSET',{
-    URL_PATH:{
-     SKILLSETCREATE: '/skillset',
-     SKILLSETLIST: '/skillsetlist',
-     SKILLSETEDIT: '/skillset/:skillsetId/edit'        
+angular.module('mean.jobs').constant('SKILLSET', {
+    URL_PATH: {
+        SKILLSET: "/admin",
+        SKILLSET_CREATE: '/skillset/create',
+        SKILLSET_LIST: '/skillset/list',
+        SKILLSET_EDIT: '/skillset/:skillsetId/edit',
+        SKILLSET_DETAILS: '/skillset/:skillsetId/details'
     },
     FILE_PATH: {
-     SKILLSETCREATE: 'jobs/views/skillsetcreate.html',
-     SKILLSETLIST: 'jobs/views/skillsetlist.html',
-     SKILLSETEDIT: 'jobs/views/skillsetedit.html'
+        SKILLSET: 'system/views/admin_layout.html',
+        SKILLSET_CREATE: 'jobs/views/skillsetcreate.html',
+        SKILLSET_LIST: 'jobs/views/skillsetlist.html',
+        SKILLSET_EDIT: 'jobs/views/skillsetedit.html',
+        SKILLSET_DETAILS: 'jobs/views/skillset_details.html'
     },
     STATE: {
-     SKILLSETCREATE: 'skill set create page',
-     SKILLSETLIST: 'skill set list page',
-     SKILLSETEDIT: 'skill set edit page'
+        SKILLSET: "skillset",
+        SKILLSET_CREATE: 'skillset.create',
+        SKILLSET_LIST: 'skillset.list',
+        SKILLSET_EDIT: 'skillset.edit',
+        SKILLSET_DETAILS: 'skillset.details'
     }
 });
 

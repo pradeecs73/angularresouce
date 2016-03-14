@@ -1,0 +1,185 @@
+<section  data-ng-controller="CourseRequestController" data-ng-init="getReq();">
+	<div ng-include="'/system/views/breadcrum.html'"></div>
+	<div data-ng-include="'/system/views/alert.html'"></div>
+	<div class="mainwrapper">
+	<form name="coursePaymentDetail">
+		<div class="col-md-6">
+			<h4>Course :{{batchData.course.name}}</h4>
+			<h4>Batch :{{batchData.batch_name}}</h4>
+			<h4>Cost :{{paymentData.cost}}</h4>
+		</div>
+		<div class="col-md-6">
+			<h4>Branch :{{batchData.branch.branchName}}</h4>
+			<h4>Batch Start Date :{{batchData.start_date | date: 'dd-MMM-yyyy'}}</h4>
+		</div>
+		<br/>
+		<table class="table table-bordered table-condensed">
+		<thead>
+			<tr>
+				<th class="text-center">Down Payment/Installments scheme</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>
+					<table class="table table-bordered table-condensed"
+						data-ng-repeat="installment in paymentData.installments" ng-init="disLength = checkLength(installment.discounts.length)">
+						<tr>
+							<th rowspan="{{disLength}}">
+								<div class="marginright50">
+								<label mean-token="'create-loan'"><b>Loan Required</b></label>
+								<input id="" type="checkbox" name="check" ng-click="checkLoanReq(paymentData);" ng-model="installment.isLoanreq">
+								</div>
+							</th>
+							<th data-ng-show="installment.isDownPayment" rowspan="{{disLength}}">Down Payment</th>
+							<th data-ng-hide="installment.isDownPayment" rowspan="{{disLength}}">Installment {{$index}}</th>
+							<th rowspan="2" class="text-center">Amount</th>
+							<th rowspan="2" class="text-center">FineCharge /Day</th>
+							<th colspan="3" class="text-center">Discounts</th></tr>
+							<tr>
+								<th class="text-center">Marks from</th>
+								<th class="text-center">Marks to</th>
+								<th class="text-center">Rate</th>
+							</tr>
+							<tr data-ng-repeat="discount in installment.discounts">
+								<td ng-if="$index == 0" rowspan="{{disLength}}">{{installment.installmentAmount}}</td>
+								<td ng-if="$index == 0" rowspan="{{disLength}}">{{installment.fineAmount}}</td>
+								<td >{{discount.marks_form}}</td>
+								<td >{{discount.marks_to}}</td>
+								<td >{{discount.rate}}%</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<div class="mainwrapper">
+			<label><b>Batch Timings</b></label>			
+				<table class="table table-bordered tableWidth">
+				<thead>
+					<tr>
+						<th class="text-center">Mon</th>
+						<th class="text-center">Tue</th>
+						<th class="text-center">Wed</th>
+						<th class="text-center">Thu</th>
+						<th class="text-center">Fri</th>
+						<th class="text-center">Sat</th>
+						<th class="text-center">Sun</th>
+					</tr>
+				</thead>
+				<tbody class="anchorTag">
+				<tr>
+					<td>
+						<div class="brdr_top " ng-repeat='batchtime in batchData.batchTimings.mon'>
+							<div class="form-group margin-top30" ng-if="!batchtime.startHH">
+								<div class="col-md-2">NA</div>
+							</div>
+							<div class="form-group" ng-if="batchtime.startHH">
+								<div class="col-md-2">{{batchtime.startHH}}</div>
+								<div class="col-md-2">{{batchtime.startMM}}</div>
+							</div><br/>
+							<div class="form-group" ng-if="batchtime.endHH">
+								<div class="col-md-2">{{batchtime.endHH}}</div>
+								<div class="col-md-2">{{batchtime.endMM}}</div>
+							</div>
+						</div>
+					</td>
+					<td>
+						<div class="brdr_top " ng-repeat='batchtime in batchData.batchTimings.tue'>
+							<div class="form-group margin-top30" ng-if="!batchtime.startHH">
+								<div class="col-md-2">NA</div>
+							</div>
+							<div class="form-group" ng-if="batchtime.startHH">
+								<div class="col-md-2">{{batchtime.startHH}}</div>
+								<div class="col-md-2">{{batchtime.startMM}}</div>
+							</div><br/>
+							<div class="form-group" ng-if="batchtime.endHH">
+								<div class="col-md-2">{{batchtime.endHH}}</div>
+								<div class="col-md-2">{{batchtime.endMM}}</div>
+							</div>
+						</div>
+					</td>
+					<td>
+						<div class="brdr_top " ng-repeat='batchtime in batchData.batchTimings.wed'>
+						<div class="form-group margin-top30" ng-if="!batchtime.startHH">
+								<div class="col-md-2">NA</div>
+							</div>
+							<div class="form-group" ng-if="batchtime.startHH">
+								<div class="col-md-2">{{batchtime.startHH}}</div>
+								<div class="col-md-2">{{batchtime.startMM}}</div>
+							</div><br/>
+							<div class="form-group" ng-if="batchtime.endHH">
+								<div class="col-md-2">{{batchtime.endHH}}</div>
+								<div class="col-md-2">{{batchtime.endMM}}</div>
+							</div>
+						</div>
+					</td>
+					<td>
+						<div class="brdr_top " ng-repeat='batchtime in batchData.batchTimings.thu'>
+							<div class="form-group margin-top30" ng-if="!batchtime.startHH">
+								<div class="col-md-2">NA</div>
+							</div>							
+							<div class="form-group" ng-if="batchtime.startHH">
+								<div class="col-md-2">{{batchtime.startHH}}</div>
+								<div class="col-md-2">{{batchtime.startMM}}</div>
+							</div><br/>
+							<div class="form-group" ng-if="batchtime.endHH">
+								<div class="col-md-2">{{batchtime.endHH}}</div>
+								<div class="col-md-2">{{batchtime.endMM}}</div>
+							</div>
+						</div>
+					</td>
+					<td>
+						<div class="brdr_top " ng-repeat='batchtime in batchData.batchTimings.fri'>
+						<div class="form-group margin-top30" ng-if="!batchtime.startHH">
+								<div class="col-md-2">NA</div>
+							</div>
+							<div class="form-group" ng-if="batchtime.startHH">
+								<div class="col-md-2">{{batchtime.startHH}}</div>
+								<div class="col-md-2">{{batchtime.startMM}}</div>
+							</div><br/>
+							<div class="form-group" ng-if="batchtime.endHH">
+								<div class="col-md-2">{{batchtime.endHH}}</div>
+								<div class="col-md-2">{{batchtime.endMM}}</div>
+							</div>
+						</div>
+					</td>
+					<td>
+						<div class="brdr_top " ng-repeat='batchtime in batchData.batchTimings.sat'>
+							<div class="form-group margin-top30" ng-if="!batchtime.startHH">
+								<div class="col-md-2">NA</div>
+							</div>
+							<div class="form-group" ng-if="batchtime.startHH">
+								<div class="col-md-2">{{batchtime.startHH}}</div>
+								<div class="col-md-2">{{batchtime.startMM}}</div>
+							</div><br/>
+							<div class="form-group" ng-if="batchtime.endHH">
+								<div class="col-md-2">{{batchtime.endHH}}</div>
+								<div class="col-md-2">{{batchtime.endMM}}</div>
+							</div>
+						</div>
+					</td>
+					<td>
+						<div class="brdr_top " ng-repeat='batchtime in batchData.batchTimings.sun'>
+							<div class="form-group margin-top30" ng-if="!batchtime.startHH">
+								<div class="col-md-2">NA</div>
+							</div>
+							<div class="form-group" ng-if="batchtime.startHH">
+								<div class="col-md-2">{{batchtime.startHH}}</div>
+								<div class="col-md-2">{{batchtime.startMM}}</div>
+							</div><br/>
+							<div class="form-group" ng-if="batchtime.endHH">
+								<div class="col-md-2">{{batchtime.endHH}}</div>
+								<div class="col-md-2">{{batchtime.endMM}}</div>
+							</div>
+						</div>
+					</td>
+				</tr>
+				</tbody>
+				</table>
+		</div>
+		<button class="btn btn-info" type="submit" ng-if="loanDownPaymentreq" ng-click="applyLoan()">Apply for Loan</button>
+		<button class="btn btn-info" type="submit" ng-if="!loanDownPaymentreq" ng-click="payCourse()">Pay Now</button>
+		</form>
+	</div>
+</section>

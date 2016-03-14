@@ -68,6 +68,10 @@ var jobSchema = new Schema({
         required: true,
         trim: true
     },
+    client: {
+        type: Object,
+        trim: true
+    },
     createdAt: {
         type: Date,
         default: Date.now
@@ -77,7 +81,7 @@ var jobSchema = new Schema({
 jobSchema.statics.load = function(id, callback) {
     this.findOne({
         _id: id
-    }).exec(callback);
+    }).populate('skillsCT').exec(callback);
 };
 
 mongoose.model('job', jobSchema);

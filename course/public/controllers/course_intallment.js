@@ -2,7 +2,7 @@
 
 /* jshint -W098 */
 angular.module('mean.course').controller('CourseInstallmentController', 
-		 function ($scope, $stateParams, Global,CourseInstallmentService,$location,$rootScope, COURSE) {
+		 function ($scope, $stateParams, Global,CourseInstallmentService,$location,$rootScope, COURSE,$translate) {
             $scope.global = Global;
 	        $scope.package = {
 	            name: 'course'
@@ -56,7 +56,7 @@ angular.module('mean.course').controller('CourseInstallmentController',
 	            if (isValid) {
 	                var course = new CourseInstallmentService($scope.course);
 	                course.$save(function (response) {
-	                    $location.path(COURSE.URL_PATH.ADMIN_COURSE_LIST);
+	                    $location.path(COURSE.PATH.ADMIN_COURSE_LIST);
 	                    $scope.course = {};
 	                });
 	            }
@@ -75,11 +75,11 @@ angular.module('mean.course').controller('CourseInstallmentController',
 	                            $scope.courses.splice(i, 1);
 	                        }
 	                    }
-	                    $location.path(COURSE.URL_PATH.ADMIN_COURSE_LIST);
+	                    $location.path(COURSE.PATH.ADMIN_COURSE_LIST);
 	                });
 	            } else {
 	                $scope.course.$remove(function (response) {
-	                    $location.path(COURSE.URL_PATH.ADMIN_COURSE_LIST);
+	                    $location.path(COURSE.PATH.ADMIN_COURSE_LIST);
 	                });
 	            }
 	        };
@@ -93,7 +93,7 @@ angular.module('mean.course').controller('CourseInstallmentController',
 	                course.updated.push(new Date().getTime());
 
 	                course.$update(function () {
-						$location.path(COURSE.URL_PATH.ADMIN_COURSE_LIST);
+						$location.path(COURSE.PATH.ADMIN_COURSE_LIST);
 	                });
 	            } else {
 	                $scope.submitted = true;

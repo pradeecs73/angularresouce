@@ -197,6 +197,7 @@ module.exports = function(CourseprojectCtrl) {
 
 						return res.json(result);
 					});
+			
 		}
 		
 	};

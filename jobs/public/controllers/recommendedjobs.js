@@ -1,7 +1,7 @@
 'use strict';
 /* jshint -W098 */
-angular.module('mean.jobs').controller('RecommendedJobsController', ['$scope', 'SkillService', '$location', 'Global', 'RecommendedJobs', '$http', '$rootScope', 'PROFILE', '$stateParams',
-    function($scope, SkillService, $location, Global, RecommendedJobs, $http, $rootScope, PROFILE, $stateParams) {
+angular.module('mean.jobs').controller('RecommendedJobsController', ['$scope', 'SkillService', '$location', 'Global', 'RecommendedJobs', '$http', '$rootScope', 'PROFILE', '$stateParams','$translate',
+    function($scope, SkillService, $location, Global, RecommendedJobs, $http, $rootScope, PROFILE, $stateParams,$translate) {
         $scope.global = Global;
         $scope.PROFILE = PROFILE;
         $scope.SERVICE = RecommendedJobs;

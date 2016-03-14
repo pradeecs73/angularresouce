@@ -17,6 +17,10 @@ var AttendanceSchema = new Schema({
 	attended:{
 		type:Boolean,
 		trim:true
+	},
+	comment:{
+      type:String,
+      default:""
 	}
 });
 

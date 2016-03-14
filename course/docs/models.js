@@ -1,22 +1,74 @@
 exports.models = {
 
-  Course: {
-    id: 'Course',
-    required: ['content', 'title'],
+  Batch: {
+    id: 'Batch',
+    required: ['batch_name', 'start_date','course'],
     properties: {
    
-      title: {
+    	batch_name: {
         type: 'string',
-        description: 'Title of the article'
+        description: 'Name of the batch'
       },
-      content: {
-        type: 'string',
-        description: 'content of the article'
+      start_date: {
+        type: 'Date',
+        description: 'Start date of the batch'
       },
-      permissions: {
-        type: 'Array',
-        description: 'Permissions for viewing the article'
+      course: {
+        type: 'Object',
+        description: 'Course reference object'
       }
     }
-  }
+  },
+ /**
+  * Course franchise  
+  * */
+  Franchise: {
+  id: 'Franchise',
+  required: ['name', 'url','email','contactDetails'],
+  properties: {
+ 
+	  name: {
+      type: 'string',
+      description: 'name of the Course franchise  '
+    },
+    url: {
+        type: 'string',
+        description: 'url of the Course franchise'
+    },
+    email: {
+        type: 'string',
+        description: 'email of the Course franchise'
+     },
+     contactDetails: {
+        type: 'Array',
+        description: 'contactDetails of the Course franchise'
+      }
+     }
+},
+  /**
+   * Course   
+   * */
+  Course: {
+   id: 'Course',
+   required: ['name', 'description','qualification','course_startDate'],
+   properties: {
+  
+ 	  name: {
+       type: 'string',
+       description: 'name of the Course'
+     },
+     description: {
+         type: 'string',
+         description: 'description of the Course'
+     },
+     qualification: {
+         type: 'string',
+         description: 'qualification of the Course '
+      },
+      course_startDate: {
+         type: 'Date',
+         description: 'Start date of the Course'
+       }
+      }
+ }
 };

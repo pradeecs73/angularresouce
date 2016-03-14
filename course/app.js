@@ -25,8 +25,8 @@ Course.register(function (app, auth, database, swagger) {
     });
 
     Course.aggregateAsset('css', 'course.css');
+    //Course.angularDependencies(['ngMaterial', 'md.data.table','ui.calendar', 'ui.bootstrap', 'summernote']);
     Course.angularDependencies(['ui.calendar', 'ui.bootstrap']);
-
     /**
      //Uncomment to use. Requires meanio@0.3.7 or above
      // Save settings with callback

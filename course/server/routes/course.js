@@ -12,15 +12,15 @@ var hasAuthorization = function (req, res, next) {
 module.exports = function(Course, app, auth, database) {
 
   var courseCtrl = require('../controllers/course')(Course);
-	
+  
   app.route('/api/course')
-  	.post(auth.requiresLogin, hasAuthorization, courseCtrl.create)
+    .post(courseCtrl.create)
     .get(auth.requiresLogin, hasAuthorization, courseCtrl.all);
 
   app.route('/api/course/:courseId')
-  	.get(auth.requiresLogin, hasAuthorization,courseCtrl.show)
-  	.put(auth.requiresLogin, hasAuthorization,courseCtrl.update)
-  	.delete(auth.requiresLogin, hasAuthorization,courseCtrl.destroy);
+    .get(courseCtrl.show)
+    .put(auth.requiresLogin, hasAuthorization,courseCtrl.update)
+    .delete(auth.requiresLogin, hasAuthorization,courseCtrl.destroy);
 
   app.route('/api/courseList/pagination')
       .get(courseCtrl.loadCoursePagination);
@@ -29,7 +29,11 @@ module.exports = function(Course, app, auth, database) {
       .post(auth.requiresLogin, hasAuthorization,courseCtrl.uploadCourseBanner);
   app.route('/api/courseimage/icon')
       .post(auth.requiresLogin, hasAuthorization,courseCtrl.uploadCourseIcon);
+
+  app.route('/api/coursepublish/:coursePublishId')
+      .put(auth.requiresLogin, hasAuthorization,courseCtrl.publishcourse);    
   
   app.param('courseId', courseCtrl.course);
+  app.param('coursePublishId', courseCtrl.course);
   
 };

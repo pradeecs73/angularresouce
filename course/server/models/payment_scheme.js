@@ -2,6 +2,7 @@
 
 var mongoose = require('mongoose'),
     Schema = mongoose.Schema;
+var deepPopulate = require('mongoose-deep-populate')(mongoose);
 
 
 var PaymentSchemeSchema = new Schema({
@@ -12,6 +13,9 @@ var PaymentSchemeSchema = new Schema({
 	cost: {
 		type: Number
 	},
+	paymentScheme: {
+		type: String
+	},
 	installments: [{
 		paymentFor : String,
 		installmentAmount : Number,
@@ -19,20 +23,29 @@ var PaymentSchemeSchema = new Schema({
 		dueDate : Number,
 		isDownPayment: Boolean,
 		isLoan : Boolean,
-		loanId : {
+		loanproductId : {
 			type: Schema.ObjectId,
-			ref: 'Loan'
+			ref: 'Loanproduct'
 		},
 		discounts: [{
 			marks_form: Number,
 			marks_to: Number,
 			rate: Number
-		}]
+		}],
+		loanDetail: {
+           principal:String,
+           interestRatePerPeriod:String,
+           numberOfRepayments:String
+		}
 	}],
-	branches: [{
+	country: {
+		type: Schema.ObjectId,
+		ref: 'Country'
+	},
+	branch: {
 		type: Schema.ObjectId,
 		ref: 'Branch'
-	}],
+	},
 	createdAt: {
 		type: Date,
        	default: Date.now
@@ -43,11 +56,16 @@ var PaymentSchemeSchema = new Schema({
 	}
 });
 
+PaymentSchemeSchema.plugin(deepPopulate, {whitelist: [
+     'loanId',
+     'installments.loanId'
+ ]});
+
 
 PaymentSchemeSchema.statics.load = function (id, callback) {
     this.findOne({
         _id: id
-    }).populate('skill', 'name description').populate('course', 'name description').exec(callback);
+    }).populate('skill', 'name description').populate('course', 'name description').populate('installments.loanId').exec(callback);
 };
 
 

@@ -36,6 +36,34 @@ module.exports = function(Jobs, app) {
             if (errors) {
                 return res.status(400).send(errors);
             }
+
+            var autocompletfieldemptyerror = [];
+            for (var i = 0; i < req.body.skill.length; i++) {
+                if (req.body.skill[i].skillid == undefined) {
+                    autocompletfieldemptyerror.push({});
+                }
+            }
+            if (autocompletfieldemptyerror.length > 0) {
+                return res.status(400).send([{
+                    msg: "Please select the skill from auto complete",
+                    param: "autocompleteemptyerror"
+                }]);
+            }
+
+            var skilluniqueerrors = [];
+            var skillList = _.pluck(req.body.skill, 'skillid');
+            var uniqueChc = _.uniq(skillList, JSON.stringify).length === skillList.length;
+            if (!uniqueChc) {
+                var valError2 = {
+                    msg: "Skills Should be unique",
+                    param: "skillserror"
+                };
+                skilluniqueerrors.push(valError2);
+            }
+            if (skilluniqueerrors.length > 0) {
+                return res.status(400).send(skilluniqueerrors);
+            }
+            
             var skillsetcreate = new skillsetModel(req.body);
             skillsetcreate.save(function(err, items) {
                 if (err) {
@@ -67,7 +95,7 @@ module.exports = function(Jobs, app) {
             });
         },
         fetchallskillset: function(req, res) {
-            var populateObj = {};
+            var populateObj = {'skill.skillid':'name'};
             utility.pagination(req, res, skillsetModel, {}, {}, populateObj, function(result) {
                 if (utility.isEmpty(result.collection)) {
                     //res.json(result);
@@ -97,9 +125,36 @@ module.exports = function(Jobs, app) {
             if (errors) {
                 return res.status(400).send(errors);
             }
+
+            var autocompletfieldemptyerror = [];
+            for (var i = 0; i < req.body.skill.length; i++) {
+                if (req.body.skill[i].skillid == undefined) {
+                    autocompletfieldemptyerror.push({});
+                }
+            }
+            if (autocompletfieldemptyerror.length > 0) {
+                return res.status(400).send([{
+                    msg: "Please select the skill from auto complete",
+                    param: "autocompleteemptyerror"
+                }]);
+            }
+
+            var skilluniqueerrors = [];
+            var skillList = _.pluck(req.body.skill, 'skillid');
+            var uniqueChc = _.uniq(skillList, JSON.stringify).length === skillList.length;
+            if (!uniqueChc) {
+                var valError2 = {
+                    msg: "Skills Should be unique",
+                    param: "skillserror"
+                };
+                skilluniqueerrors.push(valError2);
+            }
+            if (skilluniqueerrors.length > 0) {
+                return res.status(400).send(skilluniqueerrors);
+            }
+
             var skillset = req.skillset;
             var savingskillset = _.extend(skillset, req.body);
-            console.log(savingskillset);
             savingskillset.save(function(err, items) {
                 if (err) {
                     switch (err.code) {

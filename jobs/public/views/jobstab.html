@@ -3,14 +3,14 @@
  <div ng-include="'/system/views/breadcrum.html'"></div>
    	  <div class="mainwrapper anchorTag">
         <ul class="nav nav-tabs tab-nav-width">
-            <li class="active"><a href="#1" data-toggle="tab">Recommended Jobs</a></li>
-            <li ><a href="#2" data-toggle="tab">All Jobs</a></li>
+            <li class="active"><a href="#1" data-toggle="tab">{{ 'jobs.JOBS_RECOMMENDED' | translate }}</a></li>
+            <li ><a href="#2" data-toggle="tab">{{ 'jobs.JOBS_ALL' | translate }}</a></li>
         </ul>  
     <div class="tab-content projecttab">
-        <div class="mainwrapper anchorTag tab-pane active" id="1"><br />
+        <div class=" anchorTag tab-pane active" id="1"><br />
             <div data-ng-include="'/jobs/views/recommendedjobs.html'" ></div>
         </div>
-        <div class="mainwrapper anchorTag tab-pane" id="2"><br />
+        <div class=" anchorTag tab-pane" id="2"><br />
             <div data-ng-include="'/jobs/views/jobslist.html'"></div>
         </div>
 

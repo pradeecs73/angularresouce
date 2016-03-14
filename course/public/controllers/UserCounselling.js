@@ -1,6 +1,6 @@
 'use strict';
 /* jshint -W098 */
-angular.module('mean.course').controller('UserCounsellingController', function($scope, $stateParams, Global, UserCounsellingService, MeanUser, $location, $rootScope) {
+angular.module('mean.course').controller('UserCounsellingController', function($scope, $stateParams, Global, UserCounsellingService, MeanUser, $location, $rootScope,$translate) {
     $scope.global = Global;
     $scope.package = {
         name: 'course'

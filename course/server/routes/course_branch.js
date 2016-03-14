@@ -17,11 +17,26 @@ module.exports = function(CourseBranch, app, auth, database) {
 		.put(courseBranchCtrl.assignCourseToBranch)
 		.get(courseBranchCtrl.removeCourseFromBranch);
 	
-	app.route('/api/course/:courseId/payment-scheme/city/:cityId')
-		.put(courseBranchCtrl.assignCourseToMultipleBranch);
+	app.route('/api/country/:countryId/payment-scheme/course/:courseId')
+		.put(courseBranchCtrl.assignCourseToBranch)
+		.get(courseBranchCtrl.removeCourseFromBranch);
+	
+	app.route('/api/course/country/:countryId')
+		.get(auth.requiresLogin,hasAuthorization,courseBranchCtrl.loadCountry);
+	
+	app.route('/api/course/branch/:branchId')
+		.get(auth.requiresLogin,hasAuthorization,courseBranchCtrl.loadAvailableCoursesForBranch);
+	
+	app.route('/api/payment-scheme/course/:courseId')
+		.get(auth.requiresLogin,hasAuthorization,courseBranchCtrl.loadPaymentSchemes);
+
+	app.route('/api/:courseId/payment-scheme')
+		.get(auth.requiresLogin,hasAuthorization,courseBranchCtrl.showPaymentSchemes);
+	
+	app.route('/api/branch/:branchId/course/:courseId/payment-scheme')
+		.get(courseBranchCtrl.loadCoursePaymentSchemesForBranch);
 
 	app.param('branchId', courseBranchCtrl.branch);
 	app.param('courseId', courseBranchCtrl.course);
-	app.param('cityId', courseBranchCtrl.city);
-
+	app.param('countryId', courseBranchCtrl.country);
 };

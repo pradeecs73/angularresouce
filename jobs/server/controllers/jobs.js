@@ -1,5 +1,6 @@
 require('../../../../custom/skill/server/models/skill.js');
 require('../../../../custom/skill/server/models/skillkeywords.js');
+require('../../../../custom/course/server/models/course.js');
 var utility = require('../../../../core/system/server/controllers/util.js');
 var mongoose = require('mongoose');
 var jobModel = mongoose.model('job');
@@ -15,6 +16,7 @@ var usermodel = mongoose.model('User');
 var nodemailer = require('nodemailer');
 var config = require('meanio').loadConfig();
 var skillsetModel = mongoose.model('skillset');
+var CourseModel = mongoose.model('Course');
 //Get all Jobs
 var getAllJobs = function(sitedetails) {
     var urlpath = sitedetails.getAllJobsAPIendpoint;
@@ -191,7 +193,8 @@ module.exports = function(Jobs, app) {
                     queryAnd.push(obj);
                 }
                 var populateObj = {};
-                utility.paginationsort(req, res, jobModel, {
+                delete req.query.filterinput;
+                utility.paginationSort(req, res, jobModel, {
                     $and: queryAnd
                 }, {}, populateObj, {
                     createdAt: -1
@@ -203,7 +206,8 @@ module.exports = function(Jobs, app) {
                 });
             } else {
                 var populateObj = {};
-                utility.paginationsort(req, res, jobModel, {}, {}, populateObj, {
+                delete req.query.filterinput;
+                utility.paginationSort(req, res, jobModel, {}, {}, populateObj, {
                     createdAt: -1
                 }, function(result) {
                     if (utility.isEmpty(result.collection)) {
@@ -219,7 +223,8 @@ module.exports = function(Jobs, app) {
                 var queryIn = JSON.parse(req.query.filterinput);
                 queryIn = queryIn.filteredarray;
                 var populateObj = {};
-                utility.paginationsort(req, res, jobModel, {
+                delete req.query.filterinput;
+                utility.paginationSort(req, res, jobModel, {
                     skillsCT: {
                         $in: queryIn
                     }
@@ -233,7 +238,8 @@ module.exports = function(Jobs, app) {
                 });
             } else {
                 var populateObj = {};
-                utility.paginationsort(req, res, jobModel, {
+                delete req.query.filterinput;
+                utility.paginationSort(req, res, jobModel, {
                     skillsCT: {
                         $in: skills
                     }
@@ -270,7 +276,7 @@ module.exports = function(Jobs, app) {
                         emailjobsforuser(userobject.skills, userobject.email, userobject.name);
                         callback();
                     });
-                    res.send(200);
+                    res.sendStatus(200);
                 }
             });
         },
@@ -288,16 +294,15 @@ module.exports = function(Jobs, app) {
                     });
                 },
                 function(myskillsetdata, done) {
-                usermodel.find(function(err, users) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        async.each(users, function(userobject, callback) {
-                            emailforforecastingjobs(userobject.skills,myskillsetdata,userobject.email, userobject.name);
-                            callback();
-                        });
-                    }
-                });
+                    usermodel.find(function(err, users) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            for (var i = 0; i < users.length; i++) {
+                                emailforforecastingjobs(users[i].skills, myskillsetdata, users[i].email, users[i].name);
+                            }
+                        }
+                    });
                     done();
                 },
                 function(done) {
@@ -305,7 +310,6 @@ module.exports = function(Jobs, app) {
                     done();
                 }
             ], function(err) {});
-           
         }
     }
 };
@@ -319,81 +323,83 @@ function sendMail(mailOptions) {
 };
 var emailjobsforuser = function(skillarray, useremail, username) {
     var mailOptions = {
-        from: config.emailFromWelcome,
+        from: config.emailFrom,
         createTextFromHtml: true,
         subject: 'CodersTrust matching jobs'
     };
     mailOptions.to = useremail;
+    var todateandtime=new Date();
+    var cutoff = new Date();
+    var fromdateandtime=new Date(cutoff.setHours(cutoff.getHours()-5));
     jobModel.find({
         skillsCT: {
             $in: skillarray
-        }
+        },"createdAt": {"$lt": new Date(todateandtime), "$gte": new Date(fromdateandtime)}
     }, function(err, jobs) {
         if (err) {
             console.log(err);
         } else {
-            var jobslist = ['Dear <b>' + username + '</b>Job Matching For Your Skills'];
-            for (var i = 0; i < jobs.length; i++) {
-                jobslist.push(jobs[i].title);
+             if (jobs.length > 0) {
+                var jobslist = ['(This email is for testing purposes only)','Dear <b>' + username + '</b>,','Job Matching For Your Skills'];
+                for (var i = 0; i < jobs.length; i++) {
+                    jobslist.push(jobs[i].title);
+                    jobslist.push(jobs[i].jobUrl);
+                }
+                jobslist.push('(This email is for testing purposes only)');
+                mailOptions.html = jobslist.join('<br><br>');
+                sendMail(mailOptions);
             }
-            mailOptions.html = jobslist.join('<br><br>');
-            sendMail(mailOptions);
         }
     });
 };
-var emailforforecastingjobs = function(userskillarray,myskillsetdata,useremail,username) {
-    var useremail=useremail;
-    var username=username;
-
-    async.each(myskillsetdata, function(skilldata, callback) {
-       var mymainarray=_.pluck(skilldata.skill, "skillid");
-           mymainarray=mymainarray.join(',').split(',');
-
-        for(var i=0;i<skilldata.skill.length;i++)
-        {
-            if(skilldata.skill[i].main)
-               {
-                 var skillsetskill=skilldata.skill[i].skillid;
-                 if(userskillarray.indexOf(skillsetskill) >= 0)
-                 {
-
-                       var resultarray=[];
-                     for(var j = 0; j < mymainarray.length; j++) {
-                              if (userskillarray.indexOf(mymainarray[j]) == -1)
-                                  resultarray.push(mymainarray[j]);      
-                           }
-                        sendmailtouser(resultarray,useremail,username);
-
-                 }
-
-               } 
-
-        }
-    
-        callback();
-     });
-};
-
-var sendmailtouser=function(resultarray,useremail,username)
-{
-
-    skillModel.find({_id: {$in: resultarray}},function(err, mailskills) {
-                if (err) {
-                    console.log(err);
-                } else {
-
-                    var mailskillsname=_.pluck(mailskills,'name');
-                        mailskillsname=mailskillsname.join();
-                         var mailOptions = {
-                                from: config.emailFromWelcome,
-                                createTextFromHtml: true,
-                                subject: 'CodersTrust matching jobs'
-                            };
-                               mailOptions.to = useremail;
-                               var mailcontent = ['Dear <b>' + username + '</b>you have to learn '+mailskillsname+''];
-                               mailOptions.html = mailcontent.join('<br><br>');
-                               sendMail(mailOptions);
+var emailforforecastingjobs = function(userskillarray, myskillsetdata, useremail, username) {
+    var useremail = useremail;
+    var username = username;
+    async.each(myskillsetdata, function(skilldata, callback1) {
+        var mymainarray = _.pluck(skilldata.skill, "skillid");
+        mymainarray = mymainarray.join(',').split(',');
+        for (var i = 0; i < skilldata.skill.length; i++) {
+            if (skilldata.skill[i].main) {
+                var skillsetskill = skilldata.skill[i].skillid;
+                var courseskillarray = [];
+                courseskillarray.push(skillsetskill);
+                if (userskillarray.indexOf(skillsetskill) >= 0) {
+                    var resultarray = [];
+                    for (var j = 0; j < mymainarray.length; j++) {
+                        if (userskillarray.indexOf(mymainarray[j]) == -1) resultarray.push(mymainarray[j]);
+                    }
+                    sendmailtouser(resultarray, courseskillarray, useremail, username);
                 }
-            });
-
+            }
+        }
+        callback1();
+    });
+};
+var sendmailtouser = function(resultarray, courseskillarray, useremail, username) {
+    var courseskillarray = courseskillarray;
+    var resultarray = resultarray;
+    var useremail = useremail;
+    var username = username;
+    var courseskillandarray = [];
+    var query = CourseModel.find({});
+    query.where('courseSkill.skillName').all(courseskillarray);
+    query.where('courseSkill.skillName').in(resultarray);
+    query.exec(function(err, docs) {
+        var mailingcourses = docs;
+        var mailOptions = {
+            from: config.emailFrom,
+            createTextFromHtml: true,
+            subject: 'CodersTrust matching courses'
+        };
+        mailOptions.to = useremail;
+        if (mailingcourses.length > 0) {
+            var courseslist = ['(This email is for testing purposes only)','Dear <b>' + username + '</b>,','related courses for you'];
+            for (var i = 0; i < mailingcourses.length; i++) {
+                courseslist.push(mailingcourses[i].name);
+            }
+            courseslist.push('(This email is for testing purposes only)');
+            mailOptions.html = courseslist.join('<br><br>');
+            sendMail(mailOptions);
+        }
+    });
 };

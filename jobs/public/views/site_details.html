@@ -2,10 +2,10 @@
  <div ng-include="'/system/views/breadcrum.html'"></div>
 	<div class="mainwrapper social-group-header">
 		<div>
-			<h3 class="pull-left">Site Detail</h3>
+			<h3 class="pull-left">{{ 'jobs.SITE_DETAIL' | translate }}</h3>
 			<div class="pull-right">
-				<a class="btn btn-info" href="" data-ng-click="editSite(JOBS.URL_PATH.SITEEDIT,site._id)">Edit</a> <a
-					href="" class="btn btn-info" ng-click="modalDeletePopup(site)">Delete</a>
+				<a class="btn btn-info" href="" data-ng-click="editSite(JOBS.URL_PATH.SITEEDIT,site._id)">{{ 'common.EDIT' | translate }}</a> <a
+					href="" class="btn btn-info" ng-click="modalDeletePopup(site)">{{ 'common.DELETE' | translate }}</a>
 			</div>
 		</div>
 	</div>
@@ -13,43 +13,37 @@
 		<form name="siteForm" class="form-horizontal leftAlign formAlign"
 			novalidate>
 			<div class="form-group">
-				<label mean-token="'show-websiteName'" class="col-md-2">WebsiteName
-					:</label>
+				<label mean-token="'show-websiteName'" class="col-md-2">{{ 'jobs.WEB_NAME' | translate }}</label>
 				<div class="col-md-10 viewRole">{{site.websiteName}}</div>
 			</div>
 			<div class="form-group">
-				<label mean-token="'show-websiteUrl'" class="col-md-2">WebsiteUrl
-					:</label>
+				<label mean-token="'show-websiteUrl'" class="col-md-2">{{ 'jobs.WEB_URL' | translate }}</label>
 				<div class="col-md-10 viewRole">{{site.websiteUrl}}</div>
 			</div>
 			<div class="form-group">
-				<label mean-token="'show-siteUsername'" class="col-md-2">Username
-					:</label>
+				<label mean-token="'show-siteUsername'" class="col-md-2">{{ 'roles.admin_list.USERNAME' | translate }}</label>
 				<div class="col-md-10 viewRole">{{site.siteUsername}}</div>
 			</div>
 			<div class="form-group">
-				<label mean-token="'show-sitePassword'" class="col-md-2">Password
-					:</label>
+				<label mean-token="'show-sitePassword'" class="col-md-2">{{ 'users.PASSWORD' | translate }}
+					</label>
 				<div class="col-md-10 viewRole">********</div>
 			</div>
 			<div class="form-group">
-				<label mean-token="'show-apiUrl'" class="col-md-2">API Url
-					:</label>
+				<label mean-token="'show-apiUrl'" class="col-md-2">{{ 'jobs.API_URL' | translate }}</label>
 				<div class="col-md-10 viewRole">{{site.apiUrl}}</div>
 			</div>
 			<div class="form-group">
-				<label mean-token="'show-apiSecret'" class="col-md-2">API Secret
-					:</label>
+				<label mean-token="'show-apiSecret'" class="col-md-2">{{ 'jobs.API_SECRET' | translate }}
+					</label>
 				<div class="col-md-10 viewRole">{{site.apiSecret}}</div>
 			</div>
 			<div class="form-group">
-				<label mean-token="'show-apiSiteId'" class="col-md-2">API Site Id
-					:</label>
+				<label mean-token="'show-apiSiteId'" class="col-md-2">{{ 'jobs.SITE_ID' | translate }}</label>
 				<div class="col-md-10 viewRole">{{site.apiSiteId}}</div>
 			</div>
 			<div class="form-group">
-				<label mean-token="'show-checkLoginAPIendpoint'" class="col-md-2">Check
-					Login APIendpoint :</label>
+				<label mean-token="'show-checkLoginAPIendpoint'" class="col-md-2">{{ 'jobs.CHECK_LOGIN' | translate }}</label>
 				<div class="col-md-10 viewRole">{{site.checkLoginAPIendpoint}}</div>
 			</div>
 			<!-- <div class="form-group">
@@ -58,8 +52,7 @@
 				<div class="col-md-10 viewRole">{{site.checkLoginAPIJSON}}</div>
 			</div> -->
 			<div class="form-group">
-				<label mean-token="'show-getUserInfoAPIendpointl'" class="col-md-2">Get
-					User Info APIendpoint :</label>
+				<label mean-token="'show-getUserInfoAPIendpointl'" class="col-md-2">{{ 'jobs.GET_USER_API' | translate }}</label>
 				<div class="col-md-10 viewRole">{{site.getUserInfoAPIendpoint}}</div>
 			</div>
 			<!-- <div class="form-group">
@@ -68,8 +61,7 @@
 				<div class="col-md-10 viewRole">{{site.getUserInfoAPIJSON}}</div>
 			</div> -->
 			<div class="form-group">
-				<label mean-token="'show-getSingleJobAPIendpoint'" class="col-md-2">Get
-					SingleJob APIendpoint :</label>
+				<label mean-token="'show-getSingleJobAPIendpoint'" class="col-md-2">{{ 'jobs.GET_SINGLEJOB_API' | translate }}</label>
 				<div class="col-md-10 viewRole">{{site.getSingleJobAPIendpoint}}</div>
 			</div>
 			<!-- <div class="form-group">
@@ -78,8 +70,7 @@
 				<div class="col-md-10 viewRole">{{site.getSingleJobAPIJSON}}</div>
 			</div> -->
 			<div class="form-group">
-				<label mean-token="'show-getAllJobsAPIendpoint'" class="col-md-2">Get
-					AllJobs APIendpoint :</label>
+				<label mean-token="'show-getAllJobsAPIendpoint'" class="col-md-2">{{ 'jobs.GET_ALLJOB_API' | translate }}</label>
 				<div class="col-md-10 viewRole">{{site.getAllJobsAPIendpoint}}</div>
 			</div>
 			<!-- <div class="form-group">
@@ -89,10 +80,9 @@
 			</div> -->
 			<div class="form-group">
 				<div class="col-md-offset-2 col-md-10">
-					<button type="button" class="btn btn-info" ng-click="cancelSite()">Back</button>
+					<button type="button" class="btn btn-info" ng-click="cancelSite()">{{ 'jobs.BACK' | translate }}</button>
 				</div>
 			</div>
 		</form>
 	</div>
-	<div ng-include="'/system/views/delete-popup.html'"></div>
 </section>

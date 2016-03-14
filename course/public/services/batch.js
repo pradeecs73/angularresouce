@@ -6,6 +6,10 @@ angular.module('mean.course').factory('BATCHService', function($resource) {
         }, {
             update: {
                 method: 'PUT'
+            },
+            query: {
+                method: 'GET',
+                isArray: false
             }
         }),
         page: $resource('/api/batchlist/pagination', {}, {
@@ -17,6 +21,7 @@ angular.module('mean.course').factory('BATCHService', function($resource) {
                 isArray: false
             }
         }),
+        /*Fetching branches based on course*/
         branchCourses: $resource('/api/branchCourses', {}, {
             update: {
                 method: 'PUT'
@@ -25,9 +30,29 @@ angular.module('mean.course').factory('BATCHService', function($resource) {
                 method: 'GET',
                 isArray: true
             }
+        }),
+          /*Fetching users/mentors based on course skills*/
+           UsersonCourseSkills: $resource('/api/usersSkills', {}, {
+            update: {
+                method: 'PUT'
+            },
+            query: {
+                method: 'GET',
+                isArray: true
+            }
+        }),
+        all: $resource('/api/batch', {}, {
+            query: {method: 'GET', isArray: true}
+        }),
+        studentPaymentScheme: $resource('/api/studentPaymentScheme', {}, {
+            query:{
+                method: 'GET', isArray: false
+            }
+        }),
+        payCourse: $resource('/api/payCourse', {}, {
+            update: {
+                method: 'PUT'
+            }
         })
     };
-
-
-
 })

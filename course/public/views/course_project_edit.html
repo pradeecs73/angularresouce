@@ -1,4 +1,4 @@
-<section data-ng-controller="CourseprojectController"
+<section data-ng-controller="CourseProjectController"
 	data-ng-init="findOne(); EditCourseproject(); loadSkillList();">
 	<div ng-include="'/system/views/breadcrum.html'"></div>
 	<div class="mainwrapper social-group-header">
@@ -10,83 +10,79 @@
 			<div class="form-group "
 				ng-class="{ 'has-error' : submitted && courseprojectForm.projectName.$invalid }">
 				<label mean-token="'create-projectName'"
-					class="col-md-2 err-msg-projectName">Project Name</label>
+					class="col-md-2 err-msg-projectName">{{ 'profile.project.PROJECTNAME' | translate }}</label>
 				<div class="col-md-8">
 					<input name="projectName" type="text"
 						data-ng-model="courseproject.projectName " id="projectName"
-						placeholder="Project Name" class="form-control  err-msg " required>
+						placeholder="{{ 'profile.project.PROJECTNAME' | translate }}" class="form-control  err-msg " required>
 					<div class="errorRed" ng-repeat="err in error.data"
 						ng-if="err.param =='projectName'">{{err.msg}}</div>
 					<div ng-show="submitted && courseprojectForm.projectName.$invalid">
 						<span class="errorRed"
 							ng-show="courseprojectForm.projectName.$error.required">
-							Please enter Project Name </span>
+							 {{ 'profile.project.error_messages.PROJECTNAME' | translate }} </span>
 					</div>
 				</div>
 			</div>
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && courseprojectForm.description.$invalid }">
 				<label mean-token="'create-description'"
-					class="col-md-2 err-msg-description">Description</label>
+					class="col-md-2 err-msg-description">{{ 'common.DESCRIPTION' | translate }}</label>
 				<div class="col-md-8">
 					<textarea name="description" type="text"
 						data-ng-model="courseproject.description " id="description"
-						cols="30" rows="5" placeholder="Description"
+						cols="30" rows="5" placeholder="{{ 'common.DESCRIPTION' | translate }}"
 						class="form-control  err-msg " required></textarea>
 					<div class="errorRed" ng-repeat="err in error.data"
 						ng-if="err.param =='description'">{{err.msg}}</div>
 					<div ng-show="submitted && courseprojectForm.description.$invalid">
 						<span class="err-msg errorText red"
-							ng-show="courseprojectForm.description.$error.required">Enter
-							Description Name </span>
+							ng-show="courseprojectForm.description.$error.required">{{ 'common.error_messages.DESCRIPTION' | translate }}</span>
 					</div>
 				</div>
 			</div>
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && courseprojectForm.totalMarks.$invalid }">
 				<label mean-token="'create-totalMarks'"
-					class="col-md-2 err-msg-totalMarks">Total Marks</label>
+					class="col-md-2 err-msg-totalMarks">{{ 'course.project.TOTAL_MARKS' | translate }}</label>
 				<div class="col-md-8">
 					<input name="totalMarks" type="number"
 						data-ng-model="courseproject.totalMarks " id="totalMarks"
-						placeholder="Total Marks" min="{{courseproject.minimumMarks + 1}}" class="form-control  err-msg " required>
+						placeholder="{{ 'course.project.TOTAL_MARKS' | translate }}" min="{{courseproject.minimumMarks + 1}}" class="form-control  err-msg " required>
 					<div class="errorRed" ng-repeat="err in error.data"
 						ng-if="err.param =='totalMarks' && courseproject.totalMarks < courseproject.minimumMarks">{{err.msg}}</div>
 					<div ng-if="submitted && courseprojectForm.totalMarks">
 						<span class="err-msg errorText red"
-							ng-show="courseprojectForm.totalMarks.$error.required">Enter
-							the Total Marks </span>
+							ng-show="courseprojectForm.totalMarks.$error.required">{{ 'course.error_messages.MARKS_ENTER' | translate }} </span>
 							<span class="err-msg errorText red"
-							 ng-show="courseprojectForm.totalMarks.$error.min">Total Marks must be greater than Minimum Marks</span>
+							 ng-show="courseprojectForm.totalMarks.$error.min">{{ 'course.error_messages.TOTAL_MARKS' | translate }}</span>
 					</div>
 				</div>
 			</div>
 			<div class="form-group"
 				ng-class="{ 'has-error' : submitted && courseprojectForm.minimumMarks.$invalid }">
 				<label mean-token="'create-minimumMarks'"
-					class="col-md-2 err-msg-minimumMarks">Minimum Marks</label>
+					class="col-md-2 err-msg-minimumMarks">{{ 'course.project.MINIMUM_MARKS' | translate }}</label>
 				<div class="col-md-8">
 					<input name="minimumMarks" type="number"
 						data-ng-model="courseproject.minimumMarks" min="1" id="minimumMarks"
-						placeholder="Minimum Marks" class="form-control  err-msg "
+						placeholder="{{ 'course.project.MINIMUM_MARKS' | translate }}" class="form-control  err-msg "
 						required>
 					<div class="errorRed" ng-repeat="err in error.data"
 						ng-if="err.param =='minimumMarks'">{{err.msg}}</div>
 					<div ng-show="submitted && courseprojectForm.minimumMarks.$invalid">
 						<span class="err-msg errorText red"
-							ng-show="courseprojectForm.minimumMarks.$error.required">Enter
-							the Minimum Marks</span>
+							ng-show="courseprojectForm.minimumMarks.$error.required">{{ 'course.error_messages.MINIMUM_MARKS' | translate }}</span>
 					</div>
 				</div>
 			</div>
 			<div class="form-group">
-				<label mean-token="'create-requiredSkill'" class="col-md-2">Required
-					skill</label>
+				<label mean-token="'create-requiredSkill'" class="col-md-2">{{ 'course.project.REQUIRED_SKILL' | translate }}</label>
 				<div class="row rolesA level15 col-md-offset-2"
 					ng-repeat="rSkill in courseproject.requiredSkill">
 					<div class="col-md-3 rolesA"
 						ng-class="{ 'has-error' : submitted && courseprojectForm.skill.$invalid }">
-						<label for="skill" mean-token="'create-skill'">Skill</label> <select
+						<label for="skill" mean-token="'create-skill'">{{ 'course.courses.SKILL' | translate }}</label> <select
 							name="skill" class="form-control"
 							data-ng-model="rSkill.skill._id" required>
 							<option ng-repeat="skill in skillList" value="{{skill._id}}">{{skill.name}}</option>
@@ -94,12 +90,12 @@
 						<div class="errorRed" ng-repeat="err in error.data"
 							ng-if="err.param =='requiredSkill[0].skill'">{{err.msg}}</div>
 						<div ng-show="submitted &&courseprojectForm.skill.$error.required">
-							<span class="err-msg red"> Please Enter Skill</span>
+							<span class="err-msg red">{{ 'profile.project.error_messages.SKILL' | translate }}</span>
 						</div>
 					</div>
 					<div class="col-md-3 rolesA"
 						ng-class="{ 'has-error' : submitted && courseprojectForm.level.$invalid }">
-						<label for="level" mean-token="'create-level'">Level</label> <select
+						<label for="level" mean-token="'create-level'">{{ 'course.project.LEVEL' | translate }}</label> <select
 							ng-options="level.option as level.value for level in componentLevel"
 							name="level" class="form-control" ng-model="rSkill.level" required>
 							<option style="display: none" value="">{{rSkill.level}}</option>
@@ -107,13 +103,12 @@
 						<div class="errorRed" ng-repeat="err in error.data"
 							ng-if="err.param =='requiredSkill[0].level'">{{err.msg}}</div>
 						<div ng-show="submitted &&courseprojectForm.level.$error.required">
-							<span class="err-msg red"> Please Enter Level</span>
+							<span class="err-msg red">  {{ 'course.error_messages.LEVEL' | translate }}</span>
 						</div>
 					</div>
 					<div class="col-md-2 rolesA"
 						ng-class="{ 'has-error' : submitted && courseprojectForm.rewardPoint.$invalid }">
-						<label for="rewardPoint" mean-token="'create-rewardPoint'">Reward
-							Point</label> <select
+						<label for="rewardPoint" mean-token="'create-rewardPoint'">{{ 'course.project.REWARD_POINTS' | translate }}</label> <select
 							ng-options="rewardPoint.option as rewardPoint.value for rewardPoint in componentRewardPoint"
 							name="rewardPoint" class="form-control"
 							ng-model="rSkill.rewardPoint" required>
@@ -123,7 +118,7 @@
 							ng-if="err.param =='requiredSkill[0].rewardPoint'">{{err.msg}}</div>
 						<div
 							ng-show="submitted &&courseprojectForm.rewardPoint.$error.required">
-							<span class="err-msg red"> Please Enter RewardPoint</span>
+							<span class="err-msg red"> {{ 'course.error_messages.REWARD_POINTS' | translate }}</span>
 						</div>
 					</div>
 					<div class="col-md-2 martop25">
@@ -145,17 +140,17 @@
 				</div>
 			</div>
 			<div class="form-group">
-				<label mean-token="'create-question'" class="col-md-2">Question</label>
+				<label mean-token="'create-question'" class="col-md-2">{{ 'course.project.QUESTION' | translate }}</label>
 				<div class="row rolesA level15 col-md-offset-2"
 					ng-repeat="questionsfield in courseproject.questionsfields">
 					<div class="col-md-8 rolesA"
 						ng-class="{ 'has-error' : submitted && courseprojectForm.question.$invalid }">
 						<textarea name="question" data-ng-model="questionsfield.question"
-							id="question" cols="30" rows="5" placeholder="Question"
+							id="question" cols="30" rows="5" placeholder="{{ 'course.project.QUESTION' | translate }}"
 							class="form-control err-msg " required></textarea>
 						<div
 							ng-show="submitted &&courseprojectForm.question.$error.required">
-							<span class="err-msg red"> Please Enter Question</span>
+							<span class="err-msg red"> {{ 'course.error_messages.QUESTION' | translate }}</span>
 						</div>
 					</div>
 					<div class="col-md-2">

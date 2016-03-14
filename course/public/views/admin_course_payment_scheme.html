@@ -1,162 +1,186 @@
-
 <section data-ng-controller="CourseBranchController" data-ng-init="intializeNewPaymentScheme()">
-	<div>
+	<div class="col-sm-12">
 		<h1 class="pull-left">Course Payment Scheme</h1>
+		<!-- <button type="button" class="btn btn-info pull-right mar-top-bot" ng-click="preview()">View</button> -->
 	</div>
 	<div class="col-xs-12">
 		<form name="paymentForm" class="form-horizontal col-md-12 " novalidate>
-
 			<div class="form-group" ng-class="{ 'has-error' : submitted && paymentForm.cost.$invalid }">
-				<label mean-token="'create-cost'" class="col-md-2 control-label">Cost</label>
+				<label mean-token="'create-cost'" class="col-md-2 control-label">{{ 'course.payment.COST' | translate }}</label>
 				<div class="col-md-2">
-					<input name="cost" type="number" class="form-control" id="cost" placeholder="Cost" data-ng-model="paymentScheme.cost" required>
+					<input name="cost" type="number" class="form-control" id="cost" placeholder="{{ 'course.payment.COST' | translate }}" data-ng-model="paymentScheme.cost" required>
 					<div ng-show="submitted && paymentForm.cost.$invalid">
 						<span class="err-msg errorText"
-							ng-show="paymentForm.cost.$error.required"> Please enter
-							the Cost </span>
+							ng-show="paymentForm.cost.$error.required">
+						{{ 'course.error_messages.COST' | translate }} </span>
 					</div>
 				</div>
 			</div>
-
-			<div data-ng-repeat="paymentScheme in course.paymentSchemes">
-				<div class="form-group">
-					<h3 class="col-md-2 control-label">Payment Scheme</h3>
-					<div class="col-md-1">
-						<button ng-click="removePaymentScheme(paymentScheme)"
-							ng-hide="$last">
-							<i class="fa fa-minus-circle"></i></span>
-							<button type="button" ng-click="addPaymentScheme()" ng-show="$last">
-								<span class="fa fa-plus-circle">
-							</button>
+			<div data-ng-repeat="installmentValidation in totalInstallmentValidation" data-ng-init="paymentSchemeIndex = $index">
+				<div ng-show="installmentValidation.isTotalInstallments">
+					<span class="err-msg errorText">
+					{{ 'course.payment.INSTALLMEMT_VALIDATION' | translate }}</span>
+				</div>
+			</div>
+			<div data-ng-repeat="paymentScheme in course.paymentSchemes" data-ng-init="outerIndex = $index">
+				<div class="border-highlighter">
+					<div class="row mt27px">
+						<div class="col-md-3">
+							<h3 class="pull-left control-label">{{ 'course.payment.PAYMENT' | translate }}</h3>
+						</div>
+						<div class="col-md-7">
+							<input name="paymentSchemeName" type="text" class="form-control" data-ng-model="paymentScheme.paymentSchemeName"
+							id="paymentSchemeName" placeholder="{{ 'course.payment.PAYMENT' | translate }}" required>
+							<div ng-show="submitted && paymentForm.paymentSchemeName.$invalid">
+								<span class="err-msg errorText">
+								{{ 'course.error_messages.PAYMENT' | translate }}</span>
+							</div>
+						</div>
+						<button class="" ng-click="removePaymentScheme(paymentScheme)" ng-hide="$last" >
+					<i class="fa fa-minus-circle"></i></span>
+					<button class="margin-top-5" type="button" ng-click="addPaymentScheme()" ng-show="$last">
+					<span class="fa fa-plus-circle">
+						</button>
 						</button>
 					</div>
-				</div>
-				
-				<div  data-ng-repeat="installment in paymentScheme.installments">
-					<div class="form-group">
-						<h3 class="col-md-2 control-label">{{getLabel($index)}}</h3>
-						<div class="col-md-1" data-ng-if="$index != 0">
-							<button ng-click="removeInstallment(installment)"
-								ng-hide="$last">
-								<i class="fa fa-minus-circle"></i></span>
-								<button type="button" ng-click="addInstallment()" ng-show="$last">
-									<span class="fa fa-plus-circle">
+					
+					<div data-ng-repeat="installment in paymentScheme.installments" data-ng-init="middleIndex = $index">
+						<ng-form name="installmentForm">
+						<div class="row margin-top10">
+							<div class="col-md-12">
+								<h3 class="pull-left control-label">{{getLabel($index)}}</h3>
+							</div>
+							<label class="col-md-offset-1 col-md-2 control-label">Downpayment Amount</label>
+							<div class="col-md-2 margin-top10" ng-class="{ 'has-error' : submitted && installmentForm.installmentAmount.$invalid }">
+									<input name="installmentAmount" type="number" class="form-control" data-ng-model="installment.installmentAmount"
+									id="installmentAmount" placeholder="{{getLabel($index)}} {{ 'course.payment.AMOUNT' | translate }}"required>
+									<div ng-show="submitted && installmentForm.installmentAmount.$invalid">
+										<span class="err-msg errorText">
+										{{ 'course.payment.AMOUNT' | translate }} </span>
+									</div>
+									<div ng-show="installment.isInstallmentAmountExceeding">
+										<span class="err-msg errorText">
+										{{getLabel($index)}} {{ 'course.error_messages.AMOUNT_EXCEEDS' | translate }}</span>
+									</div>
+
+							</div>
+							<div class="col-md-2 mt15">
+							<label mean-token="'create-loan'" class="">{{ 'course.payment.LOAN' | translate }}</label>
+							<input id="" type="checkbox" name="check" ng-model="installment.isLoan">
+							</div>
+							<div class="col-md-1" data-ng-if="$index != 0">
+								<button class="margin-top10" ng-click="removeInstallment(installment, outerIndex)" ng-hide="$last">
+							<i class="fa fa-minus-circle"></i></span>
+							<button class="margin-top10"  type="button" ng-click="addInstallment(outerIndex)" ng-show="$last">
+							<span class="fa fa-plus-circle">
 								</button>
-							</button>
-						</div>
-					</div>
-					<div class="row">
-						<div class="form-group" ng-class="{ 'has-error' : submitted && paymentForm.installmentAmount.$invalid }">
-							<label mean-token="'create-installmentAmount'"
-								class="col-md-2 control-label">{{getLabel($index)}} Amount</label>
-							<div class="col-md-2">
-								<input name="installmentAmount" type="number" class="form-control" data-ng-model="installment.installmentAmount"
-									id="installmentAmount" placeholder="{{getLabel($index)}} Amount" required>
-								<div ng-show="submitted && paymentForm.installmentAmount.$invalid">
-									<span class="err-msg errorText"
-										ng-show="paymentForm.installmentAmount.$error.required">
-										Please enter the Installment Amount </span>
-								</div>
-							</div>
-							<div>
-								<label mean-token="'create-loan'" class="">Loan</label>
-								<input ng-checked="" id="" type="checkbox" name="check" ng-model="installment.isLoan" value=""> 
+								</button>
 							</div>
 						</div>
-						<div class="form-group" data-ng-if="$index != 0">
-							<div ng-class="{ 'has-error' : submitted && paymentForm.fineAmount.$invalid }">
-								<label mean-token="'create-fineAmount'"
-									class="col-md-2 control-label">Fine Amount</label>
-								<div class="col-md-2">
-									<input name="fineAmount" type="number" class="form-control" data-ng-model="installment.fineAmount"
-										id="fineAmount" placeholder="Fine Amount" required>
-									<div ng-show="submitted && paymentForm.fineAmount.$invalid">
-										<span class="err-msg errorText"
-											ng-show="paymentForm.fineAmount.$error.required">
-											Please enter the fine amount </span>
+							<div class="form-group margin-top10" data-ng-if="$index != 0">
+								<div ng-class="{ 'has-error' : submitted && installmentForm.fineAmount.$invalid }">
+									<label mean-token="'create-fineAmount'"
+									class="col-md-2 col-md-offset-1 control-label">{{ 'course.payment.FINE_AMOUNT' | translate }}</label>
+									<div class="col-md-2">
+										<input name="fineAmount" type="number" class="form-control" data-ng-model="installment.fineAmount"
+										id="fineAmount" placeholder="{{ 'course.payment.FINE_AMOUNT' | translate }}" required>
+										<div ng-show="submitted && installmentForm.fineAmount.$invalid">
+											<span class="err-msg errorText"
+												ng-show="installmentForm.fineAmount.$error.required">
+											{{ 'course.error_messages.FINE_AMOUNT' | translate }}</span>
+										</div>
 									</div>
 								</div>
+								<div ng-class="{ 'has-error' : submitted && installmentForm.dueDate.$invalid }">
+									<label mean-token="'create-dueDate'"
+									class="col-md-1 control-label">{{ 'course.payment.DUE_DATE' | translate }}</label>
+									<div class="col-md-2">
+										<input name="dueDate" type="number" class="form-control" data-ng-model="installment.dueDate"
+										id="dueDate" placeholder="{{ 'course.payment.DUE_DATE' | translate }}" required>
+										<div ng-show="submitted && installmentForm.dueDate.$invalid">
+											<span class="err-msg errorText"
+												ng-show="installmentForm.dueDate.$error.required">
+											{{ 'course.error_messages.DUE_DATE' | translate }} </span>
+										</div>
+									</div>
+									<div class="col-md-2 mt7">{{ 'course.payment.DAYS' | translate }}</div>
+								</div>
 							</div>
-							<div ng-class="{ 'has-error' : submitted && paymentForm.dueDate.$invalid }">
-								<label mean-token="'create-dueDate'"
-									class="col-md-2 control-label">Due Date</label>
-								<div class="col-md-2">
-									<input name="dueDate" type="number" class="form-control" data-ng-model="installment.dueDate"
-										id="dueDate" placeholder="Due Date" required>
-									<div ng-show="submitted && paymentForm.dueDate.$invalid">
-										<span class="err-msg errorText"
-											ng-show="paymentForm.dueDate.$error.required">
-											Please enter the Due Date </span>
+							<div class="form-group" data-ng-if="installment.isLoan">
+								<h3 class="col-md-3 control-label">{{ 'course.payment.LOAD_DETAILS' | translate }}</h3>
+							</div>
+							<div class="col-md-12 col-md-offset-1">
+								<div class="col-md-2" data-ng-if="installment.isLoan"
+									ng-class="{ 'has-error' : submitted && installmentForm.principal.$invalid }">
+									<label mean-token="'create-maxPrincipal'">{{ 'course.payment.PRINCIPAL' | translate }}</label>
+									<input name="principal" type="text" class="form-control" data-ng-model="installment.loanDetail.principal" placeholder="Principal Amount" >
+								</div>
+								<div class="col-md-3" data-ng-if="installment.isLoan"
+									ng-class="{ 'has-error' : submitted && installmentForm.interestRatePerPeriod.$invalid }">
+									<label mean-token="'create-interestRatePerPeriod'">{{ 'course.payment.INTERESTRATE' | translate }}</label>
+									<input name="interestRatePerPeriod" type="text" class="form-control" data-ng-model="installment.loanDetail.interestRatePerPeriod" placeholder="Rate of Interest" required>
+								</div>
+								<div class="col-md-3" data-ng-if="installment.isLoan"
+									ng-class="{ 'has-error' : submitted && installmentForm.numberOfRepayments.$invalid }">
+									<label mean-token="'create-numberOfRepayments'">{{ 'course.payment.NUMBERREPAYMENT' | translate }}</label>
+									<input name="numberOfRepayments" type="text" class="form-control" data-ng-model="installment.loanDetail.numberOfRepayments" placeholder="Number of Repayment" required>
+								</div>
+							</div>
+							<div class="col-md-12">
+								<h3 class="control-label pull-left">{{ 'course.payment.DISCOUNT' | translate }}</h3>
+							</div>
+							<div class="row">
+							<div class="col-md-10" data-ng-repeat="discount in installment.discounts" data-ng-init="innerIndex = $index">
+								<div ng-class="{ 'has-error' : submitted && installmentForm.discount.$invalid }">
+									<label mean-token="'create-discount'"
+									class="col-md-3 control-label">{{ 'course.payment.RANGE' | translate }}</label>
+									<div class="col-md-4">
+										<input name="marksFrom" type="number" class="marks-from-to form-control" data-ng-model="discount.marks_form"
+										id="marksFrom" placeholder="{{ 'course.payment.FROM' | translate }}" data-ng-change="marksFromBoundry(discount.marks_form, outerIndex, middleIndex, innerIndex)">
+										<input name="marksTo" type="number" class="marks-from-to form-control" data-ng-model="discount.marks_to"
+										id="marksTo" placeholder="{{ 'course.payment.TO' | translate }}" data-ng-change="marksToBoundry(discount.marks_to, outerIndex, middleIndex, innerIndex)">
+										<div ng-show="discount.isMarksFromExceeding">
+											<span class="err-msg errorText">
+											{{ 'course.error_messages.LOWER_RANGE' | translate }}</span>
+										</div>
+										<div ng-show="discount.isMarksToExceeding">
+											<span class="err-msg errorText">
+											{{ 'course.error_messages.UPPER_RANGE' | translate }}</span>
+										</div>
 									</div>
 								</div>
-							</div>
-						</div>
-						<div class="form-group" data-ng-if="installment.isLoan">
-							<h3 class="col-md-3 control-label">Loan Detail</h3>
-						</div>
-						<div class="form-group" data-ng-if="installment.isLoan"
-							ng-class="{ 'has-error' : submitted && paymentForm.loanAmount.$invalid }">
-							<label mean-token="'create-loanAmount'"
-								class="col-md-3 control-label">Loan Amount</label>
-							<div class="col-md-3">
-								<input name="loanAmount" type="number" class="form-control" data-ng-model="installment.installmentAmount"
-									id="loanAmount" placeholder="Loan Amount" required>
-								<div ng-show="submitted && paymentForm.loanAmount.$invalid">
-									<span class="err-msg errorText"
-										ng-show="paymentForm.loanAmount.$error.required"> Please
-										enter the Loan Amount </span>
-								</div>
-							</div>
-						</div>
-						<div class="form-group">
-							<h3 class="col-md-3 control-label">Discount</h3>
-						</div>
-						<div class="form-group" data-ng-repeat="discount in installment.discounts">
-							<div ng-class="{ 'has-error' : submitted && paymentForm.discount.$invalid }">
-								<label mean-token="'create-discount'"
-									class="col-md-3 control-label">Marks Range</label>
-								<div class="col-md-2">
-									<input name="marksFrom" type="number" class="form-control" data-ng-model="discount.marks_form"
-										id="marksFrom" placeholder="From" required>
-									<input name="marksTo" type="number" class="form-control" data-ng-model="discount.marks_to"
-										id="marksTo" placeholder="To" required>
-									<div ng-show="submitted && paymentForm.discount.$invalid">
-										<span class="err-msg errorText"
-											ng-show="paymentForm.discount.$error.required"> 
-											Please enter the Marks Range </span>
+								<div ng-class="{ 'has-error' : submitted && installmentForm.rate.$invalid }">
+									<label mean-token="'create-rate'"
+									class="col-md-1 control-label">{{ 'course.payment.DISCOUNT' | translate }} % </label>
+									<div class="col-md-2">
+										<input name="rate" type="number" class="form-control" data-ng-model="discount.rate"
+										id="rate" placeholder="{{ 'course.payment.RATE' | translate }}" data-ng-change="discountBoundry(discount.rate, outerIndex, middleIndex, innerIndex)">
+										<div ng-show="discount.isDiscountExceeding">
+											<span class="err-msg errorText">
+											{{ 'course.error_messages.DISCOUNT' | translate }}</span>
+										</div>
 									</div>
 								</div>
-							</div>
-							<div ng-class="{ 'has-error' : submitted && paymentForm.rate.$invalid }">
-								<label mean-token="'create-rate'"
-									class="col-md-1 control-label">Rate</label>
-								<div class="col-md-2">
-									<input name="rate" type="number" class="form-control" data-ng-model="discount.rate"
-										id="rate" placeholder="Rate" required>
-									<div ng-show="submitted && paymentForm.rate.$invalid">
-										<span class="err-msg errorText"
-											ng-show="paymentForm.rate.$error.required">
-											Please enter the Rate </span>
-									</div>
-								</div>
-							</div>
-							<div class="col-md-1">
-								<button ng-click="removeDiscount(discount, $parent.$index)"
+								<div class="col-md-1">
+									<button ng-click="removeDiscount(discount, outerIndex, middleIndex)"
 									ng-hide="$last">
-									<i class="fa fa-minus-circle"></i></span>
-									<button type="button" ng-click="addDiscount($parent.$index)" ng-show="$last">
-										<span class="fa fa-plus-circle">
+								<i class="fa fa-minus-circle"></i></span>
+								<button type="button" ng-click="addDiscount(outerIndex, middleIndex)" ng-show="$last">
+								<span class="fa fa-plus-circle">
 									</button>
-								</button>
+									</button>
+								</div>
 							</div>
-						</div>
+							</div>
+						<hr ng-hide="$index == (paymentScheme.installments.length - 1)">
+						</ng-form>
 					</div>
 				</div>
 			</div>
 			<div class="form-group">
 				<div class="col-md-offset-3 col-md-9">
 					<button mean-token="'edit-submit'" type="submit"
-						ng-click="submit()" class="btn btn-info">Submit</button>
+					ng-click="submit(paymentForm)" class="btn btn-info">Submit</button>
 					<button type="button" class="btn btn-info" ng-click="cancel()">Cancel</button>
 				</div>
 			</div>

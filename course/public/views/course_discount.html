@@ -21,13 +21,13 @@
         <div class="col-md-8 col-md-offset-2">
             <form class="form-horizontal" novalidate >
                 <div class="form-group">
-                    <label for="studentPercentMarks" class="col-sm-2 control-label">Minimum Result (%)</label>
+                    <label for="studentPercentMarks" class="col-sm-2 control-label">{{ 'course.course_discount.MIN_RESULT' | translate }} (%)</label>
                     <div class="col-sm-3">
-                        <input type="text" class="form-control" id="studentPercentMarks" data-ng-model="discount.studentPercentMarks" placeholder="Test Result (%)">
+                        <input type="text" class="form-control" id="studentPercentMarks" data-ng-model="discount.studentPercentMarks" placeholder="{{ 'course.course_discount.TEST_RESULT' | translate }} (%)">
                     </div>
-                    <label for="studentPercentDiscount" class="col-sm-2 control-label">Discount Applicabe (%)</label>
+                    <label for="studentPercentDiscount" class="col-sm-2 control-label">{{ 'course.course_discount.APPLICABLE_DISCOUNT' | translate }} (%)</label>
                     <div class="col-sm-3">
-                        <input type="text" class="form-control" id="studentPercentDiscount" data-ng-model="discount.studentPercentDiscount" placeholder="Discount (%)">
+                        <input type="text" class="form-control" id="studentPercentDiscount" data-ng-model="discount.studentPercentDiscount" placeholder="{{ 'course.payment.'DISCOUNT | translate }}  (%)">
                     </div>
                     <button class="btn btn-info" ng-click="addNewDiscount()"><i class="fa fa-plus"></i></button>
                 </div>
@@ -37,8 +37,8 @@
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th class="text-right">Minimum Result (%)</th>
-                            <th class="text-right">Discount Applicable (%)</th>
+                            <th class="text-right">{{ 'course.course_discount.MIN_RESULT' | translate }} (%)</th>
+                            <th class="text-right">{{ 'course.course_discount.APPLICABLE_DISCOUNT' | translate }} (%)</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -56,7 +56,7 @@
                         </tr>
                         <tr ng-show="emptyDiscounts()">
                         	<td colspan="3" class="text-center">
-								No discounts applicable for the course.
+								{{ 'course.error_messages.NO_DISCOUNT' | translate }}
 							</td>
                         </tr>
                     </tbody>

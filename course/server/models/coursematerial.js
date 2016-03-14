@@ -5,15 +5,34 @@
 
 var mongoose = require('mongoose'),
     Schema = mongoose.Schema;
+var deepPopulate = require('mongoose-deep-populate')(mongoose);
 	
 /**
  * Course Material Schema.
  */
 var CoursematerialSchema = new Schema({
+	course: {
+		type: Schema.ObjectId,
+		ref: 'Course'
+	},
+
+// MaterialTittle/book name
+    material: {
+        type: Schema.ObjectId,
+        ref: 'Coursemateriallist'
+    },
+// MaterialTittle/book name
+
 	parentId: {
 		type: Schema.ObjectId,
 		ref: 'Coursematerial'
 	},
+
+    childId:[{
+        type: Schema.ObjectId,
+        ref: 'Coursematerial'
+    }],
+
 	name: {
 		type:String,
 	    default: '',
@@ -53,6 +72,10 @@ var CoursematerialSchema = new Schema({
     }	
 });
 
+CoursematerialSchema.plugin(deepPopulate, {whitelist: [
+     'parentId',
+     'parentId.parentId'
+ ]});
 
 /**
  * Statics

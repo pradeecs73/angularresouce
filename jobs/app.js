@@ -10,7 +10,7 @@ Jobs.register(function(app, auth, database, swagger) {
     Jobs.routes(app, auth, database);
 
     Jobs.aggregateAsset('css', 'jobs.css');
-    Jobs.angularDependencies(['ngFileUpload']);
+    Jobs.angularDependencies(['ngFileUpload','angucomplete-alt']);
 
     swagger.add(__dirname);
 

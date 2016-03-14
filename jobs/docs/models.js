@@ -1,7 +1,7 @@
 exports.models = {
 
-  Branch: {
-    id: 'Branch',
+  Jobs: {
+    id: 'Jobs',
     required: ['content', 'title'],
     properties: {
    

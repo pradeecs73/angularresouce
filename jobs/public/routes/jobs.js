@@ -1,56 +1,58 @@
-'use strict'; 
-angular.module('mean.jobs').config(
-    ['$stateProvider', 'JOBS', function($stateProvider, JOBS) {
-        $stateProvider.state('jobs example page', {
-            url: '/jobs/example',
-            templateUrl: 'jobs/views/index.html'
-        }).state(JOBS.STATE.JOBSLIST, {
-            url: JOBS.URL_PATH.JOBSLIST,
-            templateUrl: JOBS.FILE_PATH.JOBSLIST,
+'use strict';
+angular.module('mean.jobs').config(function ($stateProvider, JOBS) {
+    $stateProvider
+        .state(JOBS.STATE.JOB, {
+            url: JOBS.URL_PATH.JOB,
+            templateUrl: JOBS.FILE_PATH.JOB,
+            abstract: true
+        })
+        .state(JOBS.STATE.JOBS_LIST, {
+            url: JOBS.URL_PATH.JOBS_LIST,
+            templateUrl: JOBS.FILE_PATH.JOBS_LIST,
             resolve: {
-                loggedin: function(MeanUser) {
+                loggedin: function (MeanUser) {
                     return MeanUser.checkLoggedin();
                 }
             }
-        }).state(JOBS.STATE.JOBDETAIL, {
-            url: JOBS.URL_PATH.JOBDETAIL,
-            templateUrl: JOBS.FILE_PATH.JOBDETAIL,
+        }).state(JOBS.STATE.JOBS_DETAIL, {
+            url: JOBS.URL_PATH.JOBS_DETAIL,
+            templateUrl: JOBS.FILE_PATH.JOBS_DETAIL,
             resolve: {
-                loggedin: function(MeanUser) {
+                loggedin: function (MeanUser) {
                     return MeanUser.checkLoggedin();
                 }
             }
-        }).state(JOBS.STATE.SITELIST, {
-            url: JOBS.URL_PATH.SITELIST,
-            templateUrl: JOBS.FILE_PATH.SITELIST,
+        }).state(JOBS.STATE.SITE_LIST, {
+            url: JOBS.URL_PATH.SITE_LIST,
+            templateUrl: JOBS.FILE_PATH.SITE_LIST,
             resolve: {
-                loggedin: function(MeanUser) {
+                loggedin: function (MeanUser) {
                     return MeanUser.checkLoggedin();
                 }
             }
-        }).state(JOBS.STATE.SITECREATE, {
-            url: JOBS.URL_PATH.SITECREATE,
-            templateUrl: JOBS.FILE_PATH.SITECREATE,
+        }).state(JOBS.STATE.SITE_CREATE, {
+            url: JOBS.URL_PATH.SITE_CREATE,
+            templateUrl: JOBS.FILE_PATH.SITE_CREATE,
             resolve: {
-                loggedin: function(MeanUser) {
+                loggedin: function (MeanUser) {
                     return MeanUser.checkLoggedin();
                 }
             }
-        }).state(JOBS.STATE.SITEEDIT, {
-            url: JOBS.URL_PATH.SITEEDIT,
-            templateUrl: JOBS.FILE_PATH.SITEEDIT,
+        }).state(JOBS.STATE.SITE_EDIT, {
+            url: JOBS.URL_PATH.SITE_EDIT,
+            templateUrl: JOBS.FILE_PATH.SITE_EDIT,
             resolve: {
-                loggedin: function(MeanUser) {
+                loggedin: function (MeanUser) {
                     return MeanUser.checkLoggedin();
                 }
             }
-        }).state(JOBS.STATE.SITEDETAILS, {
-            url: JOBS.URL_PATH.SITEDETAILS,
-            templateUrl: JOBS.FILE_PATH.SITEDETAILS,
+        }).state(JOBS.STATE.SITE_DETAILS, {
+            url: JOBS.URL_PATH.SITE_DETAILS,
+            templateUrl: JOBS.FILE_PATH.SITE_DETAILS,
             resolve: {
-                loggedin: function(MeanUser) {
+                loggedin: function (MeanUser) {
                     return MeanUser.checkLoggedin();
                 }
             }
         });
-    }]);
+});

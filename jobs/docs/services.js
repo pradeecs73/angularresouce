@@ -4,15 +4,15 @@ exports.load = function(swagger, parms) {
 
   var searchParms = parms.searchableOptions;
 
-  var list = {
+  /*var list = {
     'spec': {
-      description: 'Branch operations',
-      path: '/branchs',
+      description: 'Jobs operations',
+      path: '/Jobs',
       method: 'GET',
-      summary: 'Get all Branchs',
+      summary: 'Get all Jobs',
       notes: '',
-      type: 'Branch',
-      nickname: 'getBranchs',
+      type: 'Jobs',
+      nickname: 'getJobss',
       produces: ['application/json'],
       params: searchParms
     }
@@ -21,18 +21,18 @@ exports.load = function(swagger, parms) {
   var create = {
     'spec': {
       description: 'Device operations',
-      path: '/branchs',
+      path: '/Jobs',
       method: 'POST',
       summary: 'Create branch',
       notes: '',
-      type: 'Branch',
-      nickname: 'createBranch',
+      type: 'Jobs',
+      nickname: 'createJobs',
       produces: ['application/json'],
       parameters: [{
         name: 'body',
-        description: 'Branch to create.  User will be inferred by the authenticated user.',
+        description: 'Jobs to create.  User will be inferred by the authenticated user.',
         required: true,
-        type: 'Branch',
+        type: 'Jobs',
         paramType: 'body',
         allowMultiple: false
       }]
@@ -41,5 +41,5 @@ exports.load = function(swagger, parms) {
 
   swagger.addGet(list)
     .addPost(create);
-
+*/
 };

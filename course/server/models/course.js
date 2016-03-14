@@ -107,11 +107,6 @@ var CourseSchema = new Schema({
         ref: 'CourseMode'
     },
 
-    payment_scheme:[{
- 	   type: Schema.ObjectId,
- 	   ref: 'PaymentScheme'
-    }],
-    
     security_deposit:{
         type:Number
     },
@@ -165,10 +160,9 @@ var CourseSchema = new Schema({
             type: Number
         },
         skillName: {
-            type: String,
-            default: '',
-            trim: true
-        },
+            type: Schema.ObjectId,
+            ref: 'Skill'
+        }
     }],
 
     qualification: {
@@ -176,12 +170,27 @@ var CourseSchema = new Schema({
         default: '',
         trim: true
     },
-
+    companyName: {
+        type: Schema.ObjectId,
+        ref: 'Franchise'  
+    },
+    
     course_icon:{
         type: String,
         default: '',
         trim: true
     },
+    
+     publish:{
+        type: String,
+        default: 'False',
+        trim: true
+     },
+     checklist: {
+         type: [
+             {type: Schema.ObjectId, ref: 'CourseCounsellingChecklist'}
+         ]
+     },
 
     createdAt: {
         type: Date,
@@ -202,7 +211,7 @@ var CourseSchema = new Schema({
 CourseSchema.statics.load = function (id, callback) {
     this.findOne({
         _id: id
-    }).populate('coursemode', 'mode deposit_amount').populate('usercourse', 'payment_method course').populate('user', 'name').exec(callback);
+    }).populate('coursemode', 'mode deposit_amount').populate('usercourse', 'payment_method course').populate('user', 'name').populate('curriculum').populate('companyName').populate('courseSkill.skillName').populate("branch").populate('payment_scheme').exec(callback);
 };
 
 

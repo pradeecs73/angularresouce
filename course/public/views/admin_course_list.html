@@ -1,10 +1,8 @@
-<section data-ng-controller="CourseController" data-ng-init="list();">
+    <section data-ng-controller="CourseController" data-ng-init="list();">
 	<div ng-include="'/system/views/breadcrum.html'"></div>
 	<div data-ng-include="'/system/views/alert.html'"></div>
 	<div class="col-xs-12 social-group-header">
-		<h3 class="pull-left ">Course</h3>
-		<button class="btn btn-info pull-right "
-			data-ng-click="newCourse()" ng-if="writePermission">Create Course</button>
+		<button class="btn btn-info pull-right " data-ng-click="newCourse()" ng-if="writePermission">Create Course</button>
 	</div>
 
 	<table class="table table-bordered table-condensed">
@@ -24,8 +22,8 @@
 			</tr>
 		</thead>
 		<tbody>
-			<tr data-ng-repeat="course in collection" class="" ng-class-odd="'odd'" ng-class-even="'even'" data-ng-show="collection.length > 0">
-				<td>{{course.name}}</td>
+			<tr data-ng-repeat="course in collection| orderBy:'createdAt':true " class="" ng-class-odd="'odd'" ng-class-even="'even'" data-ng-show="collection.length > 0">
+				<td data-ng-click="editCourse(URLFactory.COURSE.PATH.COURSE_LIST_DETAILS,course._id)"><a href="">{{course.name}}</a></td>
 				<td>{{course.description | limitTo: 20}}...</td>
 				<td>{{course.delivery_method}}</td>
 				<td>{{course.online_mentor_support}}</td>
@@ -34,31 +32,66 @@
 				<td>{{course.costType}}</td>
 				<td>{{course.qualification}}</td>
 				<td>{{course.course_startDate | date:'dd-MMM-yyyy'}}</td>
-				<td class="projectimagetd"><img src="{{course.course_picture}}" width="100%" height="112px"></td>
-				<td><a class="" data-ng-click="editCourse(COURSE.URL_PATH.ADMIN_COURSE_EDIT,course._id)" ng-if="updatePermission">
-						<i class="fa fa-pencil-square-o tooltip-right" data-toggle="tooltip" data-placement="bottom" data-tooltip="Edit"></i>
-					</a>  
-					<a ng-click="modalDeletePopup(course)" class="linksGap" ng-if="deletePermission">
-						<i class="fa fa-minus-circle" data-toggle="tooltip" data-placement="bottom" data-tooltip="Delete"></i>
-					</a>
-					<a  href="" class="linksGap"  data-ng-click="batchList(COURSE.URL_PATH.ADMIN_BATCH_LIST,course)">
-                    <i class="fa fa-certificate" data-tooltip="Batches"></i></a>
-					<a class="" href="/admin/course/course-management">
-						<i class="fa fa-bars" data-tooltip="Course Management"></i>
-					</a>
-					<a class="" href="/admin/course/curriculum">
-						<i class="fa fa-cc" data-tooltip="Curriculum"></i>
-					</a>
-					<a class="btn" href="/curriculum/course/{{course._id}}/topic">Topic</a>
-				</td>
+				<td class="projectimagetd"><img src="{{course.course_picture}}" width="50%" height="112px"></td>
+				<td width="10%" align="center">
+                <div class="dropdown" uib-dropdown on-toggle="toggled(open)">
+                    <a href class="dropdown-toggle btn btn-wide btn-default" uib-dropdown-toggle>
+                        <i class="fa fa-arrow-circle-right"></i><span>Actions</span>
+                    </a>
+                    <ul role="menu" class="dropdown-menu dropdown-light animated fadeInUpShort ">
+                    
+                        <li ng-if="updatePermission">
+                            <a class="menu-toggler" data-ng-click="editCourse(URLFactory.COURSE.PATH.ADMIN_COURSE_EDIT,course._id)" >
+                                <i class="fa fa-pencil-square-o"></i>
+                                <span>Edit Course</span>
+                            </a>
+                        </li>
+                        <li ng-if="deletePermission">
+                            <a class="menu-toggler"  ng-click="modalDeletePopup(course)">
+                                <i class="fa fa-minus-circle"></i>
+                                <span>Delete Course</span>
+                            </a>
+                        </li>
+                            <li>
+                            <a class="menu-toggler" data-ng-click="batchList(URLFactory.COURSE.PATH.ADMIN_BATCH_LIST,course)">
+                                <i class="fa fa-plus-circle"></i>
+                                <span>Batches</span>
+                            </a>
+                        </li> 
+                        <li>
+                            <a class="menu-toggler" data-ng-click="studentList(URLFactory.COURSE.PATH.COURSE_LIST_STUDENT,course)">
+                                <i class="fa fa-users"></i>
+                                <span>Students List</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="menu-toggler" data-ng-click="redirectCurriculum(URLFactory.COURSE.PATH.ADMIN_CURRICULUM_TOPICS,course)">
+                                <i class="fa fa-plus-circle"></i>
+                                <span>Create Curriculum</span>
+                            </a>
+                        </li><li>
+                            <a class="menu-toggler" data-ng-click="redirectCounsellingChecklist(COURSE.PATH.COUNSELLINGCHECKLIST,course)">
+                                <i class="fa fa-file"></i>
+                                <span>Counseling Checklist</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="menu-toggler" data-ng-click="redirectCounsellingChecklist(URLFactory.COURSE.PATH.COUNSELLING_CHECKLIST,course)">
+                                <i class="fa fa-plus-circle"></i>
+                                <span>Counselling Checklist</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </td>
 			</tr>
 			<tr data-ng-show="!collection.length> 0">
-				<td colspan="10">No Course available</td>
+				<td colspan="11">No Course available</td>
 			</tr>
 		</tbody>
 	</table>
 	<div class="paginate usr">
 		<div data-ng-include="'system/views/paginationFilter.html'"></div>
 	</div>
-	<div ng-include="'/system/views/delete-popup.html'"></div>
+	<div class = "padding_courses"></div>
 </section>

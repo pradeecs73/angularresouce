@@ -5,15 +5,19 @@
  */
 require('../../../course/server/models/user_course.js');
 require('../../../course/server/models/course_mode.js');
+require('../../../../custom/curriculum/server/models/coursecurriculum.js');
 //require('../../../../users/server/models/user.js');
 var utility = require('../../../../core/system/server/controllers/util.js');
 var uuid = require('node-uuid'), multiparty = require('multiparty'), fs = require('fs');
 var uploadUtil = require('../../../../core/system/server/controllers/upload.js');
+var async = require('async');
 var mongoose = require('mongoose'),
-	CourseModel = mongoose.model('Course'),
-	UserCourseModel = mongoose.model('UserCourse'),
-	CourseModeModel = mongoose.model('CourseMode'),
-	UserModel = mongoose.model('User'),
+    CourseModel = mongoose.model('Course'),
+    UserCourseModel = mongoose.model('UserCourse'),
+    CourseModeModel = mongoose.model('CourseMode'),
+    CourseCurriculumModel=mongoose.model('CourseCurriculum'),
+    CoursematerialModel=mongoose.model('Coursematerial'),
+    UserModel = mongoose.model('User'),
     _ = require('lodash');
 
 
@@ -69,7 +73,6 @@ module.exports = function (Course) {
                 var filedir = dir + filePath.fileName;
                 var dirPath='/system/assets/uploads/';
                 var result={};
-                //result.fileName=path.dirPath + path.fileName;
                 var is = fs.createReadStream(filePath.temp);
                 var os = fs.createWriteStream(filedir);
                 is.pipe(os);
@@ -114,7 +117,6 @@ module.exports = function (Course) {
                 var filedir = dir + filePath.fileName;
                 var dirPath='/system/assets/uploads/';
                 var result={};
-                //result.fileName=path.dirPath + path.fileName;
                 var is = fs.createReadStream(filePath.temp);
                 var os = fs.createWriteStream(filedir);
                 is.pipe(os);
@@ -135,21 +137,17 @@ module.exports = function (Course) {
         /**
          * Find course by id
          */
-        course: function (req, res, next, id) {
-        	CourseModel.load(id, function (err, course) {
-                if (err){
-                 return next(err);
-                }
-                if (!course){
-                    return next(new Error('Failed to load course ' + id));
-                }
+        course: function(req, res, next, id) {
+            CourseModel.load(id, function(err, course) {
+                if (err) {console.log(err);return next(err);}
+                if (!course) return next(new Error('Failed to load course ' + id));
                 req.course = course;
                 next();
             });
         },
          
         userCourse: function (req, res, next, id) {
-    		UserCourseModel.load(id, function (err, userCourse) {
+            UserCourseModel.load(id, function (err, userCourse) {
                 if (err) return next(err);
                 if (!userCourse) return next(new Error('Failed to load userCourse ' + id));
                 req.userCourse = userCourse;
@@ -157,7 +155,7 @@ module.exports = function (Course) {
             });
         },
         user: function (req, res, next, id) {
-    		UserModel.load(id, function (err, user) {
+            UserModel.load(id, function (err, user) {
                 if (err) return next(err);
                 if (!user) return next(new Error('Failed to load user ' + id));
                 req.user = user;
@@ -239,6 +237,95 @@ module.exports = function (Course) {
                 res.json(course);
             });
         },
+
+        /*
+          publish the course
+        */  
+
+        publishcourse: function (req, res) {
+
+            var course = req.course;
+            var courseId=req.course._id;    
+        
+               async.waterfall([
+                 function(done) {
+                    CourseCurriculumModel.find({"course":courseId},function(err,items){
+                        if(err)
+                        {
+                            res.send(400);
+                        }
+                        else
+                        {
+
+                            done(null,items);
+                        }
+
+
+                    });
+                    
+                 },
+                 function(items,done) {
+                   CoursematerialModel.find({"course":courseId},function(err,items1){
+                       if(err)
+                       {
+                         res.send(400);
+                       }
+                       else
+                        {
+                             done(null,items,items1);
+                        }
+
+                    });
+                       
+                  },
+                  function(items,items1,done)
+                  {
+                    if(items.length == 0 && items1.length == 0)
+                    {
+                        return res.status(400).send([{
+                            msg: "Course cannot be publish because curriculum and Material is not added to this course",
+                            param: "coursepublisherror"
+                        }]);
+                        done();
+                    }
+                    else if(items.length == 0 )
+                    {
+                           return res.status(400).send([{
+                            msg: "Course cannot be publish because curriculum is not added to this course",
+                            param: "coursepublisherror"
+                        }]);
+                        done();
+
+                    }
+                    else if(items1.length == 0)
+                    {
+                        return res.status(400).send([{
+                            msg: "Course cannot be publish because material is not added to this course",
+                            param: "coursepublisherror"
+                        }]);
+                        done();
+                        
+                    }
+                    else
+                     {
+
+                          course = _.extend(course, req.body);
+                                course.save(function (err) {
+                                    if (err) {
+                                        return res.status(500).json({
+                                            error: 'Cannot update the course'
+                                        });
+                                    }
+
+                                    res.json(course);
+                                });
+                         done();
+
+                     }     
+                  }
+                  ], function(err) {});
+
+        },
         
         /**
          * Delete a course
@@ -268,7 +355,7 @@ module.exports = function (Course) {
          * List of Courses
          */
         all: function (req, res) {
-        	CourseModel.find().populate('usercourse', 'payment_method course').populate('coursemode', 'mode deposit_amount').exec(function (err, courses) {
+            CourseModel.find().populate('usercourse', 'payment_method course').populate('coursemode', 'mode deposit_amount').exec(function (err, courses) {
                 if (err) {
                     return res.status(500).json({
                         error: 'Cannot list the courses'
@@ -280,13 +367,14 @@ module.exports = function (Course) {
         },
 
 
-    // *************Pagination************
+     /**
+      * Pagination
+      * */
     
         loadCoursePagination : function(req, res) {
             var populateObj = {};
             utility.pagination(req, res, CourseModel, {}, {}, populateObj, function(result){
                if(utility.isEmpty(result.collection)){
-                   //res.json(result);
                }
                return res.json(result);
             });

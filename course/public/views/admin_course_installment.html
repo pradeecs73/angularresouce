@@ -31,24 +31,24 @@
 			<div class="form-group">
 				<div class="mb35" data-ng-repeat="installment in course.installments">
 					<label mean-token="'create-installment_amount'"
-						class="col-md-3 control-label">Installment Amount</label>
+						class="col-md-3 control-label">{{ 'course.installmemts.INSTALLMENT' | translate }}</label>
 					<div class="col-md-3">
 						<input name="installment_amount" type="number"
 							class="form-control" data-ng-model="installment.amount"
-							id="installment_amount" placeholder="Installment Amount" required>
+							id="installment_amount" placeholder="{{ 'course.installmemts.INSTALLMENT' | translate }}" required>
 					</div>
 
-					<label mean-token="'create-mandatory'" class="col-md-2 control-label">Mandatory 
+					<label mean-token="'create-mandatory'" class="col-md-2 control-label">{{ 'course.installmemts.MANDATORY' | translate }} 
 					<input name="mandatory" type="checkbox" id="mandatory"
-						data-ng-model="installment.mandatory" placeholder="Mandatory"
+						data-ng-model="installment.mandatory" placeholder="{{ 'course.installmemts.MANDATORY' | translate }}"
 						required>
 					</label> 
 					
-					<label mean-token="'create-period'" class="col-md-1 control-label">Period</label>
+					<label mean-token="'create-period'" class="col-md-1 control-label">{{ 'course.installmemts.PEROID' | translate }}</label>
 					<div class="col-md-2">
 						<input name="period" type="number" class="form-control"
 							data-ng-model="installment.period" id="period"
-							placeholder="Period" required>
+							placeholder="{{ 'course.installmemts.PEROID' | translate }}" required>
 					</div>
 					<div class="col-md-1" ng-hide="$last">
 						<a href="" data-ng-click="removeInstallment(installment)"> 

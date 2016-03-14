@@ -12,7 +12,7 @@ angular.module('mean.course').factory('HolidayService', function($resource) {
 			},
 			query : {
 				method : 'GET',
-				isArray : false
+				isArray : true
 			}
 		}),
 		page : $resource('/api/holiday/pagination', {}, {

@@ -1,6 +1,6 @@
 'use strict';
 /* jshint -W098 */
-angular.module('mean.course').controller('CourseModeController', function($scope, $stateParams, Global, CourseModeService, $location, $rootScope) {
+angular.module('mean.course').controller('CourseModeController', function($scope, $stateParams, Global, CourseModeService, $location, $rootScope,$translate) {
     $scope.global = Global;
     $scope.package = {
         name: 'course'
@@ -35,11 +35,11 @@ angular.module('mean.course').controller('CourseModeController', function($scope
                         $scope.courses.splice(i, 1);
                     }
                 }
-                $location.path(COURSE.URL_PATH.ADMIN_COURSE_LIST);
+                $location.path(COURSE.PATH.ADMIN_COURSE_LIST);
             });
         } else {
             $scope.course.$remove(function(response) {
-                $location.path(COURSE.URL_PATH.ADMIN_COURSE_LIST);
+                $location.path(COURSE.PATH.ADMIN_COURSE_LIST);
             });
         }
     };
@@ -51,7 +51,7 @@ angular.module('mean.course').controller('CourseModeController', function($scope
             }
             course.updated.push(new Date().getTime());
             course.$update(function() {
-                $location.path(COURSE.URL_PATH.ADMIN_COURSE_LIST);
+                $location.path(COURSE.PATH.ADMIN_COURSE_LIST);
             });
         } else {
             $scope.submitted = true;
@@ -65,7 +65,7 @@ angular.module('mean.course').controller('CourseModeController', function($scope
         });
     };
     $scope.cancelCourse = function() {
-        $location.path(COURSE.URL_PATH.ADMIN_COURSE_LIST);
+        $location.path(COURSE.PATH.ADMIN_COURSE_LIST);
     };
     $scope.addSkill = function() {
         $scope.showDropDown = true;

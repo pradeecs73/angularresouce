@@ -1,9 +1,5 @@
-.jobs-example h1 {
-    background-color: purple
-}
-
  .tab-nav-width{
- 	width:248px;
+ 	width:100%;
  }
 
  .jobs-not-found{
@@ -14,6 +10,14 @@
     background: #eee;
     padding: 5px; 
     border-radius: 8px; 
+    margin-bottom: 5px;
+ }
+
+ .job-client {
+ 	margin: 0 0 10px 0;
+ 	background: #eee;
+ 	padding:  5px 5px 5px 20px;
+ 	border-radius: 8px;
  }
 
  .padding-allign-jobs{
@@ -55,7 +59,7 @@
  .job-proposal
  {
  	background-color:#5cb85c;
- 	width:200px;
+ 	/*width:200px;*/
  	padding:18px;
     font-size:20px;
     color:white;
@@ -64,7 +68,9 @@
 
  .job-ul
  {
- 	padding-left:20px;
+ 	margin-top: 5px;
+ 	list-style: none;
+ 	padding: 0;
  }
 
  .job-li
@@ -83,7 +89,6 @@
 
 .price{
 	margin-left: -15px;
-	margin-top: -17px;
 }
 
 .black{
@@ -92,4 +97,15 @@
 
 .provider-name{
 	margin-right: 10px;
+}
+
+.skillset-select{
+  height:3vh;
+}
+
+.mr12p{
+	margin-left: 12%;
+}
+.tags > input.input{
+ min-width: 170px;
 }

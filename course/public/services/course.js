@@ -20,6 +20,17 @@ angular.module('mean.course').factory('CourseService', ['$resource', function($r
 	    })
 	}
 }])
+.factory('CoursePublishService', ['$resource', function($resource) {
+	return{
+		publishcourse: $resource('/api/coursepublish/:coursePublishId', {
+			coursePublishId : '@_id'
+		}, {
+			update : {
+				method : 'PUT'
+			}
+		})
+	}
+}])
 .factory('UserCourseService', function($resource) {
 	return $resource('/api/usercourse/:usercourseId', {
 		usercourseId : '@_id'

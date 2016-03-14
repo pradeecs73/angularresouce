@@ -103,7 +103,7 @@ module.exports = function(holidayCtrl) {
 			if (errors.length > 0) {
 				return res.status(400).send(errors);
 			}
-
+			console.log(holiday);
 			holiday.save(function(err) {
 				if (err) {
 					switch (err.code) {
@@ -132,6 +132,7 @@ module.exports = function(holidayCtrl) {
 					return res.status(400);
 				}
 				res.json(holiday);
+				console.log(holiday);
 			});
 		},
 		/**

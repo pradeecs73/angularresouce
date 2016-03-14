@@ -3,8 +3,11 @@
     <div ng-include="'/system/views/breadcrum.html'"></div>
     <div class="mainwrapper social-group-header">
         <h3 class="col-md-4 pull-left batch_mrgnleft">Batch</h3>
-           <h3 class="col-md-4 text-center">
+           <h3 class="col-md-4 text-center" ng-hide = "!cobj.name">
                 Course: {{cobj.name}} 
+            </h3>
+           <h3 class="col-md-4 text-center" ng-hide = "!branchobj.branchName">
+                Branch: {{branchobj.branchName}} 
             </h3>
         <button class="btn btn-info pull-right social-group-header-create " ng-if="writePermission" 
         data-ng-click="newBatch()">Create Batch</button>
@@ -12,32 +15,51 @@
     <table class="table table-bordered table-condensed">
         <thead>
             <tr>
-                <th>Batch Name</th>
-                <th>Start Date</th>
-                <th>Branch</th>
-                <th>Course</th>
-                <th>Actions</th>
+                <th  class = "text-center">Batch Name</th>
+                <th  class = "text-center">Start Date</th>
+                <th  class = "text-center">Branch</th>
+                <th  class = "text-center">Course</th>
+                <th  class = "text-center">Actions</th>
             </tr>
         </thead>
         <tbody>
             <tr data-ng-repeat="batch in collection" class="" ng-class-odd="'odd'"
                 ng-class-even="'even'">
-                <td><a data-ng-click="editbatch(COURSE.URL_PATH.ADMIN_BATCH_VIEW,batch._id)" >{{batch.batch_name}}</a></td>
+                <td><a data-ng-click="editbatch(COURSE.PATH.ADMIN_BATCH_VIEW,batch._id)" >{{batch.batch_name}}</a></td>
                 <td>{{batch.start_date  | date : 'dd MMMM yyyy'}}</td>
                 <td>{{batch.branch.branchName}}</td>
                 <td>{{batch.course.name}}</td>
-                <td>
-                    <!-- <a href="/admin/onlinetest/{{onlinetest._id}}/view" class="linksGap">
-                    <i class="fa fa-eye tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="View"  ></i></a> -->
-                    <a  href="" class="linksGap" ng-if="updatePermission" data-ng-click="editbatch(COURSE.URL_PATH.ADMIN_BATCH_EDIT,batch._id)">
-                    <i class="fa fa-pencil-square-o tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="Edit"></i></a>
-                    <a data-ng-click="modalDeletePopup(batch)" class="linksGap" ng-if="deletePermission">
-                    <i class="fa fa-minus-circle tooltip-right"  data-toggle="tooltip" data-placement="bottom" data-tooltip="Delete"></i></a>
-                </td>
+                <td width="10%" align="center">
+                <div class="dropdown" uib-dropdown on-toggle="toggled(open)">
+                    <a href class="dropdown-toggle btn btn-wide btn-default" uib-dropdown-toggle>
+                        <i class="fa fa-arrow-circle-right"></i><span>Actions</span>
+                    </a>
+                    <ul role="menu" class="dropdown-menu dropdown-light animated fadeInUpShort ">
+                    
+                        <li ng-if="updatePermission">
+                            <a class="menu-toggler" data-ng-click="editbatch(COURSE.PATH.ADMIN_BATCH_EDIT,batch._id)" >
+                                <i class="fa fa-pencil-square-o"></i>
+                                <span>Edit Batch</span>
+                            </a>
+                        </li>
+                        <li ng-if="updatePermission">
+                            <a class="menu-toggler" data-ng-click="attendance(COURSE.PATH.ADMIN_BATCH_ATTENDANCE,batch._id)" >
+                                <i class="fa fa-pencil-square-o"></i>
+                                <span>Attendance</span>
+                            </a>
+                        </li>
+                        <li ng-if="deletePermission">
+                            <a class="menu-toggler"  data-ng-click="modalDeletePopup(batch)">
+                                <i class="fa fa-minus-circle"></i>
+                                <span>Delete Batch</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </td>
             </tr>
         </tbody>
     </table>
-    <div ng-include="'/system/views/delete-popup.html'"></div>
     <div data-ng-show="!collection || collection.length" class="paginate usr">
         <div ng-include="'system/views/paginationFilter.html'"></div>
         <br>

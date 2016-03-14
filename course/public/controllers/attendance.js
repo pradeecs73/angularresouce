@@ -1,4 +1,4 @@
-angular.module('mean.course').controller('AttendanceController', function($scope, $stateParams, Global, AttendanceService, $location, $rootScope, COURSE, flash, MESSAGES) {
+angular.module('mean.course').controller('AttendanceController', function($scope, $stateParams, Global, AttendanceService, $location, $rootScope, COURSE, flash, MESSAGES,$translate) {
     $scope.global = Global;
     $scope.package = {
         name: 'Course',
@@ -7,7 +7,7 @@ angular.module('mean.course').controller('AttendanceController', function($scope
     };
     $scope.COURSE = COURSE;
     $scope.MESSAGES = MESSAGES;
-    initializeBreadCrum($scope, $scope.package.modelName, COURSE.URL_PATH.ADMIN_BATCH_LIST);
+    initializeBreadCrum($scope, $scope.package.modelName, COURSE.PATH.ADMIN_BATCH_LIST,'Attendance','Course Management');
     initializePermission($scope, $rootScope, $location, flash, $scope.package.featureName, MESSAGES);
     $scope.hidemyattendance=0;
     $scope.liststudents = function() {
@@ -17,7 +17,17 @@ angular.module('mean.course').controller('AttendanceController', function($scope
             }, function(batch) {
                 $scope.batch = batch;
                 for (var i = 0; i < $scope.batch.students.length; i++) {
-                   $scope.batch.students[i].attended = false;
+                   $scope.batch.students[i].attended = true;
+                }
+                for (var j = 0; j < $scope.batch.schedule.length; j++) {
+                    var newStartDate = $scope.batch.schedule[j].startDate.split("-");
+                    var newEndDate = $scope.batch.schedule[j].endDate.split("-");
+                    $scope.events2.push({
+                        title: $scope.batch.batch_name,
+                        start: new Date(newStartDate[0],newStartDate[1]-1,newStartDate[2]),
+                        end: new Date(newEndDate[0],newEndDate[1]-1,newEndDate[2]),
+                        stick: true
+                    });
                 }
             }, function(error) {
                 console.log(error);
@@ -34,7 +44,7 @@ angular.module('mean.course').controller('AttendanceController', function($scope
             flash.setMessage(MESSAGES.ATTENDANCE_ADD_SUCCESS);
             $scope.hidemyattendance=0;
             for (var i = 0; i < $scope.batch.students.length; i++) {
-                   $scope.batch.students[i].attended = false;
+                   $scope.batch.students[i].attended = true;
                 }
         }, function(error) {
             $scope.error = error;
@@ -49,6 +59,7 @@ angular.module('mean.course').controller('AttendanceController', function($scope
         AttendanceService.batchattendance.update($scope.attendanceupdatedetails, function(response) {
             flash.setMessage(MESSAGES.ATTENDANCE_UPDATE_SUCCESS);
             $scope.hidemyattendance=0;
+            $scope.showheadercomment=false;
         }, function(error) {
             $scope.error = error;
         });
@@ -75,6 +86,7 @@ angular.module('mean.course').controller('AttendanceController', function($scope
         } 
         $scope.attendancedate = mm+'/'+dd+'/'+yyyy;
         $scope.hidemyattendance=1;
+        $scope.showheadercomment=false;
         $scope.eventdate = date.start._i;
         AttendanceService.batchattendance.query({
             batch_id: $stateParams.batchId,
@@ -91,46 +103,35 @@ angular.module('mean.course').controller('AttendanceController', function($scope
     {
       $scope.hidemyattendance=0;
     };
+    $scope.addcomment=function(studentObj){
+        $scope.showheadercomment = true;
+        studentObj.addcomment = true;
+    };
     var date = new Date();
     var d = date.getDate();
     var m = date.getMonth();
     var y = date.getFullYear();
     $scope.uiConfig = {
         calendar: {
-            height: 100,
+            height: 400,
             editable: true,
             header: {
                 left: 'title',
                 right: 'today prev,next'
             },
             eventClick: $scope.calendereventclick,
-            eventDrop: $scope.alertOnDrop
+            eventDrop: $scope.alertOnDrop,
+            displayEventTime: false
         }
     };
-    $scope.events2 = [
-    {
-        title: 'Event directly added',
-        start: new Date(2016, 0, 28),
-        end: new Date(2016, 0, 28),
-        stick: true
-    },
-    {
-        title: 'Event directly added',
-        start: new Date(2016, 1, 10),
-        end: new Date(2016, 1, 10),
-        stick: true
-    },
-    {
-        title: 'Event directly added',
-        start: new Date(2016, 0, 10),
-        end: new Date(2016, 0, 10),
-        stick: true
-    },
-    {
-        title: 'Event directly added',
-        start: new Date(2016, 0, 20),
-        end: new Date(2016, 0, 20),
-        stick: true
-    }];
+    $scope.events2 = [];
     $scope.eventSources = [$scope.events2];
+    $scope.listPage = function(urlPath){
+        var id = $scope.batch.course._id;
+        urlPath = urlPath.replace(":courseId", id);
+        $location.path(urlPath);
+    };
+    $scope.attendanceBreadcrumb = function(){
+        $scope.breadCrumAdd("Attendance");
+    };
 });
