@@ -1,0 +1,77 @@
+<section class="partnerinfo mydetails" data-ng-controller="RoomsController" ng-init="loadrooms();">
+	<div class="container-fluid">
+		<!-- Banner Content -->
+		<div class="banner-cn">
+
+			<!-- Tabs Content -->
+			<div class="tab-content" style="background: transparent;">
+				<div class="row">
+					<div data-ng-include="'/superAdmin/views/adminLeftPanel.html'"></div>
+					<div class="col-sm-9 col-lg-10 mydetailsnav">
+						<div class="page-content page-thin dashboard-content col-sm-12 col-lg-12">
+							<div class="row">
+								<div class="col-sm-12 col-lg-12">
+									<div class="col-sm-12 panel-header pull-left panel-controls no-padding">
+										<!-- <section class="breakcrumb-sc pull-left">
+											<ul class="breadcrumb arrow">
+												<li><a href="admin-dashboard.html"><i
+														class="fa fa-home"></i></a></li>
+												<li>Space</li>
+											</ul>
+										</section> -->
+										<div class="row">
+                      <div class="col-sm-12 col-lg-12">
+                      <div data-ng-include="'/system/views/alert.html'"></div>
+                      </div>
+                       </div>
+									</div>
+								</div>
+								<div class="col-sm-12 col-lg-12 portlets">
+									<div class="panel" style="padding: 15px;">
+										<div class="panel-content pagination2 table-responsive">
+											<table class="table table-hover table-dynamic">
+												<thead>
+													<tr>
+														<th>Name</th>
+														<th>Type</th>
+														<th>Space</th>
+														<th>Capacity</th>
+														<th>Price Per Hour</th>
+														<th>Price Per Half Day</th>
+														<th>Price Per Day</th>
+														<th>Status</th>
+													</tr>
+												</thead>
+												<tbody>												  
+													<tr class="partnerList"  data-ng-repeat="room in roomdetails">
+														<td>{{room.name}}</td>
+														<td>{{room.roomtype.name}}</td>
+														<td>{{room.spaceId.name}}</td>
+														<td>{{room.capacity}}</td>
+														<td>{{room.pricePerhour}}</td>
+														<td>{{room.pricePerhalfday}}</td>
+														<td>{{room.pricePerfullday}}</td>
+														<td>{{room.status}}</td>
+														<td>
+															<a ng-click="editroom(room)" title="Edit this room" class="editIcon"><i class="fa fa-pencil-square-o"></i></a>
+                                							<a ng-click="deleteroom(room)" title="Delete this room" class="clred"><i class="fa fa-trash-o"></i></a>
+														</td>
+													</tr>
+												</tbody>
+											</table>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- End Tabs Content -->
+
+		</div>
+		<!-- End Banner Content -->
+
+	</div>
+
+</section>

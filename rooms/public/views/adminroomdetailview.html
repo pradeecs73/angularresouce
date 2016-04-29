@@ -1,0 +1,90 @@
+<section class="partnerinfo mydetails" data-ng-controller="AdminRoomsController" ng-init="viewRoomDetail();">
+	<div class="container-fluid">
+		<!-- Banner Content -->
+		<div class="banner-cn">
+
+			<!-- Tabs Content -->
+			<div class="tab-content" style="background: transparent;">
+				<div class="row">
+					<div data-ng-include="'/superAdmin/views/adminLeftPanel.html'"></div>
+					<div class="col-sm-9 col-lg-10 mydetailsnav">
+						<div class="page-content page-thin dashboard-content col-sm-12 col-lg-12">
+							<div class="row">
+								<div class="col-sm-12 col-lg-12">
+									<div class="col-sm-12 panel-header pull-left panel-controls no-padding">
+										<div class="row">
+                      <div class="col-sm-12 col-lg-12">
+                      <div data-ng-include="'/system/views/alert.html'"></div>
+                      </div>
+                       </div>
+									</div>
+								</div>
+								<div class="col-sm-12 col-lg-12 portlets">
+									<div class="panel" style="padding: 15px;">
+										<div class="panel-content pagination2 table-responsive">
+										
+											<div class ="col-md-12">
+											   <div class="col-md-3">
+											      <label>Name</label>
+											   </div>
+											   <div class="col-md-9">{{room.name}}</div>
+											</div>
+											<div class ="col-md-12">
+											   <div class="col-md-3">
+											      <label>Type</label>
+											   </div>
+											   <div class="col-md-9">{{room.roomtype.name}}</div>
+											</div>
+											<div class ="col-md-12">
+											   <div class="col-md-3">
+											      <label>Space</label>
+											   </div>
+											   <div class="col-md-9">{{room.spaceId.name}}</div>
+											</div>
+											<div class ="col-md-12">
+											   <div class="col-md-3">
+											      <label>Created By</label>
+											   </div>
+											   <div class="col-md-9">{{room.createdBy.first_name}}</div>
+											</div>
+											<div class ="col-md-12">
+											   <div class="col-md-3">
+											      <label>Capacity</label>
+											   </div>
+											   <div class="col-md-9">{{room.capacity}}</div>
+											</div>
+											<div class ="col-md-12">
+											   <div class="col-md-3">
+											      <label>Price Per Hour</label>
+											   </div>
+											   <div class="col-md-9">{{room.pricePerhour}}</div>
+											</div>
+											<div class ="col-md-12">
+											   <div class="col-md-3">
+											      <label>Price Per Half Day</label>
+											   </div>
+											   <div class="col-md-9">{{room.pricePerhalfday}}</div>
+											</div>
+											<div class ="col-md-12">
+											   <div class="col-md-3">
+											      <label>Price Per Day</label>
+											   </div>
+											   <div class="col-md-9">{{room.pricePerfullday}}</div>
+											</div>
+
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- End Tabs Content -->
+
+		</div>
+		<!-- End Banner Content -->
+
+	</div>
+
+</section>
