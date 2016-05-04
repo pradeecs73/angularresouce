@@ -99,6 +99,22 @@ var RoomsSchema = new Schema ({
     createdBy:{
     type: Schema.ObjectId, 
     ref: 'User' 
+  },
+  isAdminAdded:{
+    type:Boolean,
+    default:false
+  },
+  sentToAdminApproval:{
+    type:Boolean,
+    default:false
+  },
+  isPublished:{
+    type:Boolean,
+    default:false
+  },
+  partner : { // hotel or business center
+    type: Schema.ObjectId, 
+    ref: 'User'
   }
 
 });
@@ -110,7 +126,7 @@ RoomsSchema.plugin(deepPopulate, {whitelist: [
 RoomsSchema.statics.load = function(id, callback) {
     this.findOne({
         _id: id
-    }).deepPopulate(['spaceId', 'spaceId.partner']).exec(callback);
+    }).deepPopulate(['spaceId', 'spaceId.partner', 'spaceId.space_type']).populate("roomtype","").populate("createdBy","").exec(callback);
 };
 
 mongoose.model('Rooms', RoomsSchema);

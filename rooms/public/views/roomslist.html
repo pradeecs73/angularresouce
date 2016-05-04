@@ -1,4 +1,4 @@
-<section class="partnerinfo mydetails" data-ng-controller="RoomsController" ng-init="loadrooms();">
+<section class="partnerinfo mydetails" data-ng-controller="RoomsController" ng-init="loadrooms();checkingLoggedinUserIsAdmin();">
 	<div class="container-fluid">
 		<!-- Banner Content -->
 		<div class="banner-cn">
@@ -28,10 +28,11 @@
 								</div>
 								<div class="col-sm-12 col-lg-12 portlets">
 									<div class="panel" style="padding: 15px;">
-										<div class="panel-content pagination2 table-responsive">
-											<table class="table table-hover table-dynamic">
+										<div class="panel-content pagination2">
+											<table datatable="ng"  class="table table-bordered row-border hover booking-table" dt-options="dtOptions" dt-column-defs="dtColumnDefs">
 												<thead>
 													<tr>
+													   <th>ID</th>
 														<th>Name</th>
 														<th>Type</th>
 														<th>Space</th>
@@ -40,10 +41,13 @@
 														<th>Price Per Half Day</th>
 														<th>Price Per Day</th>
 														<th>Status</th>
+														<th>Actions</th>
+														<th></th>
 													</tr>
 												</thead>
 												<tbody>												  
-													<tr class="partnerList"  data-ng-repeat="room in roomdetails">
+													<tr data-ng-repeat="room in roomdetails">
+													    <td>{{room._id}}</td>
 														<td>{{room.name}}</td>
 														<td>{{room.roomtype.name}}</td>
 														<td>{{room.spaceId.name}}</td>
@@ -52,9 +56,18 @@
 														<td>{{room.pricePerhalfday}}</td>
 														<td>{{room.pricePerfullday}}</td>
 														<td>{{room.status}}</td>
-														<td>
+														<td ng-if="room.status == 'pending'">
 															<a ng-click="editroom(room)" title="Edit this room" class="editIcon"><i class="fa fa-pencil-square-o"></i></a>
                                 							<a ng-click="deleteroom(room)" title="Delete this room" class="clred"><i class="fa fa-trash-o"></i></a>
+														</td>
+														<td ng-if="!room.sentToAdminApproval && room.status == 'pending' && !loggedinuserisadmin">
+															<input type="button" ng-click="sendToApproval(room);" value="Send to approval" />
+														</td>
+														<td ng-if="room.sentToAdminApproval && room.status == 'pending' && !loggedinuserisadmin">
+															Sent to approval
+														</td>
+														<td ng-if="room.status == 'approved' && !room.isPublished && !loggedinuserisadmin">
+															<input type="button" ng-click="publishRoom(room);" value="Publish" />
 														</td>
 													</tr>
 												</tbody>

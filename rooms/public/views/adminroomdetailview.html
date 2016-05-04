@@ -43,6 +43,12 @@
 											</div>
 											<div class ="col-md-12">
 											   <div class="col-md-3">
+											      <label>Space Type</label>
+											   </div>
+											   <div class="col-md-9">{{room.spaceId.space_type.name}}</div>
+											</div>
+											<div class ="col-md-12">
+											   <div class="col-md-3">
 											      <label>Created By</label>
 											   </div>
 											   <div class="col-md-9">{{room.createdBy.first_name}}</div>
@@ -70,6 +76,14 @@
 											      <label>Price Per Day</label>
 											   </div>
 											   <div class="col-md-9">{{room.pricePerfullday}}</div>
+											</div>
+											<div class ="col-md-12">
+											   <div class="col-md-1">
+											      <input type="button" value="Approve" ng-click="approveOrRejectRoom(room,'approved');"/>
+											   </div>
+											   <div class="col-md-9">
+											      <input type="button" value="Reject" ng-click="approveOrRejectRoom(room,'rejected');"/>
+											   </div>
 											</div>
 
 										</div>

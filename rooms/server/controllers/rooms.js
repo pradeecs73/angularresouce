@@ -153,7 +153,7 @@ module.exports = function(Rooms) {
         },
          gettingAllRoomsAdmin:function(req,res){
 
-            RoomsSchemaModel.find({"createdBy":{$ne:req.user._id}}).deepPopulate(['spaceId', 'spaceId.space_type']).populate("roomtype","").populate("createdBy","").exec(function (err, docs) {
+            RoomsSchemaModel.find({}).deepPopulate(['spaceId', 'spaceId.space_type']).populate("roomtype","").populate("createdBy","").exec(function (err, docs) {
                if (err) {
                     logger.log('error', 'GET '+req._parsedUrl.pathname+' Fetching all rooms is failed '+err+'');
                     res.send(400);
@@ -175,6 +175,96 @@ module.exports = function(Rooms) {
                 }
             });
         },
+        approveorrejectroom:function(req,res)
+        {
+           var roomId=req.body.roomId;
+           var status=req.body.status;
+            
+           RoomsSchemaModel.findOne({"_id":roomId},function(err,item){
+                if(err)
+                {
+                  logger.log('error', 'PUT '+req._parsedUrl.pathname+' Failed to update room status '+err+'');
+                    res.send(400);
+                }
+                else
+                {             
+                    item.status=status;
+                    item.save(function(err){
+                      if(err)
+                      {
+                         logger.log('error', 'PUT '+req._parsedUrl.pathname+' Failed to update room status '+err+'');
+                          res.send(400);
+                      }
+                      else
+                      {
+                          logger.log('info', 'PUT '+req._parsedUrl.pathname+' Room status updated successfully'); 
+                          res.send(200);
+                      }
+                    });
+                }
+
+           }); 
+
+        },
+       sendToAdminApproval:function(req,res)
+       {
+          var roomId=req.body.roomId;
+          
+           RoomsSchemaModel.findOne({"_id":roomId},function(err,item){
+                if(err)
+                {
+                  logger.log('error', 'PUT '+req._parsedUrl.pathname+' Failed to update room object '+err+'');
+                    res.send(400);
+                }
+                else
+                {             
+                    item.sentToAdminApproval=true;
+                    item.save(function(err){
+                      if(err)
+                      {
+                         logger.log('error', 'PUT '+req._parsedUrl.pathname+' Failed to update room object '+err+'');
+                          res.send(400);
+                      }
+                      else
+                      {
+                          logger.log('info', 'PUT '+req._parsedUrl.pathname+' Room details updated successfully'); 
+                          res.send(200);
+                      }
+                    });
+                }
+
+           }); 
+       },
+       publishRoom:function(req,res)
+       {
+          var roomId=req.body.roomId;
+          
+           RoomsSchemaModel.findOne({"_id":roomId},function(err,item){
+                if(err)
+                {
+                  logger.log('error', 'PUT '+req._parsedUrl.pathname+' Failed to publish the room '+err+'');
+                    res.send(400);
+                }
+                else
+                {             
+                    item.isPublished=true;
+                    item.status="published";
+                    item.save(function(err){
+                      if(err)
+                      {
+                         logger.log('error', 'PUT '+req._parsedUrl.pathname+' Failed to publish the room'+err+'');
+                          res.send(400);
+                      }
+                      else
+                      {
+                          logger.log('info', 'PUT '+req._parsedUrl.pathname+' Room is published successfully'); 
+                          res.send(200);
+                      }
+                    });
+                }
+
+           });
+       },
         addroomtype: function(req, res) {
             var roomtypecreate = new RoomtypeModel(req.body);
             roomtypecreate.save(function(err, items) {
@@ -631,7 +721,7 @@ module.exports = function(Rooms) {
             });
         },
         getAllRooms: function(req, res) {
-            RoomsSchemaModel.find({"createdBy":req.user._id}, function(err, items) {
+            RoomsSchemaModel.find({$or:[{"createdBy":req.user._id},{"partner":req.user._id}]}, function(err, items) {
                 if (err) {
                     logger.log('error', 'GET '+req._parsedUrl.pathname+' Fetching all rooms is failed '+err+'');
                     res.send(400);
@@ -1741,6 +1831,22 @@ module.exports = function(Rooms) {
                 res.send(200);
             }); 
 
+        },
+        
+        loadRoomBasedOnRoomType:function(req,res){
+            if(req.query.roomTypeRooms){
+               var roomTypeRoomSelected = req.query.roomTypeRooms;
+            }else{
+                 var roomTypeRoomSelected = 'undefined';
+            }
+            RoomsSchemaModel.find({roomtype : req.query.roomTypeRooms}).exec(function (err, roomTypeRooms) {
+                if (err) {
+                    return res.status(500).json({
+                        error: 'Cannot list the roomTypeRooms'
+                    });
+                }
+                res.json(roomTypeRooms);
+            });
         }
 
     };

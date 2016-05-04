@@ -1,5 +1,15 @@
 <section class="partnerinfo mydetails" ng-controller="RoomsController"
 	ng-init="singleRoomDetail();loadroomtypes();">
+	<div ng-if="loaderEnabled">
+		<div id="preloaderImage">
+			<div class="tb-cell">
+				<div id="page-loadingImage">
+					<div></div>
+					<p><h4 class="h-image-caption">Uploading....</h4></p>
+				</div>
+			</div>
+		</div>
+	</div>
 	<div class="container-fluid">
 		<!-- Banner Content -->
 		<div class="banner-cn">
@@ -30,11 +40,11 @@
 																		<label class="control-label"> Room Type </label>
 																		<div class="option-group">
 																			<select class="type col-xs-12 form-control"
-																				ng-model="room.roomtype" required="">
+																				ng-model="room.roomtype._id" required="">
 																				<option value="" selected="selected"
 																					disabled="disabled">Select Room Type...</option>
 																				<option ng-repeat="items in roomtypeoptions"
-																					value="{{items.name}}">{{items.name}}</option>
+																					value="{{items._id}}">{{items.name}}</option>
 																			</select>
 																		</div>
 																	</div>
@@ -58,7 +68,6 @@
 																						<div class="append-icon">
 																							<input type="text" ng-model="room.name"
 																								name="roomname" class="form-control"
-																								minlength="4"
 																								placeholder="Minimum 4 characters..." required>
 																							<i class="icon-user"></i>
 																							<div ng-class="errorRed"
@@ -156,9 +165,9 @@
 																									id='isChargeable{{$index}}' type="checkbox"
 																									class="not-show wdth-meetngdtls"
 																									ng-model="amenity.isChargeable" /><span
-																									ng-if="!amenity.isStatus"> Is Chargeable</span>
+																									ng-if="amenity.isStatus"> Is Chargeable</span>
 																								<div ng-show="amenity.isChargeable"
-																									ng-if="!amenity.isStatus">
+																									ng-if="amenity.isStatus">
 																									<div>
 																										<label>Price:</label> <input type="number"
 																											name="price" ng-model="amenity.price" />

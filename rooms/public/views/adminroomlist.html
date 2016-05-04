@@ -34,6 +34,8 @@
 														<th>Price Per Half Day</th>
 														<th>Price Per Day</th>
 														<th>Status</th>
+														<th>Actions</th>
+														<th></th>
 													</tr>
 												</thead>
 												<tbody>												  
@@ -48,13 +50,18 @@
 														<td>{{room.pricePerfullday}}</td>
 
 													
-														<td ng-if="room.status == 'approved'">approved</td>
+														<td ng-if="room.status == 'approved'">{{room.status}}</td>
+														<td ng-if="room.status == 'published'">{{room.status}}</td>
+														<td ng-if="room.status == 'rejected'">{{room.status}}</td>
 														
-														<td ng-if="room.status == 'pending'"><a ng-click="approveOrRejectRoom(room);">View Detail</a></td>
+														<td ng-if="room.status == 'pending'"><a ng-click="approveOrRejectRoomPage(room);">View Detail</a></td>
 													
 														<td>
 															<a ng-click="editroom(room)" title="Edit this room" class="editIcon"><i class="fa fa-pencil-square-o"></i></a>
                                 							<a ng-click="deleteroom(room)" title="Delete this room" class="clred"><i class="fa fa-trash-o"></i></a>
+														</td>
+														<td ng-if="room.status == 'approved' && !room.isPublished">
+															<input type="button" ng-click="publishRoom(room);"  value="Publish" />
 														</td>
 													</tr>
 												</tbody>

@@ -37,6 +37,9 @@ module.exports = function (Rooms, app, auth, database) {
 
   var roomCtrl = require('../controllers/rooms')(Rooms);
   
+  app.route('/api/room/roomType')
+  .get(roomCtrl.loadRoomBasedOnRoomType);
+  
   app.route('/api/roomtypes/create').post(roomCtrl.addroomtype);
   app.route('/api/addroom/loadroomtypes').get(roomCtrl.loadroomtypes);
 
@@ -71,8 +74,8 @@ module.exports = function (Rooms, app, auth, database) {
 
 
   app.route('/api/space/room/genricApiToCreateScheduleToRooms')
-     .get(roomCtrl.creatingScheduleThroughGenricApi);    
-
+     .get(roomCtrl.creatingScheduleThroughGenricApi);
+  
   app.route('/api/room/gettingroomtypename')
      .get(roomCtrl.gettingroomtypename);  
 
@@ -80,8 +83,17 @@ module.exports = function (Rooms, app, auth, database) {
      .get(roomCtrl.checkingForAdminLogin);   
 
  app.route('/api/room/admin/getAllRooms')
-     .get(roomCtrl.gettingAllRoomsAdmin);               
-    
+     .get(roomCtrl.gettingAllRoomsAdmin); 
+
+ app.route('/api/room/admin/approveorrejectroom')
+     .put(roomCtrl.approveorrejectroom); 
+
+ app.route('/api/room/admin/sendToAdminApproval')
+     .put(roomCtrl.sendToAdminApproval);     
+
+  app.route('/api/room/admin/publishRoom')
+     .put(roomCtrl.publishRoom);     
+ 
   app.param('roomId', roomCtrl.room);
   app.param('scheduleeditroomId', roomCtrl.room);
   

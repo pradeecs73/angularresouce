@@ -1,7 +1,7 @@
   'use strict';
   var roomModule = angular.module('mean.rooms');
-  roomModule.controller('RoomsController', ['$scope', '$rootScope', '$location', '$stateParams', 'Global', 'URLFactory', 'SpaceService', 'RoomService', 'Upload', 'MeanUser', 'flash', 'ShareHolidaysService', '$parse', 'SpaceTypeService', '$timeout', 'MESSAGES', 'ROOMS',
-      function($scope, $rootScope, $location, $stateParams, Global, URLFactory, SpaceService, RoomService, Upload, MeanUser, flash, ShareHolidaysService, $parse, SpaceTypeService, $timeout, MESSAGES, ROOMS) {
+  roomModule.controller('RoomsController', ['$scope', '$rootScope', '$location', '$stateParams', 'Global', 'URLFactory', 'SpaceService', 'RoomService', 'Upload', 'MeanUser', 'flash', 'ShareHolidaysService', '$parse', 'SpaceTypeService', '$timeout', 'MESSAGES', 'ROOMS','DTOptionsBuilder','DTColumnDefBuilder',
+      function($scope, $rootScope, $location, $stateParams, Global, URLFactory, SpaceService, RoomService, Upload, MeanUser, flash, ShareHolidaysService, $parse, SpaceTypeService, $timeout, MESSAGES, ROOMS,DTOptionsBuilder,DTColumnDefBuilder) {
           $scope.global = Global;
           hideBgImageAndFooter($rootScope);
           $scope.package = {
@@ -11,10 +11,31 @@
           };
 
           initializePermission($scope, $rootScope, $location, $scope.package.featureName, flash, URLFactory.MESSAGES);
-          
+          $scope.counter = 0;
           $scope.loadrooms = function() {
+        	  $scope.dtOptions = DTOptionsBuilder.newOptions().withPaginationType('full_numbers').withDisplayLength(10);
+				$scope.dtColumnDefs = [
+				                   DTColumnDefBuilder.newColumnDef(0).notVisible(),
+				                   DTColumnDefBuilder.newColumnDef(1),
+				                   DTColumnDefBuilder.newColumnDef(2),
+				                   DTColumnDefBuilder.newColumnDef(3),
+				                   DTColumnDefBuilder.newColumnDef(4),
+				                   DTColumnDefBuilder.newColumnDef(5),
+				                   DTColumnDefBuilder.newColumnDef(6),
+				                   DTColumnDefBuilder.newColumnDef(7),
+				                   DTColumnDefBuilder.newColumnDef(8).notSortable(),
+                           DTColumnDefBuilder.newColumnDef(9).notSortable()
+				                   ];
+				window.alert = (function() {
+				    var nativeAlert = window.alert;
+				    return function(message) {
+				        //window.alert = nativeAlert;
+				        message.indexOf("DataTables warning") >= 0 ?
+				        		  console.warn(message) :
+				        	            nativeAlert(message);
+				    }
+				})();
               RoomService.roomdetails.query(function(response) {
-                  console.log(response);
                   $scope.roomdetails = response;
               }, function(error) {
                   console.log(error);
@@ -42,6 +63,7 @@
                   'roomId': $stateParams.roomId
               }, function(response) {
                   $scope.room = response;
+                  $scope.counter=response.images.length;
                   if ($scope.room.images.length > 0) {
                       for (var i = 0; i < $scope.room.images.length; i++) {
                           if ($scope.room.images[i].url) {
@@ -207,11 +229,13 @@
           var userId = user._id;
           $scope.isImageUploaded = false;
           var isImage = false;
+          $scope.loaderEnabled = true;
           $scope.upload = Upload.upload({
               url: '/api/config/'+ userId + '/cupload',
               method: 'POST',
               file: image
           }).success(function (response) {
+            $scope.loaderEnabled = false;
             var resp = $scope.generateTempUrl(response.url);
               $scope.imageObj = {};
               $scope.imageObj.url = response.url;
@@ -235,6 +259,7 @@
           if (room.images.length > 0) {
               $timeout(function () {
                 room.images.splice(index, 1);
+                $scope.counter = $scope.counter-1;
               }, 1000);
           }
 
@@ -324,7 +349,9 @@
             	  $scope.loadedspaceobject=response;
                 $scope.loc=response.loc;
                 $scope.spaceAmenity = response.amenities;
+                console.log(response.amenities);
               $scope.selectedspaceamenity = angular.copy($scope.spaceAmenity);
+              console.log($scope.selectedspaceamenity);
               $scope.loadRoomAmenities();
             }, function (error) {
                 $scope.error = error;
@@ -452,6 +479,45 @@
             hoursObj.max=$scope.myEndTime;
           }
         };
+
+        $scope.sendToApproval = function(room) {
+
+            RoomService.sendToApprove.update({"roomId":room._id},function(response){
+                  room.sentToAdminApproval=true;
+             },function(error){
+                   console.log(error);
+             });
+
+        };
+
+         $scope.publishRoom = function(room) {
+
+            RoomService.publishRoom.update({"roomId":room._id},function(response){
+                  room.isPublished=true;
+                  room.status="published";
+             },function(error){
+                   console.log(error);
+             });
+
+        };
+
+        $scope.checkingLoggedinUserIsAdmin=function(){
+           RoomService.checkingadmin.get({}, function(response) {
+                     $scope.adminId=response._id;
+                     $scope.loggedinuserrole=MeanUser.user.role;
+                     var checkingadmin=$scope.loggedinuserrole.indexOf($scope.adminId);
+                     if(checkingadmin < 0)
+                     {
+                      $scope.loggedinuserisadmin=false;
+                     }
+                     else
+                     {
+                      $scope.loggedinuserisadmin=true;
+                     }  
+                  }, function(error) {
+                      $scope.error = error;
+                    });
+       };
   
 
       }

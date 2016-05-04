@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('mean.space').factory('RoomService', 
+angular.module('mean.rooms').factory('RoomService', 
   function($resource) {
     return {
          loadroomtypes : $resource('/api/addroom/loadroomtypes', {}, {
@@ -52,6 +52,15 @@ angular.module('mean.space').factory('RoomService',
                 isArray: true
             }
         }),
+        getRoomByRoomType: $resource('/api/room/roomType', {}, {
+        	update: {
+                method: 'PUT' // this method issues a PUT request
+            },
+            query: {
+                method: 'GET',
+                isArray: true
+            }
+        }),
         getroomtypename: $resource('/api/room/gettingroomtypename', {}, {
             update: {
                 method: 'PUT' // this method issues a PUT request
@@ -78,7 +87,33 @@ angular.module('mean.space').factory('RoomService',
                 method: 'GET',
                 isArray: true
             }
+        }),
+         approveorrejectroom: $resource('/api/room/admin/approveorrejectroom', {}, {
+            update: {
+                method: 'PUT' // this method issues a PUT request
+            },
+            query: {
+                method: 'GET',
+                isArray: true
+            }
+        }),
+         sendToApprove: $resource('/api/room/admin/sendToAdminApproval', {}, {
+            update: {
+                method: 'PUT' // this method issues a PUT request
+            },
+            query: {
+                method: 'GET',
+                isArray: true
+            }
+        }),
+          publishRoom: $resource('/api/room/admin/publishRoom', {}, {
+            update: {
+                method: 'PUT' // this method issues a PUT request
+            },
+            query: {
+                method: 'GET',
+                isArray: true
+            }
         })
-
     };
   });
