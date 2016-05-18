@@ -70,8 +70,26 @@ angular.module('mean.rooms').factory('RoomService',
                 isArray: true
             }
         }),
+        roomspricesort: $resource('/api/getRoomsPriceSort', {}, {
+        	 update: {
+                 method: 'PUT' // this method issues a PUT request
+             },
+             query: {
+                 method: 'GET',
+                 isArray: true
+             }
+         }),
          checkingadmin: $resource('/api/room/checkingadmin', {}, {
             update: {
+                method: 'PUT' // this method issues a PUT request
+            },
+            query: {
+                method: 'GET',
+                isArray: true
+            }
+        }),
+        roomsratingsort: $resource('/api/getRoomsRatingSort', {}, {
+        	update: {
                 method: 'PUT' // this method issues a PUT request
             },
             query: {
@@ -88,7 +106,16 @@ angular.module('mean.rooms').factory('RoomService',
                 isArray: true
             }
         }),
-         approveorrejectroom: $resource('/api/room/admin/approveorrejectroom', {}, {
+         approveRoom: $resource('/api/room/admin/approveRoom', {}, {
+            update: {
+                method: 'PUT' // this method issues a PUT request
+            },
+            query: {
+                method: 'GET',
+                isArray: true
+            }
+        }),
+         rejectRoom: $resource('/api/room/admin/rejectRoom', {}, {
             update: {
                 method: 'PUT' // this method issues a PUT request
             },
@@ -114,6 +141,25 @@ angular.module('mean.rooms').factory('RoomService',
                 method: 'GET',
                 isArray: true
             }
+        }),
+       getRoomsbyStatus: $resource('/api/room/roomType/status', {}, {
+            update: {
+                method: 'PUT' // this method issues a PUT request
+            },
+            query: {
+                method: 'GET',
+                isArray: true
+            }
+        }),
+       activateRoom: $resource('/api/room/activateRoom', {}, {
+            update: {
+                method: 'PUT' // this method issues a PUT request
+            },
+            query: {
+                method: 'GET',
+                isArray: true
+            }
         })
+
     };
   });

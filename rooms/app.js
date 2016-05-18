@@ -25,6 +25,8 @@ Rooms.register(function(app, auth, database) {
   });
   
   Rooms.aggregateAsset('css', 'rooms.css');
+  Rooms.angularDependencies(['datatables']); 
+
 
   /**
     //Uncomment to use. Requires meanio@0.3.7 or above

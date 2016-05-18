@@ -37,6 +37,9 @@ module.exports = function (Rooms, app, auth, database) {
 
   var roomCtrl = require('../controllers/rooms')(Rooms);
   
+  app.route('/api/room/loadroomsBasedOnRoomType')
+  .get(roomCtrl.fetchRoomsBasedOnRoomType);
+  
   app.route('/api/room/roomType')
   .get(roomCtrl.loadRoomBasedOnRoomType);
   
@@ -48,7 +51,7 @@ module.exports = function (Rooms, app, auth, database) {
      .get(roomCtrl.getAllRooms);
 
  app.route('/api/roomdetails/:roomId')
-    .delete(roomCtrl.deleteroom)
+    .delete(roomCtrl.deactivateroom)
     .get(roomCtrl.singleRoomDetail)
     .put(roomCtrl.saveEditedRoomDetail);
 
@@ -77,7 +80,13 @@ module.exports = function (Rooms, app, auth, database) {
      .get(roomCtrl.creatingScheduleThroughGenricApi);
   
   app.route('/api/room/gettingroomtypename')
-     .get(roomCtrl.gettingroomtypename);  
+     .get(roomCtrl.gettingroomtypename); 
+  
+  app.route('/api/getRoomsPriceSort')
+  .get(roomCtrl.getAllRoomsSortByPrice);
+  
+  app.route('/api/getRoomsRatingSort')
+  .get(roomCtrl.getAllRoomsSortByRating);
 
  app.route('/api/room/checkingadmin')
      .get(roomCtrl.checkingForAdminLogin);   
@@ -85,17 +94,25 @@ module.exports = function (Rooms, app, auth, database) {
  app.route('/api/room/admin/getAllRooms')
      .get(roomCtrl.gettingAllRoomsAdmin); 
 
- app.route('/api/room/admin/approveorrejectroom')
-     .put(roomCtrl.approveorrejectroom); 
+ app.route('/api/room/admin/approveRoom')
+     .put(roomCtrl.approveRoom); 
+
+app.route('/api/room/admin/rejectRoom')
+     .put(roomCtrl.rejectRoom); 
 
  app.route('/api/room/admin/sendToAdminApproval')
      .put(roomCtrl.sendToAdminApproval);     
 
   app.route('/api/room/admin/publishRoom')
-     .put(roomCtrl.publishRoom);     
- 
+     .post(roomCtrl.publishRoom); 
+
+   app.route('/api/room/activateRoom')
+     .post(roomCtrl.activateRoom);  
+   
+   
   app.param('roomId', roomCtrl.room);
   app.param('scheduleeditroomId', roomCtrl.room);
   
-  
+  app.route('/api/room/roomType/status')
+  .get(roomCtrl.loadRoomBasedOnStatus);
  };

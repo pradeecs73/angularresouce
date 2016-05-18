@@ -71,8 +71,7 @@ var RoomsSchema = new Schema ({
 		  default:''
 	  },
 	  isStatus:{
-		  type : Boolean,
-		  default: true
+		  type:Boolean
 	  }
   }],
    roomsslotschedule:[{
@@ -100,6 +99,10 @@ var RoomsSchema = new Schema ({
     type: Schema.ObjectId, 
     ref: 'User' 
   },
+  relatedHotDeskIds: [{
+	  type: Schema.ObjectId,
+	  ref : 'Rooms'
+  }],
   isAdminAdded:{
     type:Boolean,
     default:false
@@ -115,6 +118,10 @@ var RoomsSchema = new Schema ({
   partner : { // hotel or business center
     type: Schema.ObjectId, 
     ref: 'User'
+  },
+  isActive:{
+    type:Boolean,
+    default:true
   }
 
 });

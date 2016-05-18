@@ -7,9 +7,9 @@
           $scope.package = {
               name: 'rooms',
               modelName: 'Rooms',
-              featureName: 'Rooms'
+              featureName: 'Inventory'
           };
-
+          
           initializePermission($scope, $rootScope, $location, $scope.package.featureName, flash, URLFactory.MESSAGES);
           $scope.counter = 0;
           $scope.loadrooms = function() {
@@ -41,21 +41,35 @@
                   console.log(error);
               });
           };
-          $scope.deleteroom = function(room) {
+          $scope.deactivateRoom = function(room) {
               var deleteroom = new RoomService.roomdetails(room);
               deleteroom.$remove(function(response) {
-                      flash.setMessage(URLFactory.MESSAGES.ROOM_DELETE_SUCCESS,URLFactory.MESSAGES.SUCCESS);
-                  for (var i in $scope.roomdetails) {
-                      if ($scope.roomdetails[i] === room) {
-                          $scope.roomdetails.splice(i, 1);
+                   if(response.isbooking)
+                    {
+                      $("#myModalDeactivatePopup").modal('show');
+                    }
+                  else{
+                        room.isActive=false;
+                        flash.setMessage(URLFactory.MESSAGES.ROOM_DEACTIVATE_SUCCESS,URLFactory.MESSAGES.SUCCESS);                
                       }
-                  }
               }, function(error) {
                   $scope.error = error;
               });
           };
+
+           $scope.activateRoom = function(room) {
+              var activateRoom = new RoomService.activateRoom(room);              
+                    activateRoom.$save(function (response) {            
+                          room.isActive=true;
+                          flash.setMessage(URLFactory.MESSAGES.ROOM_ACTIVATE_SUCCESS,URLFactory.MESSAGES.SUCCESS); 
+                    }, function (error) {
+                         console.log(error);
+                    });        
+               };
+
           $scope.editroom = function(roomobject) {
               var urlPath = URLFactory.ROOMS.URL_PATH.ROOM_EDIT.replace(":roomId", roomobject._id);
+              console.log(roomobject);
               $location.path(urlPath);
           };
           $scope.singleRoomDetail = function() {
@@ -97,9 +111,17 @@
                       $("#myModal").modal('show');
                     }
                     else
-                    {
-                      flash.setMessage(URLFactory.MESSAGES.ROOM_EDIT_SUCCESS,URLFactory.MESSAGES.SUCCESS);
-                      $location.path(URLFactory.ROOMS.URL_PATH.ROOM_LIST);
+                    {  
+                       if($scope.loggedinuserisadmin)
+                          {
+                              flash.setMessage(URLFactory.MESSAGES.ROOM_EDIT_SUCCESS,URLFactory.MESSAGES.SUCCESS);
+                              $location.path(URLFactory.ROOMS.URL_PATH.ADMIN_ROOM_LIST);
+                          }  
+                          else
+                          {
+                              flash.setMessage(URLFactory.MESSAGES.ROOM_EDIT_SUCCESS,URLFactory.MESSAGES.SUCCESS);
+                              $location.path(URLFactory.ROOMS.URL_PATH.ROOM_LIST);
+                          }
                     }
                   }, function(error) {
                       $scope.error = error;
@@ -179,11 +201,19 @@
     };
     
     $scope.setFullDay = function(hoursObj) {
-      var date = new Date();
+     var date = new Date();
       date.setHours(0);
       date.setMinutes(0);
+      date.setSeconds(0);
+      date.setMilliseconds(0);
       hoursObj.startTime = date;
-      hoursObj.endTime = date;
+      var enddate = new Date();
+      enddate.setHours(23);
+      enddate.setMinutes(59);
+      enddate.setSeconds(0);
+      enddate.setMilliseconds(0);
+      hoursObj.endTime = enddate;
+
     }
     
     $scope.toggleAllDay = function(hoursObj) {
@@ -265,7 +295,7 @@
 
       };
 
-         $scope.enableAddMoreRoom=function(){
+          $scope.enableAddMoreRoom=function(){
 
           $scope.enableAddMoreForm = true;
           $scope.officeHoursRoomsSlot = [];
@@ -274,84 +304,127 @@
           if($scope.room.roomsslotschedule)
             { 
               for (var i=0; i< $scope.room.roomsslotschedule.length; i++){
-                var obj = {};
-                obj.day = days[i];
-                var mynewstarttime=new Date($scope.room.roomsslotschedule[i].startTime);
-                var mynewsethourstarttime=mynewstarttime.getHours();
-                var mynewsetminutestarttime=mynewstarttime.getMinutes();
-                var mynewsetsecondstarttime=mynewstarttime.getSeconds();
-                var mynewsetmillisecondstarttime=mynewstarttime.getMilliseconds();
 
-                var mynewendtime=new Date($scope.room.roomsslotschedule[i].endTime);
-                var mynewsethourendtime=mynewendtime.getHours();
-                var mynewsetminutendtime=mynewendtime.getMinutes();
-                var mynewsetsecondendtime=mynewendtime.getSeconds();
-                var mynewsetmillisecondendtime=mynewendtime.getMilliseconds();
+                if($scope.room.roomsslotschedule[i].isAllday)
+                  {
+                          var obj = {};
+                              obj.day = days[i];
 
-                var mynewstarttimeminimum=new Date($scope.room.roomsslotschedule[i].min);
-                var mynewsethourstarttimeminimum=mynewstarttimeminimum.getHours();
-                var mynewsetminutestarttimeminimum=mynewstarttimeminimum.getMinutes();
-                var mynewsetsecondstarttimeminimum=mynewstarttimeminimum.getSeconds();
-                var mynewsetmillisecondstarttimeminimum=mynewstarttimeminimum.getMilliseconds();
+                        $scope.mytime = new Date();
+                        $scope.mytime.setHours(0);
+                        $scope.mytime.setMinutes(0);
+                        $scope.mytime.setSeconds(0);
+                        $scope.mytime.setMilliseconds(0);
+                        obj.startTime = $scope.mytime;
 
-                var mynewendtimemaximum=new Date($scope.room.roomsslotschedule[i].max);
-                var mynewsethourendtimemaximum=mynewendtimemaximum.getHours();
-                var mynewsetminutendtimemaximum=mynewendtimemaximum.getMinutes();
-                var mynewsetsecondendtimemaximum=mynewendtimemaximum.getSeconds();
-                var mynewsetmillisecondendtimemaximum=mynewendtimemaximum.getMilliseconds();
+                        obj.min=$scope.mytime;
+
+                        $scope.myEndTime = new Date();
+                        $scope.myEndTime.setHours(23);
+                        $scope.myEndTime.setMinutes(59);
+                        $scope.myEndTime.setSeconds(0);
+                        $scope.myEndTime.setMilliseconds(0);
+                        obj.endTime = $scope.myEndTime;
 
 
+                        $scope.myEndTimeMaximum = new Date();
+                        $scope.myEndTimeMaximum.setHours(23);
+                        $scope.myEndTimeMaximum.setMinutes(59);
+                        $scope.myEndTimeMaximum.setSeconds(0);
+                        $scope.myEndTimeMaximum.setMilliseconds(0);
 
-                  $scope.mytime = new Date($scope.room.roomsslotschedule[i].startTime);
-                  $scope.mytime.setHours(mynewsethourstarttime);
-                  $scope.mytime.setMinutes(mynewsetminutestarttime);
-                  $scope.mytime.setSeconds(mynewsetsecondstarttime);
-                  $scope.mytime.setMilliseconds(mynewsetmillisecondstarttime);
-                obj.startTime = $scope.mytime;
+                        obj.max=$scope.myEndTimeMaximum;
 
-                  $scope.myminstarttime = new Date($scope.room.roomsslotschedule[i].min);
-                  $scope.myminstarttime.setHours(mynewsethourstarttimeminimum);
-                  $scope.myminstarttime.setMinutes(mynewsetminutestarttimeminimum);
-                  $scope.myminstarttime.setSeconds(mynewsetsecondstarttimeminimum);
-                  $scope.myminstarttime.setMilliseconds(mynewsetmillisecondstarttimeminimum);
-     
-                obj.min=$scope.myminstarttime;
+                        obj.isAllday=$scope.room.roomsslotschedule[i].isAllday;
 
-                  $scope.myEndTime = new Date($scope.room.roomsslotschedule[i].endTime);
-                  $scope.myEndTime.setHours(mynewsethourendtime);
-                  $scope.myEndTime.setMinutes(mynewsetminutendtime);
-                  $scope.myEndTime.setSeconds(mynewsetsecondendtime);
-                  $scope.myEndTime.setMilliseconds(mynewsetmillisecondendtime);
-                obj.endTime = $scope.myEndTime;
+                        obj.isClosed=$scope.room.roomsslotschedule[i].isClosed;
 
-                  $scope.mymaxendtime = new Date($scope.room.roomsslotschedule[i].max);
-                  $scope.mymaxendtime.setHours(mynewsethourendtimemaximum);
-                  $scope.mymaxendtime.setMinutes(mynewsetminutendtimemaximum);
-                  $scope.mymaxendtime.setSeconds(mynewsetsecondendtimemaximum);
-                  $scope.mymaxendtime.setMilliseconds(mynewsetmillisecondendtimemaximum);
+                        obj.isAlldaylogic=$scope.room.roomsslotschedule[i].isAllday;
+
+                        $scope.officeHoursRoomsSlot.push(obj);
+
+                      }
+
+                      else
+                      {
+                            var obj = {};
+                            obj.day = days[i];
+                            var mynewstarttime=new Date($scope.room.roomsslotschedule[i].startTime);
+                            var mynewsethourstarttime=mynewstarttime.getHours();
+                            var mynewsetminutestarttime=mynewstarttime.getMinutes();
+                            var mynewsetsecondstarttime=mynewstarttime.getSeconds();
+                            var mynewsetmillisecondstarttime=mynewstarttime.getMilliseconds();
+
+                            var mynewendtime=new Date($scope.room.roomsslotschedule[i].endTime);
+                            var mynewsethourendtime=mynewendtime.getHours();
+                            var mynewsetminutendtime=mynewendtime.getMinutes();
+                            var mynewsetsecondendtime=mynewendtime.getSeconds();
+                            var mynewsetmillisecondendtime=mynewendtime.getMilliseconds();
+
+                            var mynewstarttimeminimum=new Date($scope.room.roomsslotschedule[i].min);
+                            var mynewsethourstarttimeminimum=mynewstarttimeminimum.getHours();
+                            var mynewsetminutestarttimeminimum=mynewstarttimeminimum.getMinutes();
+                            var mynewsetsecondstarttimeminimum=mynewstarttimeminimum.getSeconds();
+                            var mynewsetmillisecondstarttimeminimum=mynewstarttimeminimum.getMilliseconds();
+
+                            var mynewendtimemaximum=new Date($scope.room.roomsslotschedule[i].max);
+                            var mynewsethourendtimemaximum=mynewendtimemaximum.getHours();
+                            var mynewsetminutendtimemaximum=mynewendtimemaximum.getMinutes();
+                            var mynewsetsecondendtimemaximum=mynewendtimemaximum.getSeconds();
+                            var mynewsetmillisecondendtimemaximum=mynewendtimemaximum.getMilliseconds();
 
 
-               obj.max=$scope.mymaxendtime;
 
-               obj.isAllday=$scope.room.roomsslotschedule[i].isAllday;
+                              $scope.mytime = new Date();
+                              $scope.mytime.setHours(mynewsethourstarttime);
+                              $scope.mytime.setMinutes(mynewsetminutestarttime);
+                              $scope.mytime.setSeconds(mynewsetsecondstarttime);
+                              $scope.mytime.setMilliseconds(mynewsetmillisecondstarttime);
+                            obj.startTime = $scope.mytime;
 
-               obj.isClosed=$scope.room.roomsslotschedule[i].isClosed;
+                              $scope.myminstarttime = new Date();
+                              $scope.myminstarttime.setHours(mynewsethourstarttimeminimum);
+                              $scope.myminstarttime.setMinutes(mynewsetminutestarttimeminimum);
+                              $scope.myminstarttime.setSeconds(mynewsetsecondstarttimeminimum);
+                              $scope.myminstarttime.setMilliseconds(mynewsetmillisecondstarttimeminimum);
+                 
+                            obj.min=$scope.myminstarttime;
 
-               obj.isAlldaylogic=$scope.room.roomsslotschedule[i].isAllday;
+                              $scope.myEndTime = new Date();
+                              $scope.myEndTime.setHours(mynewsethourendtime);
+                              $scope.myEndTime.setMinutes(mynewsetminutendtime);
+                              $scope.myEndTime.setSeconds(mynewsetsecondendtime);
+                              $scope.myEndTime.setMilliseconds(mynewsetmillisecondendtime);
+                            obj.endTime = $scope.myEndTime;
 
-                $scope.officeHoursRoomsSlot.push(obj);
+                              $scope.mymaxendtime = new Date();
+                              $scope.mymaxendtime.setHours(mynewsethourendtimemaximum);
+                              $scope.mymaxendtime.setMinutes(mynewsetminutendtimemaximum);
+                              $scope.mymaxendtime.setSeconds(mynewsetsecondendtimemaximum);
+                              $scope.mymaxendtime.setMilliseconds(mynewsetmillisecondendtimemaximum);
+
+
+                           obj.max=$scope.mymaxendtime;
+
+                           obj.isAllday=$scope.room.roomsslotschedule[i].isAllday;
+
+                           obj.isClosed=$scope.room.roomsslotschedule[i].isClosed;
+
+                           obj.isAlldaylogic=$scope.room.roomsslotschedule[i].isAllday;
+
+                            $scope.officeHoursRoomsSlot.push(obj);
+                    }
               }
             }  
 
-        }; 
+        };
+         
         $scope.loadspaceloc=function(){
             SpaceService.crud.get({'spaceId':$stateParams.spaceId},function (response) {
             	  $scope.loadedspaceobject=response;
                 $scope.loc=response.loc;
                 $scope.spaceAmenity = response.amenities;
-                console.log(response.amenities);
               $scope.selectedspaceamenity = angular.copy($scope.spaceAmenity);
-              console.log($scope.selectedspaceamenity);
               $scope.loadRoomAmenities();
             }, function (error) {
                 $scope.error = error;
@@ -367,15 +440,14 @@
                        "amenityId":response[i]._id,
                        "facilityavailable":false,
                        "name":response[i].name,
-                       "icon":response[i].icon                                 
+                       "icon":response[i].icon  ,
+                       "isStatus":response[i].isStatus
             		});
             }
-            console.log($scope.selectedspaceamenity);
             for(var i=0;i<$scope.selectedspaceamenity.length;i++)
             	{
             	$scope.amenities.push($scope.selectedspaceamenity[i]);
             	}
-            console.log($scope.amenities);
             $scope.room.amenities=$scope.amenities;
          },function(error){
             console.log(error);
@@ -386,6 +458,7 @@
 				amenity.isChargeable = false;
 				$scope.amenityChargeable = false;
 			}
+			amenity.facilityavailable=amenity.isApplicable;
 		};
 		$scope.amenityChargeable = false;
 		$scope.toggleSpaceAmenityChargeable = function(amenity){
@@ -393,7 +466,7 @@
 				amenity.isApplicable = true;
 				$scope.amenityChargeable = true;
 			}
-			//$scope.amenityChargeable = false;
+			amenity.facilityavailable=amenity.isApplicable;
 			
 		};
 
@@ -424,33 +497,54 @@
           $scope.myEndTime.setMinutes(0);
         };
 
-        $scope.toggleAllDayAddRoom = function(hoursObj) {
-          if(hoursObj.isAllday && hoursObj.isClosed){
-            hoursObj.isClosed = false;
-          }
-          if(!hoursObj.isAllday && !hoursObj.isClosed){
-            $scope.setDefaultTimeAddRoom(hoursObj);
-            hoursObj.startTime = $scope.mytime;
-            hoursObj.endTime = $scope.myEndTime;
+    $scope.setFulldayAddRoom = function(hoursObj){
+      $scope.mytime = new Date();
+      $scope.mytime.setHours(0);
+      $scope.mytime.setMinutes(0);
+      $scope.mytime.setSeconds(0);
+      $scope.mytime.setMilliseconds(0);
+      
+      $scope.myEndTime = new Date();
+      $scope.myEndTime.setHours(23);
+      $scope.myEndTime.setMinutes(59);
+      $scope.myEndTime.setSeconds(0);
+      $scope.myEndTime.setMilliseconds(0);
+    };
 
-            $scope.mytime = new Date(hoursObj.startTime);
-              $scope.mytime.setHours(0);
-              $scope.mytime.setMinutes(0);
-              $scope.mytime.setSeconds(0);
-              $scope.mytime.setMilliseconds(0);
+    $scope.toggleAllDayAddRoom = function(hoursObj) {
+      if(hoursObj.isAllday && hoursObj.isClosed){
+        hoursObj.isClosed = false;
+      }
+      if(hoursObj.isAllday)
+      {
+        $scope.setFulldayAddRoom(hoursObj);
+        hoursObj.startTime = $scope.mytime;
+        hoursObj.endTime = $scope.myEndTime;
+      }
+      if(!hoursObj.isAllday && !hoursObj.isClosed){
+        
+        $scope.mytimemin = new Date();
+          $scope.mytimemin.setHours(0);
+          $scope.mytimemin.setMinutes(0);
+          $scope.mytimemin.setSeconds(0);
+          $scope.mytimemin.setMilliseconds(0);
 
-            hoursObj.min=$scope.mytime;
+        hoursObj.min=$scope.mytimemin;
 
-            $scope.myEndTime = new Date(hoursObj.endTime);
-              $scope.myEndTime.setHours(23);
-              $scope.myEndTime.setMinutes(59);
-              $scope.myEndTime.setSeconds(0);
-              $scope.myEndTime.setMilliseconds(0);
+        $scope.myEndTimemax = new Date();
+          $scope.myEndTimemax.setHours(23);
+          $scope.myEndTimemax.setMinutes(59);
+          $scope.myEndTimemax.setSeconds(0);
+          $scope.myEndTimemax.setMilliseconds(0);
 
-            hoursObj.max=$scope.myEndTime;
-          }
+        hoursObj.max=$scope.myEndTimemax;
 
-        };
+        $scope.setDefaultTimeAddRoom(hoursObj);
+        hoursObj.startTime = $scope.mytime;
+        hoursObj.endTime = $scope.myEndTime;
+      }
+                 
+    };
 
         $scope.toggleClosedAddRoom = function(hoursObj) {
           if(hoursObj.isClosed && hoursObj.isAllday){
@@ -481,23 +575,39 @@
         };
 
         $scope.sendToApproval = function(room) {
-
-            RoomService.sendToApprove.update({"roomId":room._id},function(response){
-                  room.sentToAdminApproval=true;
-             },function(error){
-                   console.log(error);
-             });
-
+            if(room.images.length == 0)
+            {
+              flash.setMessage(URLFactory.MESSAGES.ROOM_IMAGES_SENDINGAPPROVAL_ERROR,URLFactory.MESSAGES.ERROR);
+            }  
+            else
+            {
+                RoomService.sendToApprove.update({"roomId":room._id},function(response){
+                      flash.setMessage(URLFactory.MESSAGES.ROOM_SENT_FOR_APPROVAL_SUCCESS,URLFactory.MESSAGES.SUCCESS);
+                      room.sentToAdminApproval=true;
+                 },function(error){
+                       console.log(error);
+                 });
+            }    
         };
 
          $scope.publishRoom = function(room) {
 
-            RoomService.publishRoom.update({"roomId":room._id},function(response){
-                  room.isPublished=true;
-                  room.status="published";
-             },function(error){
-                   console.log(error);
-             });
+             if(room.images.length == 0)
+            {
+              flash.setMessage(URLFactory.MESSAGES.ROOM_IMAGES_ERROR,URLFactory.MESSAGES.ERROR);
+            }
+            else
+            {
+                var schedulecreate = new RoomService.publishRoom(room);              
+                    schedulecreate.$save(function (response) {            
+                          room.isPublished=true;
+                          room.status="published";  
+                          flash.setMessage(URLFactory.MESSAGES.ROOM_PUBLISHED_SUCCESS,URLFactory.MESSAGES.SUCCESS);
+                    }, function (error) {
+                         console.log(error);
+                    });
+              }       
+         
 
         };
 
@@ -518,7 +628,6 @@
                       $scope.error = error;
                     });
        };
-  
 
       }
   ]);
