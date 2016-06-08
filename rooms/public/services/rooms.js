@@ -1,6 +1,7 @@
 'use strict';
 
 angular.module('mean.rooms').factory('RoomService', 
+
   function($resource) {
     return {
          loadroomtypes : $resource('/api/addroom/loadroomtypes', {}, {
@@ -159,7 +160,35 @@ angular.module('mean.rooms').factory('RoomService',
                 method: 'GET',
                 isArray: true
             }
-        })
+        }),
 
+        approveSpaceByAdmin: $resource('/api/admin/space/approval', {}, {
+            update: {
+                method: 'PUT' // this method issues a PUT request
+            },
+            query: {
+                method: 'GET',
+                isArray: true
+            }
+        }),
+    	virtualOfficeDetails: $resource('/api/virtualOffices', {}, {
+			update: {
+				method: 'PUT' // this method issues a PUT request
+			},
+			query: {
+				method: 'GET',
+				isArray: true
+			}
+		}),
+
+		virtualOffice : $resource('/api/virtualOffices/:virtualOfficeId', {virtualOfficeId : '@virtualOfficeId' }, {
+			update: {
+				method: 'PUT' // this method issues a PUT request
+			},
+			query: {
+				method: 'GET',
+				isArray: true
+			}
+		})		
     };
   });

@@ -13,7 +13,8 @@
           $scope.spacePhotos = [];
           $scope.photos = [];
           initializePermission($scope, $rootScope, $location, $scope.package.featureName, flash, URLFactory.MESSAGES);
-
+          $scope.statusOptions = [{'name':'Approved'},{'name':'Pending'},{'name':'All'}];
+          flashmessageOn($rootScope, $scope,flash);
           $scope.loadAdminRooms = function() {
 
             $scope.dtOptions = DTOptionsBuilder.newOptions().withPaginationType('full_numbers').withDisplayLength(10);
@@ -23,12 +24,8 @@
                                DTColumnDefBuilder.newColumnDef(2),
                                DTColumnDefBuilder.newColumnDef(3),
                                DTColumnDefBuilder.newColumnDef(4),
-                               DTColumnDefBuilder.newColumnDef(5),
-                               DTColumnDefBuilder.newColumnDef(6),
-                               DTColumnDefBuilder.newColumnDef(7),
-                               DTColumnDefBuilder.newColumnDef(8),
-                               DTColumnDefBuilder.newColumnDef(9).notSortable(),
-                               DTColumnDefBuilder.newColumnDef(10).notSortable()
+                               DTColumnDefBuilder.newColumnDef(5).notSortable()
+                              
                                ];
             window.alert = (function() {
                 var nativeAlert = window.alert;
@@ -41,9 +38,9 @@
             })(); 
 
             $scope.status={};
-            $scope.statusOptions = [{'name':'Approved'},{'name':'Pending'},{'name':'All'}];
+           
               RoomService.adminrooms.query(function(response) {
-                 $scope.roomdetails = response;
+                 $scope.spacedetails = response;
               }, function(error) {
                   $scope.error = error;
               });
@@ -108,14 +105,24 @@
         $scope.approveRoom=function(room,message){
             if(room.images.length == 0)
             {
-              flash.setMessage(URLFactory.MESSAGES.ROOM_IMAGES_APPROVAL_ERROR,URLFactory.MESSAGES.ERROR);
-              $location.path(URLFactory.ROOMS.URL_PATH.ADMIN_ROOM_LIST);
+                 $location.$$search = {};  
+                var urlPath = URLFactory.ROOMS.URL_PATH.ADMIN_SPACE_LIST_VIEW.replace(":spaceId", room.spaceId._id);
+                  $location.path(urlPath);
+                flash.setMessage(URLFactory.MESSAGES.ROOM_IMAGES_APPROVAL_ERROR,URLFactory.MESSAGES.ERROR);   
             } 
+            else if(room.spaceId.approveStatus == "pending")
+            { 
+                 $location.$$search = {};          
+                var urlPath = URLFactory.ROOMS.URL_PATH.ADMIN_SPACE_LIST_VIEW.replace(":spaceId", room.spaceId._id);
+                  $location.path(urlPath);
+                flash.setMessage(URLFactory.MESSAGES.ADMIN_SPACE_APPROVAL_PENDING,URLFactory.MESSAGES.ERROR);   
+            }
             else
             {      
                  RoomService.approveRoom.update({"roomId":room._id,"status":message},function(response){ 
-                       $location.$$search = {};               
-                      $location.path(ROOMS.URL_PATH.ADMIN_ROOM_LIST);
+                       $location.$$search = {};
+                       var urlPath = URLFactory.ROOMS.URL_PATH.ADMIN_SPACE_LIST_VIEW.replace(":spaceId", room.spaceId._id);
+                       $location.path(urlPath);               
                       flash.setMessage(URLFactory.MESSAGES.ROOM_APPROVED_SUCCESS,URLFactory.MESSAGES.SUCCESS);
                  },function(error){
                        console.log(error);
@@ -127,7 +134,8 @@
 
                  RoomService.rejectRoom.update({"roomId":room._id,"status":message},function(response){ 
                        $location.$$search = {};                
-                      $location.path(ROOMS.URL_PATH.ADMIN_ROOM_LIST);
+                       var urlPath = URLFactory.ROOMS.URL_PATH.ADMIN_SPACE_LIST_VIEW.replace(":spaceId", room.spaceId._id);
+                       $location.path(urlPath);
                       flash.setMessage(URLFactory.MESSAGES.ROOM_SENT_MODIFICATION_SUCCESS,URLFactory.MESSAGES.SUCCESS);
                  },function(error){
                        console.log(error);
@@ -191,8 +199,10 @@
           };
 
 
-        $scope.backtoList = function(){
-           $location.path(URLFactory.ROOMS.URL_PATH.ADMIN_ROOM_LIST);
+        $scope.backtoList = function(room){
+            $location.$$search = {}; 
+           var urlPath = URLFactory.ROOMS.URL_PATH.ADMIN_SPACE_LIST_VIEW.replace(":spaceId", room.spaceId._id);
+              $location.path(urlPath);
         };
 
       $scope.loadroomtypesonStatus = function(statusname) {
@@ -202,5 +212,83 @@
                   console.log(error);
               });
           };
+
+        $scope.viewCompleteSpaceDetail=function(spaceobject)
+        {
+
+          var urlPath = URLFactory.ROOMS.URL_PATH.ADMIN_SPACE_LIST_VIEW.replace(":spaceId", spaceobject._id);
+              $location.path(urlPath);
+
+        };
+
+        $scope.loadCompleteSpaceDetail=function()
+        {
+
+          SpaceService.crud.get({
+                spaceId : $stateParams.spaceId
+              }, function(space) {
+                   $scope.space = space;
+                   $scope.spacePhotos = $scope.space.images.map(function(space) {
+                   return {src: space.url};
+                 });
+                 $scope.photos = $scope.spacePhotos;  
+              },function(error){
+                 console.log(error);
+              });
+
+        };
+
+      $scope.loadRoomsAllotedToParticulerSpace = function () {
+
+             $scope.dtOptions1 = DTOptionsBuilder.newOptions().withPaginationType('full_numbers').withDisplayLength(10);
+             $scope.dtColumnDefs1 = [
+                           DTColumnDefBuilder.newColumnDef(0).notVisible(),
+                           DTColumnDefBuilder.newColumnDef(1),
+                           DTColumnDefBuilder.newColumnDef(2),
+                           DTColumnDefBuilder.newColumnDef(3),
+                           DTColumnDefBuilder.newColumnDef(4),
+                           DTColumnDefBuilder.newColumnDef(5),
+                           DTColumnDefBuilder.newColumnDef(6),
+                           DTColumnDefBuilder.newColumnDef(7),
+                           DTColumnDefBuilder.newColumnDef(8),
+                           DTColumnDefBuilder.newColumnDef(9).notSortable(),
+                           DTColumnDefBuilder.newColumnDef(10).notSortable()
+                           ];
+              window.alert = (function() {
+                  var nativeAlert = window.alert;
+                  return function(message) {
+                      //window.alert = nativeAlert;
+                      message.indexOf("DataTables warning") >= 0 ?
+                            console.warn(message) :
+                                    nativeAlert(message);
+                  }
+              })(); 
+
+           RoomService.loadroomparticulertospace.query({'particulerroomsspaceId':$stateParams.spaceId},function(response){
+                $scope.roomsparticulertospace=response;
+                console.log($scope.roomsparticulertospace);
+              },function(error){
+                        console.log(error);
+              });
+
+         };
+
+         $scope.approveSpaceAdmin=function(space){
+
+            RoomService.approveSpaceByAdmin.update({"spaceId":space._id},function(response){ 
+                      space.approveStatus="approved";              
+                      flash.setMessage(URLFactory.MESSAGES.ADMIN_SPACE_APPROVAL_APPROVED,URLFactory.MESSAGES.SUCCESS);
+                 },function(error){
+                       console.log(error);
+                 });
+
+         };
+
+         $scope.backtoadminspaceList=function(space){
+             $location.path(URLFactory.ROOMS.URL_PATH.ADMIN_ROOM_LIST);
+         };
+
+
+
       }
   ]);

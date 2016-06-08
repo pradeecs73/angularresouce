@@ -43,6 +43,9 @@ module.exports = function (Rooms, app, auth, database) {
   app.route('/api/room/roomType')
   .get(roomCtrl.loadRoomBasedOnRoomType);
   
+  app.route('/api/loadRoomType')
+  .get(roomCtrl.loadRoomTypeSchedule);
+  
   app.route('/api/roomtypes/create').post(roomCtrl.addroomtype);
   app.route('/api/addroom/loadroomtypes').get(roomCtrl.loadroomtypes);
 
@@ -107,7 +110,10 @@ app.route('/api/room/admin/rejectRoom')
      .post(roomCtrl.publishRoom); 
 
    app.route('/api/room/activateRoom')
-     .post(roomCtrl.activateRoom);  
+     .post(roomCtrl.activateRoom); 
+
+   app.route('/api/admin/space/approval')
+     .put(roomCtrl.approvingSpaceByAdmin);      
    
    
   app.param('roomId', roomCtrl.room);
