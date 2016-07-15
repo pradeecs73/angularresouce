@@ -1,0 +1,103 @@
+<!-- BEGIN SAMPLE FORM PORTLET-->
+<section data-ng-controller="UserController" data-ng-init="getRolesonUSer()">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="portlet light bordered">
+                <div class="portlet-title">
+                    <div class="caption">
+                    </div>
+                </div>
+                <div class=" form" style="left:0">
+                    <form class="form-horizontal" name="userForm" role="form">
+                        <div class="form-body">
+                            <div class="col-sm-12 ">
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label">
+                                        First Name
+                                    </label>
+                                    <div class="col-md-6">
+                                        <input class="form-control" name="firstname" ng-model="newUser.firstname" placeholder="Enter first name" required="" type="text">
+                                            <div class="col-xs-12 text-danger" ng-show="submitted">
+                                                <span ng-show="userForm.firstname.$error.required">
+                                                    Please enter the first name
+                                                </span>
+                                            </div>
+                                            <div class="col-xs-12 text-danger" ng-repeat = "error in err.data" ng-if = "error.param == 'firstname'">
+                                        {{error.msg}}</div>
+                                    </div>
+                                </div>
+                            
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label">
+                                        Last Name
+                                    </label>
+                                    <div class="col-md-6">
+                                        <input class="form-control" name="lastname" ng-model="newUser.lastname" placeholder="Enter text" required="" type="text">
+                                            <div class="col-xs-12 text-danger" ng-show="submitted">
+                                                <span ng-show="userForm.lastname.$error.required">
+                                                    Please enter the last name
+                                                </span>
+                                            </div>
+                                              <div class="col-xs-12 text-danger" ng-repeat = "error in err.data" ng-if = "error.param == 'lastname'">
+                                            {{error.msg}}</div>
+                                        </input>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label">
+                                        Email Address
+                                    </label>
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <span class="input-group-addon">
+                                                <i class="fa fa-envelope">
+                                                </i>
+                                            </span>
+                                            <input class="form-control" name="email" ng-model="newUser.email" placeholder="Email Address" required="" type="email">
+                                            </input>
+                                        </div>
+                                        <div class="col-xs-12 text-danger" ng-show="submitted">
+                                            <span ng-show="userForm.email.$error.required">
+                                                Please enter the email
+                                            </span>
+                                        </div>
+                                          <div class="col-xs-12 text-danger" ng-repeat = "error in err.data" ng-if = "error.param == 'email'">
+                                            {{error.msg}}</div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label" disabled="">
+                                        Roles
+                                    </label>
+                                    <div class="col-md-6">
+                                        <select class="form-control" name="roles" ng-model="newUser.role" required="">
+                                            <option ng-repeat="role in selectedRoles" value="{{role._id}}">
+                                                {{role.name}}
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div ng-show="submitted && userForm.roles.$invalid">
+                                        <span class="col-xs-12 text-danger" ng-show="userForm.roles.$error.required">
+                                            Please add roles
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>    
+                        </div>
+                    </form>
+                
+                <div class="form-actions" style="clear: both;">
+                    <div class="col-sm-12 text-right">
+                        <button class="btn green" data-ng-click="createUser(userForm.$valid)" mean-token="'create-submit'" type="button">
+                            Submit
+                        </button>
+                        <button class="btn default" type="button" ng-click= "cancelRedirect()">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

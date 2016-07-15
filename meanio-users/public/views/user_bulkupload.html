@@ -1,0 +1,25 @@
+<section data-ng-controller="UserController">
+   <div class="form-group">
+                <label mean-token="'create-picture'" class="col-md-2 pull-left">user file upload input</label>
+
+                <div class="col-md-6">
+                    <div class="col-sm-4">
+
+                    </div>
+                    <div>
+                        <form name="uploadPictureForm" class="form-horizontal col-md-12" 
+                              role="form" novalidate>
+
+                            <div class="form-group">
+                               <div class="col-md-12">
+                                 <div class="btn btn-info" ngf-select="onUsersFileSelect($file)">
+                                       File Upload
+                                  </div>
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+</section>

@@ -1,0 +1,127 @@
+<!-- BEGIN SAMPLE FORM PORTLET-->
+<section data-ng-controller="RoleController" data-ng-init="getFeatures(); findRole();">
+    <div class="portlet light bordered">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="portlet-title">
+                    <div class="caption">
+                        <!-- <i class="icon-settings font-dark"></i> -->
+                        <span class="caption-subject font-dark sbold uppercase">
+                            Edit Role
+                        </span>
+                    </div>
+                </div>
+                <div class=" form" style="left:0">
+                    <form class="form-horizontal" name="roleEditForm" role="form">
+                        <div class="form-body">
+                            <div class="col-sm-12 ">
+                            <div class="alert alert-danger" ng-show="role.pristine">
+                                <strong>System Role</strong>System Roles cannot be edited.
+                            </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label">
+                                        Name
+                                    </label>
+                                    <div class="col-md-6">
+                                        <input class="form-control" name="name" ng-disabled="role.pristine" ng-model="role.name" placeholder="Enter name" required="" type="text">
+                                            <div class="col-xs-12 text-danger" ng-show="submitted">
+                                                <span ng-show="roleEditForm.name.$error.required">
+                                                    Please enter the name
+                                                </span>
+                                            </div>
+                                            <div class="col-xs-12 text-danger" ng-if="error.param == 'name'" ng-repeat="error in err.data">
+                                                {{error.msg}}
+                                            </div>
+                                        </input>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label">
+                                        Description
+                                    </label>
+                                    <div class="col-md-6">
+                                        <input class="form-control" name="description" ng-disabled="role.pristine" ng-model="role.description" placeholder="Enter description" required="" type="text">
+                                            <div class="col-xs-12 text-danger" ng-show="submitted">
+                                                <span ng-show="roleEditForm.description.$error.required">
+                                                    Please enter Description
+                                                </span>
+                                            </div>
+                                            <div class="col-xs-12 text-danger" ng-if="error.param == 'lastname'" ng-repeat="error in err.data">
+                                                {{error.msg}}
+                                            </div>
+                                        </input>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-3 control-label caption-subject font-dark sbold uppercase">
+                                        Features
+                                    </label>
+                                </div>
+                                <div class="col-xs-offset-3 col-xs-6">
+                                    <table class="table borderless">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center">
+                                                    Feature
+                                                </th>
+                                                <th class="text-center">
+                                                    Read
+                                                </th>
+                                                <th class="text-center">
+                                                    Create
+                                                </th>
+                                                <th class="text-center">
+                                                    Update
+                                                </th>
+                                                <th class="text-center">
+                                                    Delete
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr data-ng-repeat="feature in features">
+                                                <td class=" borderless">
+                                                    <input data-ng-click="editFeature(feature)" id="feature{{feature._id}}" name="check" ng-checked="role.permissions[feature._id].read" ng-disabled="role.pristine" ng-model="feature.selected" type="checkbox">
+                                                        <label for="feature{{feature._id}}">
+                                                            {{feature.name}}
+                                                        </label>
+                                                    </input>
+                                                </td>
+                                                <td class="text-center">
+                                                    <input data-ng-model="role.permissions[feature._id].read" id="isRead{{feature._id}}" name="check" ng-disabled="!feature.selected || disable || role.pristine" type="checkbox" value="true">
+                                                    </input>
+                                                </td>
+                                                <td class="text-center">
+                                                    <input data-ng-model="role.permissions[feature._id].create" id="isWrite{{feature._id}}" name="check" ng-disabled="(!feature.selected && !role.permissions[feature._id].read) || role.pristine" type="checkbox" value="true">
+                                                    </input>
+                                                </td>
+                                                <td class="text-center">
+                                                    <input data-ng-model="role.permissions[feature._id].update" id="isUpdate{{feature._id}}" name="check" ng-disabled="(!feature.selected && !role.permissions[feature._id].read) || role.pristine" type="checkbox" value="true">
+                                                    </input>
+                                                </td>
+                                                <td class="text-center">
+                                                    <input data-ng-model="role.permissions[feature._id].delete" id="isDelete{{feature._id}}" name="check" ng-disabled="(!feature.selected && !role.permissions[feature._id].read) || role.pristine" type="checkbox" value="true">
+                                                    </input>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="form-actions" style="clear: both;">
+                <div class="col-sm-12 text-right">
+                    <button class="btn green" data-ng-click="updateRole(USERS.URL_PATH.ROLE_LIST,roleEditForm.$valid)" mean-token="'create-submit'" ng-hide="role.pristine" type="button">
+                        Submit
+                    </button>
+                    <button class="btn default" ng-click="cancelRedirect()" type="button">
+                        Back
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
