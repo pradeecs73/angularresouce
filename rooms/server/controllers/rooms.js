@@ -24,8 +24,11 @@ var templates = require('../template');
 var config = require('meanio').loadConfig();
 var logger = require('../../../../core/system/server/controllers/logs.js');
 var RoleModel = mongoose.model("Role");
- var notify = require('../../../notification/server/controllers/notify.js');
- var UserModel = mongoose.model('User');
+var notify = require('../../../notification/server/controllers/notify.js');
+var UserModel = mongoose.model('User');
+ 
+var Mailgen = require('mailgen'),
+ 	mail = require('../../../../core/system/server/services/mailService.js');
 
 
 function sendMail(mailOptions) {
@@ -35,6 +38,80 @@ function sendMail(mailOptions) {
         return response;
     });
 }
+
+function officeHourScheduleHoursMinutes(officeHourSchedule){
+	var timeZoneOffset = -330;
+	var roomOfficeHourTimingSchedule = [];
+	
+    for(var i = 0; i < officeHourSchedule.length; i++){
+    	var roomOfficeHourTimingScheduleObj = {};
+    	roomOfficeHourTimingScheduleObj.day = officeHourSchedule[i].day;
+    	var offsetStartTime = new Date(officeHourSchedule[i].startTime);
+    	offsetStartTime = offsetStartTime.setMinutes(offsetStartTime.getMinutes() - timeZoneOffset);
+    	var startDateTime = new Date(offsetStartTime);
+    	var hrsStart = new Date(startDateTime).getHours();
+    	var minStart = new Date(startDateTime).getMinutes();
+    	if(minStart === 0){
+    		minStart = '00';
+    	}
+    	roomOfficeHourTimingScheduleObj.startTime = hrsStart + ':' + minStart;
+    	
+    	var offsetEndTime = new Date(officeHourSchedule[i].endTime);
+    	offsetEndTime = offsetEndTime.setMinutes(offsetEndTime.getMinutes() - timeZoneOffset);
+    	var endDateTime = new Date(offsetEndTime);
+    	var hrsEnd = new Date(endDateTime).getHours();
+    	var minEnd = new Date(endDateTime).getMinutes();
+    	if(minEnd === 0){
+    		minEnd = '00';
+    	}
+    	roomOfficeHourTimingScheduleObj.endTime = hrsEnd + ':' + minEnd;
+    	
+    	roomOfficeHourTimingSchedule.push(roomOfficeHourTimingScheduleObj);
+    }
+    return roomOfficeHourTimingSchedule;
+}
+
+function adminRateTimingNotification(req, res, newRates, roomObj, officeHoursScheduleBefore, officeHoursScheduleAfter, callback){
+    
+	var query = {
+      'name' : new RegExp('^' + 'Admin' + '$', "i")
+    };
+    RoleModel.findOne(query, function(err, role) {
+        if (err) {
+          return res.status(500).json({
+            error : 'Cannot load role',
+            err: err
+          });
+        }
+        query = {};
+        query.role = { 
+          $in: [role._id]
+        }
+        UserModel.find(query).exec(function(err, admins){
+      	  if (err) {
+      		  return res.status(500).json({
+      			  error : 'Cannot load admin',
+      			  err: err
+      		  });
+      	  }
+      	  async.eachSeries(admins, function(admin, callback1) {
+        	  var emailAdmin = templates.room_rate_and_timing_change_email(admin, newRates, roomObj, officeHoursScheduleBefore, officeHoursScheduleAfter);
+        	  mail.mailService(emailAdmin, admin.email);
+        	  callback1();
+      	  }, function(err) {
+      		  if(err) {
+      			  return res.status(500).json({
+      				  error: 'Error while sending mail.',
+      				  err : err
+      			  });
+      		  }
+      		  callback();
+      	  });
+        });
+   });
+}
+
+
 
 module.exports = function(Rooms) {
     return {
@@ -98,11 +175,11 @@ module.exports = function(Rooms) {
                       {
                           logger.log('info', 'PUT '+req._parsedUrl.pathname+' Room approved successfully '); 
 
-                          if(item.status == 'approved' && item.isAdminAdded){
+                          if(item.status == 'Approved' && item.isAdminAdded){
                                     UserModel.findOne({
                                            _id : item.partner
                                         }, function(err, user) {
-                                            notify.addNotificationURL('Approved',item.name+' room is approved.',user,'/space/room/list');
+                                            notify.addNotificationURL('Approved',item.name +'	'+item.roomtype.name + '	 '+ 'at' + '	' + item.spaceId.name + '	' + 'has been approved.',user,'/space/room/list');
                                       });
                           }
                           else
@@ -110,7 +187,7 @@ module.exports = function(Rooms) {
                             UserModel.findOne({
                                            _id : item.createdBy
                                         }, function(err, user) {
-                                            notify.addNotificationURL('Approved',item.name+' room is approved.',user,'/space/room/list');
+                                        	 notify.addNotificationURL('Approved',item.name +'	'+item.roomtype.name + '	 '+ 'at' + '	' + item.spaceId.name + '	' + 'has been approved.',user,'/space/room/list');
                                     });
                           }
 
@@ -119,13 +196,14 @@ module.exports = function(Rooms) {
                     });
                 }
 
-           }); 
+           }).populate('roomtype').populate('spaceId'); 
 
         },
         rejectRoom:function(req,res)
         {
            var roomId=req.body.roomId;
            var status=req.body.status;
+           var rejectReason=req.body.reasonForReject;
            RoomsSchemaModel.findOne({"_id":roomId},function(err,item){
                 if(err)
                 {
@@ -137,6 +215,7 @@ module.exports = function(Rooms) {
                     item.status=status;
                     item.sentToAdminApproval=false;
                     item.isPublished=false;
+                    item.reasonForRejection=rejectReason;
                     item.save(function(err){
                       if(err)
                       {
@@ -145,19 +224,21 @@ module.exports = function(Rooms) {
                       }
                       else
                       {          
-                          if(item.status == 'pending' && item.isAdminAdded) {
+                          if(item.status == 'Rejected' && item.isAdminAdded) {
+          
                             UserModel.findOne({
-                                           _id : item.createdBy
+                                           _id : item.partner
                                         }, function(err, user) {
-                                            notify.addNotificationURL('Not Approved',item.name+' room is not approved. Please update details properly.',user,'/space/room/list');
+                                            notify.addNotificationURL('Not Approved',item.name+' room is not approved. Please click here for more details.',user,'/space/room/list');
                                       });
                           }
                           else
                           {
+
                             UserModel.findOne({
-                                           _id : item.partner
+                                           _id : item.createdBy
                                         }, function(err, user) {
-                                            notify.addNotificationURL('Not Approved',item.name+' room is not approved. Please update details properly.',user,'/space/room/list');
+                                            notify.addNotificationURL('Not Approved',item.name+' room is not approved. Please click here for more details.',user,'/space/room/list');
                                       });
                           }
                           logger.log('info', 'PUT '+req._parsedUrl.pathname+' Room status updated successfully'); 
@@ -259,6 +340,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -270,9 +354,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);  
+                                      checkingdate1.setMilliseconds(0); 
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                    var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[6].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }    
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -343,6 +455,7 @@ module.exports = function(Rooms) {
  
 
                                    var myfinalobj = {};
+                                   myfinalobj.spaceId=spaceId;
                                    myfinalobj.room = roomId;
                                    myfinalobj.loc = location;
                                    myfinalobj.day = "Sunday";
@@ -393,6 +506,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -404,9 +520,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);  
+                                      checkingdate1.setMilliseconds(0); 
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                  var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                 if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[0].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }      
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -477,6 +621,7 @@ module.exports = function(Rooms) {
 
 
                                  var myfinalobj = {};
+                                 myfinalobj.spaceId=spaceId;
                                  myfinalobj.room = roomId;
                                  myfinalobj.loc = location;
                                  myfinalobj.day = "Monday";
@@ -527,6 +672,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -538,9 +686,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);  
+                                      checkingdate1.setMilliseconds(0); 
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                  var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                 if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[1].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }       
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -612,6 +788,7 @@ module.exports = function(Rooms) {
 
 
                                  var myfinalobj = {};
+                                 myfinalobj.spaceId=spaceId;
                                  myfinalobj.room = roomId;
                                  myfinalobj.loc = location;
                                  myfinalobj.day = "Tuesday";
@@ -662,6 +839,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -673,9 +853,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);  
+                                      checkingdate1.setMilliseconds(0); 
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                  var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                   if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[2].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }     
+
+                                   else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -747,6 +955,7 @@ module.exports = function(Rooms) {
 
 
                                    var myfinalobj = {};
+                                   myfinalobj.spaceId=spaceId;
                                    myfinalobj.room = roomId;
                                    myfinalobj.loc = location;
                                    myfinalobj.day = "Wednesday";
@@ -797,6 +1006,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -808,9 +1020,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);  
+                                      checkingdate1.setMilliseconds(0);
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                  var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[3].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }        
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -881,6 +1121,7 @@ module.exports = function(Rooms) {
 
 
                                  var myfinalobj = {};
+                                 myfinalobj.spaceId=spaceId;
                                  myfinalobj.room = roomId;
                                  myfinalobj.loc = location;
                                  myfinalobj.day = "Thursday";
@@ -931,6 +1172,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+                                   
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -942,9 +1186,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);  
+                                      checkingdate1.setMilliseconds(0);
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                  var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[4].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }       
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -1016,6 +1288,7 @@ module.exports = function(Rooms) {
 
 
                                var myfinalobj = {};
+                               myfinalobj.spaceId=spaceId;
                                myfinalobj.room = roomId;
                                myfinalobj.loc = location;
                                myfinalobj.day = "Friday";
@@ -1067,6 +1340,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+       
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -1078,9 +1354,38 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);  
+                                      checkingdate1.setMilliseconds(0); 
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+
+                                  var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                               if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[5].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }      
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -1151,6 +1456,7 @@ module.exports = function(Rooms) {
 
 
                                  var myfinalobj = {};
+                                 myfinalobj.spaceId=spaceId;
                                  myfinalobj.room = roomId;
                                  myfinalobj.loc = location;
                                  myfinalobj.day = "Saturday";
@@ -1205,6 +1511,8 @@ module.exports = function(Rooms) {
                  else
                  {             
                      item.sentToAdminApproval=true;
+                     item.status ="Pending";
+
                      item.save(function(err){
                        if(err)
                        {
@@ -1221,29 +1529,15 @@ module.exports = function(Rooms) {
                                    else
                                    {
                                        
-                                       if(item.spaceId.approveStatus == "approved")
-                                         {
-                                               UserModel.find({
-                                                    role : { "$in" : [role._id] }
-                                                 }, function(err, users) {
-                                                     async.each(users, function (user, callback) {
-                                                     notify.addNotificationURL('Approval',item.name +' room is waiting for your approval in space '+item.spaceId.name,user,'/space/admin/room/detailpage?selectedId='+req.body.roomId);
-                                                     callback();
-                                                   });
-                                               });
-                                         } 
-                                         else
-                                         {
-                                               UserModel.find({
-                                                  role : { "$in" : [role._id] }
-                                               }, function(err, users) {
-                                                   async.each(users, function (user, callback) {
-                                                   notify.addNotificationURL('Approval',item.spaceId.name +' space is waiting for your approval',user,'/admin/space/'+item.spaceId._id+'/detailpage');
-                                                   callback();
-                                                 });
-                                             });
-
-                                         } 
+                                       UserModel.find({
+                                            role : { "$in" : [role._id] }
+                                         }, function(err, users) {
+                                             async.each(users, function (user, callback) {
+                                             notify.addNotificationURL('Approval',item.name +'room at'+ '	'+ item.spaceId.name +'		'+ 'approval pending',user,'/space/admin/room/detailpage?selectedId='+req.body.roomId);
+                                             callback();
+                                           });
+                                       });
+                                         
                                    }
                                  });
                              logger.log('info', 'PUT '+req._parsedUrl.pathname+' Room details updated successfully'); 
@@ -1251,7 +1545,7 @@ module.exports = function(Rooms) {
                        }
                      });
                  }
-            }).populate("spaceId",""); 
+            }).populate("spaceId","").populate('roomtype'); 
         },
        publishRoom:function(req,res)
        {
@@ -1278,7 +1572,7 @@ module.exports = function(Rooms) {
                           else
                           {             
                               item.isPublished=true;
-                              item.status="published";
+                              item.status="Published";
                               item.save(function(err){
                                 if(err)
                                 {
@@ -1345,6 +1639,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);    
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -1358,7 +1655,35 @@ module.exports = function(Rooms) {
                                       checkingdate1.setSeconds(0);
                                       checkingdate1.setMilliseconds(0);  
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                  var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);  
+
+
+
+                                  if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[6].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }     
+                                   else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -1428,6 +1753,7 @@ module.exports = function(Rooms) {
                                  }                            
 
                                   var myfinalobj = {};
+                                  myfinalobj.spaceId=spaceId;
                                   myfinalobj.room = roomId;
                                   myfinalobj.loc = location;
                                   myfinalobj.day = "Sunday";
@@ -1479,6 +1805,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                   var addedoffsetdateEndTime=new Date(endDate);
+                                       addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -1490,9 +1819,36 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);  
+                                      checkingdate1.setMilliseconds(0); 
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                  var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0); 
+
+                                  
+                                 if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[0].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -1564,6 +1920,7 @@ module.exports = function(Rooms) {
 
 
                                 var myfinalobj = {};
+                                myfinalobj.spaceId=spaceId;
                                 myfinalobj.room = roomId;
                                 myfinalobj.loc = location;
                                 myfinalobj.day = "Monday";
@@ -1614,6 +1971,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                 var addedoffsetdateEndTime=new Date(endDate);
+                                     addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject); 
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -1625,9 +1985,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);  
+                                      checkingdate1.setMilliseconds(0);
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                   var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                  if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[1].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }     
+
+                                   else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -1698,6 +2086,7 @@ module.exports = function(Rooms) {
 
 
                                 var myfinalobj = {};
+                                myfinalobj.spaceId=spaceId;
                                 myfinalobj.room = roomId;
                                 myfinalobj.loc = location;
                                 myfinalobj.day = "Tuesday";
@@ -1748,6 +2137,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                   var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject); 
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -1761,7 +2153,36 @@ module.exports = function(Rooms) {
                                       checkingdate1.setSeconds(0);
                                       checkingdate1.setMilliseconds(0);  
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+
+                                 var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[2].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }     
+
+                                   else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -1831,6 +2252,7 @@ module.exports = function(Rooms) {
                                  } 
 
                                   var myfinalobj = {};
+                                  myfinalobj.spaceId=spaceId;
                                   myfinalobj.room = roomId;
                                   myfinalobj.loc = location;
                                   myfinalobj.day = "Wednesday";
@@ -1881,6 +2303,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                 var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject); 
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -1894,7 +2319,36 @@ module.exports = function(Rooms) {
                                       checkingdate1.setSeconds(0);
                                       checkingdate1.setMilliseconds(0);  
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+
+                                   var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                   if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[3].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }    
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -1964,6 +2418,7 @@ module.exports = function(Rooms) {
                                  } 
 
                                 var myfinalobj = {};
+                                myfinalobj.spaceId=spaceId;
                                 myfinalobj.room = roomId;
                                 myfinalobj.loc = location;
                                 myfinalobj.day = "Thursday";
@@ -2014,6 +2469,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                   var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);  
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -2025,9 +2483,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);  
+                                      checkingdate1.setMilliseconds(0); 
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                   var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                   if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[4].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }   
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -2097,6 +2583,7 @@ module.exports = function(Rooms) {
                                  } 
 
                               var myfinalobj = {};
+                              myfinalobj.spaceId=spaceId;
                               myfinalobj.room = roomId;
                               myfinalobj.loc = location;
                               myfinalobj.day = "Friday";
@@ -2148,6 +2635,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject); 
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -2161,7 +2651,35 @@ module.exports = function(Rooms) {
                                       checkingdate1.setSeconds(0);
                                       checkingdate1.setMilliseconds(0);  
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                   var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                  if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[5].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }    
+
+                                   else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -2231,6 +2749,7 @@ module.exports = function(Rooms) {
                                  } 
 
                                 var myfinalobj = {};
+                                myfinalobj.spaceId=spaceId;
                                 myfinalobj.room = roomId;
                                 myfinalobj.loc = location;
                                 myfinalobj.day = "Saturday";
@@ -2556,7 +3075,25 @@ module.exports = function(Rooms) {
             res.send(roomdetail);
         },
         saveEditedRoomDetail: function(req, res) {
-            var roomdetail = req.room;        
+            var roomdetail = req.room;
+            var roomObj = req.room;   
+            
+            var roomHours = req.room.roomsslotschedule.slice();
+            var reqHours = req.body.roomsslotschedule.slice();
+
+            var officeHoursScheduleBefore = officeHourScheduleHoursMinutes(roomHours);
+            console.log('-----------------------');
+            var officeHoursScheduleAfter = officeHourScheduleHoursMinutes(reqHours); 
+            
+            var newRates = {
+        		oldpricePerfullday : req.room.pricePerfullday, 
+        		oldpricePerhalfday : req.room.pricePerhalfday, 
+        		oldpricePerhour : req.room.pricePerhour,
+        		newpricePerfullday : req.body.pricePerfullday, 
+        		newpricePerhalfday : req.body.pricePerhalfday, 
+        		newpricePerhour : req.body.pricePerhour
+            };
+            
             var roomslotschedulebefore = req.room.roomsslotschedule;
             var roomslotscheduleafter = req.body.roomsslotschedule;
             var isAdminEdit=req.body.isAdminEdit;
@@ -2610,7 +3147,7 @@ module.exports = function(Rooms) {
 	
 	                                      logger.log('info', 'PUT'+req._parsedUrl.pathname+'Sending notification to admin notifying amenity edit'); 
 	                                      async.each(users, function (user, callback) {
-                                              notify.addNotificationURL('Amenity Update',editedRoomName+' amenity is updated',user,'/space/admin/room/list');                                   
+                                              notify.addNotificationURL('Amenity Update',editedRoomName + '		'+'at'+'	'	+ req.body.spaceId.name + '	 '+ 'updated amenities',user,'/space/admin/room/list');                                   
 	                                           callback();
 	                                    },function(err){
 	                                         done();
@@ -2704,8 +3241,10 @@ module.exports = function(Rooms) {
                             logger.log('error', 'PUT '+req._parsedUrl.pathname+' Failed to update room details '+err+'');
                             res.send(err);
                         } else {
-                            logger.log('info', 'PUT '+req._parsedUrl.pathname+' Room details updated sucessfully');              
-                            done();
+                        	adminRateTimingNotification(req, res, newRates, roomObj, officeHoursScheduleBefore, officeHoursScheduleAfter, function(){
+                                logger.log('info', 'PUT '+req._parsedUrl.pathname+' Room details updated sucessfully');  
+                        		done();
+                            });      
                         }
                     });
                 },    
@@ -2802,6 +3341,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                 var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject); 
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -2815,7 +3357,35 @@ module.exports = function(Rooms) {
                                       checkingdate1.setSeconds(0);
                                       checkingdate1.setMilliseconds(0);  
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                   var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[6].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }    
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -2885,6 +3455,7 @@ module.exports = function(Rooms) {
                                  }  
 
                                   var myfinalobj = {};
+                                  myfinalobj.spaceId=spaceId;
                                   myfinalobj.room = roomId;
                                   myfinalobj.loc = location;
                                   myfinalobj.day = "Sunday";
@@ -2935,6 +3506,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -2946,9 +3520,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);  
+                                      checkingdate1.setMilliseconds(0);
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                   var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                  if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[0].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }      
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -3018,6 +3620,7 @@ module.exports = function(Rooms) {
                                  }   
 
                                 var myfinalobj = {};
+                                myfinalobj.spaceId=spaceId;
                                 myfinalobj.room = roomId;
                                 myfinalobj.loc = location;
                                 myfinalobj.day = "Monday";
@@ -3068,6 +3671,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -3081,7 +3687,35 @@ module.exports = function(Rooms) {
                                       checkingdate1.setSeconds(0);
                                       checkingdate1.setMilliseconds(0);  
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                  var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                  if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[1].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }    
+
+                                   else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -3152,6 +3786,7 @@ module.exports = function(Rooms) {
 
 
                                 var myfinalobj = {};
+                                myfinalobj.spaceId=spaceId;
                                 myfinalobj.room = roomId;
                                 myfinalobj.loc = location;
                                 myfinalobj.day = "Tuesday";
@@ -3202,6 +3837,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -3213,9 +3851,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);  
+                                      checkingdate1.setMilliseconds(0); 
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                  var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                 if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[2].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }      
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -3285,6 +3951,7 @@ module.exports = function(Rooms) {
                                  }     
 
                                   var myfinalobj = {};
+                                  myfinalobj.spaceId=spaceId;
                                   myfinalobj.room = roomId;
                                   myfinalobj.loc = location;
                                   myfinalobj.day = "Wednesday";
@@ -3335,6 +4002,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                 var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -3348,7 +4018,35 @@ module.exports = function(Rooms) {
                                       checkingdate1.setSeconds(0);
                                       checkingdate1.setMilliseconds(0);  
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                  var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                 if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[3].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }      
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -3418,6 +4116,7 @@ module.exports = function(Rooms) {
                                  }     
 
                                 var myfinalobj = {};
+                                myfinalobj.spaceId=spaceId;
                                 myfinalobj.room = roomId;
                                 myfinalobj.loc = location;
                                 myfinalobj.day = "Thursday";
@@ -3468,6 +4167,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -3479,9 +4181,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);  
+                                      checkingdate1.setMilliseconds(0); 
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                  var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                 if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[4].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }       
+
+                                   else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -3551,6 +4281,7 @@ module.exports = function(Rooms) {
                                  }     
 
                               var myfinalobj = {};
+                              myfinalobj.spaceId=spaceId;
                               myfinalobj.room = roomId;
                               myfinalobj.loc = location;
                               myfinalobj.day = "Friday";
@@ -3601,6 +4332,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                 var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + i));
                                      checkingdate.setHours(0);
@@ -3612,9 +4346,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);  
+                                      checkingdate1.setMilliseconds(0);
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                   var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[5].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }      
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -3684,6 +4446,7 @@ module.exports = function(Rooms) {
                                  }     
 
                                 var myfinalobj = {};
+                                myfinalobj.spaceId=spaceId;
                                 myfinalobj.room = roomId;
                                 myfinalobj.loc = location;
                                 myfinalobj.day = "Saturday";
@@ -3753,7 +4516,7 @@ module.exports = function(Rooms) {
                                                       };
                                                         mailOptions = templates.send_editroomscheduleemail(mailOptions);
                                                         sendMail(mailOptions);
-                                                       notify.addNotificationURL('Schedule Update',editedRoomName+' room schedule is updated',user,'/space/admin/room/list'); 
+                                                       notify.addNotificationURL('Schedule Update',editedRoomName + '	'+'at'+'	'+ req.body.spaceId.name + '	' + 'updated amenities',user,'/space/admin/room/list'); 
                                                
                                                callback();
                                              },function(err){
@@ -3861,7 +4624,7 @@ module.exports = function(Rooms) {
                                         }
                                     });
                                 }, function(err) {
-                                    callbackchangedschedulearray();;
+                                    callbackchangedschedulearray();
                                 });
                             }
                         });
@@ -3871,6 +4634,7 @@ module.exports = function(Rooms) {
                 }
             ], function(err) {});
         },
+        // Api to create a schedule for 91st day
         cronaddrowtoschedule: function(req, res) {
             async.waterfall([
                 function(done) {
@@ -3896,7 +4660,9 @@ module.exports = function(Rooms) {
                         var location=roomsingleobject.loc;
     
                         var spaceholiday=roomsingleobject.spaceId.space_holiday;
-                            spaceholiday=_.pluck(spaceholiday,"holiday_date");    
+                            spaceholiday=_.pluck(spaceholiday,"holiday_date"); 
+
+                        var spaceId=roomsingleobject.spaceId._id;       
   
                         var spaceholidaylist=[];  
                           for(var i=0;i<spaceholiday.length;i++){
@@ -3954,6 +4720,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + 90));
                                      checkingdate.setHours(0);
@@ -3965,9 +4734,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0)  
+                                      checkingdate1.setMilliseconds(0);
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                  var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                 if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[6].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }       
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -4004,7 +4801,7 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0)  
+                                      checkingdate1.setMilliseconds(0); 
 
                                    if(new Date(checkingdate) > new Date(checkingdate1)) 
                                      {
@@ -4038,6 +4835,7 @@ module.exports = function(Rooms) {
 
 
                                     var myfinalobj = {};
+                                    myfinalobj.spaceId=spaceId;
                                     myfinalobj.room = roomId;
                                     myfinalobj.loc = location;
                                     myfinalobj.day = "Sunday";
@@ -4088,6 +4886,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + 90));
                                      checkingdate.setHours(0);
@@ -4099,9 +4900,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0)  
+                                      checkingdate1.setMilliseconds(0);
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                  var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                               if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[0].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }      
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -4138,7 +4967,7 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0)  
+                                      checkingdate1.setMilliseconds(0);  
 
                                    if(new Date(checkingdate) > new Date(checkingdate1)) 
                                      {
@@ -4171,6 +5000,7 @@ module.exports = function(Rooms) {
                                  }  
 
                                     var myfinalobj = {};
+                                    myfinalobj.spaceId=spaceId;
                                     myfinalobj.room = roomId;
                                     myfinalobj.loc = location;
                                     myfinalobj.day = "Monday";
@@ -4221,6 +5051,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + 90));
                                      checkingdate.setHours(0);
@@ -4232,9 +5065,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0)  
+                                      checkingdate1.setMilliseconds(0); 
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                   var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[1].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }    
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -4271,7 +5132,7 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0)  
+                                      checkingdate1.setMilliseconds(0);  
 
                                    if(new Date(checkingdate) > new Date(checkingdate1)) 
                                      {
@@ -4304,6 +5165,7 @@ module.exports = function(Rooms) {
                                  }  
 
                                     var myfinalobj = {};
+                                    myfinalobj.spaceId=spaceId;
                                     myfinalobj.room = roomId;
                                     myfinalobj.loc = location;
                                     myfinalobj.day = "Tuesday";
@@ -4354,6 +5216,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);  
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + 90));
                                      checkingdate.setHours(0);
@@ -4365,9 +5230,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0)  
+                                      checkingdate1.setMilliseconds(0);
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                  var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[2].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }      
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -4404,7 +5297,7 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0)  
+                                      checkingdate1.setMilliseconds(0);  
 
                                    if(new Date(checkingdate) > new Date(checkingdate1)) 
                                      {
@@ -4437,6 +5330,7 @@ module.exports = function(Rooms) {
                                  }  
 
                                     var myfinalobj = {};
+                                    myfinalobj.spaceId=spaceId;
                                     myfinalobj.room = roomId;
                                     myfinalobj.loc = location;
                                     myfinalobj.day = "Wednesday";
@@ -4482,10 +5376,15 @@ module.exports = function(Rooms) {
                                  var endDate = new Date(todaydate + myunivarsalendtime);
                                      endDate=endDate.setMinutes(endDate.getMinutes()+univarsaldateminute);
 
+
+
                                  if(offsetTimeFromObject < 0)    
                                {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
+
+                                 var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
 
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + 90));
@@ -4498,9 +5397,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0)  
+                                      checkingdate1.setMilliseconds(0); 
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                  var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[3].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }     
+
+                                 else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -4537,7 +5464,7 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0)  
+                                      checkingdate1.setMilliseconds(0);  
 
                                    if(new Date(checkingdate) > new Date(checkingdate1)) 
                                      {
@@ -4570,6 +5497,7 @@ module.exports = function(Rooms) {
                                  }  
 
                                     var myfinalobj = {};
+                                    myfinalobj.spaceId=spaceId;
                                     myfinalobj.room = roomId;
                                     myfinalobj.loc = location;
                                     myfinalobj.day = "Thursday";
@@ -4620,6 +5548,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + 90));
                                      checkingdate.setHours(0);
@@ -4631,9 +5562,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0)  
+                                      checkingdate1.setMilliseconds(0); 
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                   var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                 if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[4].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }     
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -4670,7 +5629,7 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0)  
+                                      checkingdate1.setMilliseconds(0);  
 
                                    if(new Date(checkingdate) > new Date(checkingdate1)) 
                                      {
@@ -4704,6 +5663,7 @@ module.exports = function(Rooms) {
 
 
                                     var myfinalobj = {};
+                                    myfinalobj.spaceId=spaceId;
                                     myfinalobj.room = roomId;
                                     myfinalobj.loc = location;
                                     myfinalobj.day = "Friday";
@@ -4754,6 +5714,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                   var addedoffsetdateEndTime=new Date(endDate);
+                                       addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+ 
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + 90));
                                      checkingdate.setHours(0);
@@ -4765,9 +5728,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0)  
+                                      checkingdate1.setMilliseconds(0);  
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                   var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                  if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[5].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }   
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -4804,7 +5795,7 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0)  
+                                      checkingdate1.setMilliseconds(0); 
 
                                    if(new Date(checkingdate) > new Date(checkingdate1)) 
                                      {
@@ -4837,6 +5828,7 @@ module.exports = function(Rooms) {
                                  }  
 
                                     var myfinalobj = {};
+                                    myfinalobj.spaceId=spaceId;
                                     myfinalobj.room = roomId;
                                     myfinalobj.loc = location;
                                     myfinalobj.day = "Saturday";
@@ -4891,6 +5883,7 @@ module.exports = function(Rooms) {
 
                   res.send(200);        
         },
+         //Api to create a schedule on database corruption
         creatingScheduleThroughGenricApi:function(req,res)
         {
 
@@ -4902,6 +5895,23 @@ module.exports = function(Rooms) {
                         {
                           return res.status(500).json({
                               error : 'Cannot delete the schedules'
+                           });           
+                        }
+                       else
+                       {
+                           done();
+                        }
+
+                      });               
+
+                },
+                function(done) {
+                   BookingModel.remove(function(err) {
+
+                        if(err)
+                        {
+                          return res.status(500).json({
+                              error : 'Cannot delete the bookings'
                            });           
                         }
                        else
@@ -4935,7 +5945,9 @@ module.exports = function(Rooms) {
                         var location=roomsingleobject.loc;
     
                         var spaceholiday=roomsingleobject.spaceId.space_holiday;
-                            spaceholiday=_.pluck(spaceholiday,"holiday_date");    
+                            spaceholiday=_.pluck(spaceholiday,"holiday_date"); 
+
+                        var spaceId=roomsingleobject.spaceId._id;        
   
                         var spaceholidaylist=[];  
                           for(var i=0;i<spaceholiday.length;i++){
@@ -4996,6 +6008,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
                                      checkingdate.setHours(0);
@@ -5007,9 +6022,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);  
+                                      checkingdate1.setMilliseconds(0);
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                   var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                  if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[6].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }      
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -5079,6 +6122,7 @@ module.exports = function(Rooms) {
                                  }   
 
                                           var myfinalobj = {};
+                                          myfinalobj.spaceId=spaceId;
                                           myfinalobj.room = roomId;
                                           myfinalobj.loc = location;
                                           myfinalobj.day = "Sunday";
@@ -5129,6 +6173,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
                                      checkingdate.setHours(0);
@@ -5140,9 +6187,36 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);  
+                                      checkingdate1.setMilliseconds(0); 
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                  var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+                            if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[0].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }      
+
+                                   else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -5212,6 +6286,7 @@ module.exports = function(Rooms) {
                                  }  
 
                                           var myfinalobj = {};
+                                          myfinalobj.spaceId=spaceId;
                                           myfinalobj.room = roomId;
                                           myfinalobj.loc = location;
                                           myfinalobj.day = "Monday";
@@ -5263,6 +6338,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
                                      checkingdate.setHours(0);
@@ -5274,9 +6352,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);  
+                                      checkingdate1.setMilliseconds(0); 
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                  var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                 if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[1].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }      
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -5346,6 +6452,7 @@ module.exports = function(Rooms) {
                                  }  
 
                                           var myfinalobj = {};
+                                          myfinalobj.spaceId=spaceId;
                                           myfinalobj.room = roomId;
                                           myfinalobj.loc = location;
                                           myfinalobj.day = "Tuesday";
@@ -5397,6 +6504,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
                                      checkingdate.setHours(0);
@@ -5408,9 +6518,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);                                            
+                                      checkingdate1.setMilliseconds(0);  
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                   var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                 if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[2].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }                                             
+
+                                 else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -5447,7 +6585,7 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);;  
+                                      checkingdate1.setMilliseconds(0);  
 
                                    if(new Date(checkingdate) > new Date(checkingdate1)) 
                                      {
@@ -5480,6 +6618,7 @@ module.exports = function(Rooms) {
                                  }  
 
                                           var myfinalobj = {};
+                                          myfinalobj.spaceId=spaceId;
                                           myfinalobj.room = roomId;
                                           myfinalobj.loc = location;
                                           myfinalobj.day = "Wednesday";
@@ -5530,6 +6669,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
                                      checkingdate.setHours(0);
@@ -5541,9 +6683,37 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);  
+                                      checkingdate1.setMilliseconds(0); 
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                   var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                                 if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[3].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }    
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -5613,6 +6783,7 @@ module.exports = function(Rooms) {
                                  }  
 
                                           var myfinalobj = {};
+                                          myfinalobj.spaceId=spaceId;
                                           myfinalobj.room = roomId;
                                           myfinalobj.loc = location;
                                           myfinalobj.day = "Thursday";
@@ -5664,6 +6835,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                 var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
                                      checkingdate.setHours(0);
@@ -5675,9 +6849,36 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);  
+                                      checkingdate1.setMilliseconds(0);
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                   var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+
+                               if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[4].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }
+                                   else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -5747,6 +6948,7 @@ module.exports = function(Rooms) {
                                  }  
 
                                           var myfinalobj = {};
+                                          myfinalobj.spaceId=spaceId;
                                           myfinalobj.room = roomId;
                                           myfinalobj.loc = location;
                                           myfinalobj.day = "Friday";
@@ -5782,7 +6984,7 @@ module.exports = function(Rooms) {
                                   {
                                     if (mycurrentday == 6 && !roomsschedule[5].isClosed && !checkingcurrentdayisholiday) {
 
-                                           var  myunivarsalstarttime=roomsschedule[5].startTime.toISOString().substr(11,13); 
+                                  var  myunivarsalstarttime=roomsschedule[5].startTime.toISOString().substr(11,13); 
                                   var  myunivarsalendtime=roomsschedule[5].endTime.toISOString().substr(11,13);            
 
 
@@ -5796,6 +6998,9 @@ module.exports = function(Rooms) {
                                   var addedoffsetdateStartTime=new Date(startDate);
                                       addedoffsetdateStartTime=addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes()-offsetTimeFromObject);
 
+                                  var addedoffsetdateEndTime=new Date(endDate);
+                                      addedoffsetdateEndTime=addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes()-offsetTimeFromObject);
+
                                  var myschedulecreatingdate=new Date();
                                  var checkingdate=new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
                                      checkingdate.setHours(0);
@@ -5807,9 +7012,36 @@ module.exports = function(Rooms) {
                                       checkingdate1.setHours(0);
                                       checkingdate1.setMinutes(0);
                                       checkingdate1.setSeconds(0);
-                                      checkingdate1.setMilliseconds(0);  
+                                      checkingdate1.setMilliseconds(0);
 
-                                   if(new Date(checkingdate1) > new Date(checkingdate)) 
+                                   var checkingdate2=new Date(addedoffsetdateEndTime);
+                                      checkingdate2.setHours(0);
+                                      checkingdate2.setMinutes(0);
+                                      checkingdate2.setSeconds(0);
+                                      checkingdate2.setMilliseconds(0);
+
+                               if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[5].isAllday)
+                                  {
+
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(todaydate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                  }
+
+                                else if(new Date(checkingdate1) > new Date(checkingdate) &&  new Date(checkingdate2) > new Date(checkingdate)) 
+                                    {
+                                        startDate=new Date(previousdate + myunivarsalstarttime);
+                                        endDate=new Date(previousdate + myunivarsalendtime);
+
+                                        var myfinalscheduleStartTime=new Date(startDate.toUTCString()).toISOString(); 
+                                        var myfinalscheduleEndTime=new Date(endDate.toUTCString()).toISOString(); 
+
+                                    }     
+
+                                  else if(new Date(checkingdate1) > new Date(checkingdate)) 
                                      {
                                         startDate=new Date(previousdate + myunivarsalstarttime);
                                         endDate=new Date(todaydate + myunivarsalendtime);
@@ -5879,6 +7111,7 @@ module.exports = function(Rooms) {
                                  }  
 
                                           var myfinalobj = {};
+                                          myfinalobj.spaceId=spaceId;
                                           myfinalobj.room = roomId;
                                           myfinalobj.loc = location;
                                           myfinalobj.day = "Saturday";
@@ -5925,19 +7158,55 @@ module.exports = function(Rooms) {
         },
         
         loadRoomBasedOnRoomType:function(req,res){
+        	var roleRequired=req.query.scopeUser;
             if(req.query.roomTypeRooms){
                var roomTypeRoomSelected = req.query.roomTypeRooms;
             }else{
                  var roomTypeRoomSelected = 'undefined';
             }
-            RoomsSchemaModel.find({roomtype : req.query.roomTypeRooms}).populate('roomtype').populate('spaceId').exec(function (err, roomTypeRooms) {
-                if (err) {
-                    return res.status(500).json({
-                        error: 'Cannot list the roomTypeRooms'
-                    });
-                }
-                res.json(roomTypeRooms);
-            });
+            var user=req.user;
+            if(roleRequired =='Partner'){
+            	RoomsSchemaModel.find(
+                        {
+                            $and: [{
+                            	partner: user._id },
+                           {roomtype : req.query.roomTypeRooms}
+                            ]
+                        }).populate('roomtype').populate('spaceId').exec(function (err, roomTypeRooms) {
+                    if (err) {
+                        return res.status(500).json({
+                            error: 'Cannot list the roomTypeRooms'
+                        });
+                    }
+                    res.json(roomTypeRooms);
+                });
+            }else if(roleRequired =='BackOffice' || roleRequired =='FrontOffice'){
+            	RoomsSchemaModel.find(
+                        {
+                            $and: [{
+                            	"spaceId":  { "$in" : [user.Spaces] }
+                            }, {roomtype : req.query.roomTypeRooms}
+                            ]
+                        }).populate('roomtype').populate('spaceId').exec(function (err, roomTypeRooms) {
+                    if (err) {
+                        return res.status(500).json({
+                            error: 'Cannot list the roomTypeRooms'
+                        });
+                    }
+                    res.json(roomTypeRooms);
+                });
+            }else{
+            	 RoomsSchemaModel.find({roomtype : req.query.roomTypeRooms}).populate('roomtype').populate('spaceId').exec(function (err, roomTypeRooms) {
+                     if (err) {
+                         return res.status(500).json({
+                             error: 'Cannot list the roomTypeRooms'
+                         });
+                     }
+                     res.json(roomTypeRooms);
+                 });
+            }
+            
+            
         },
         
         //API for loading roomtypes,rooms and storing those in a array
@@ -6108,7 +7377,7 @@ module.exports = function(Rooms) {
                 }
                 else
                 {             
-                    item.approveStatus="approved";
+                    item.approveStatus="Approved";
                     item.save(function(err){
                       if(err)
                       {
@@ -6117,6 +7386,12 @@ module.exports = function(Rooms) {
                       }
                       else
                       {
+                          UserModel.findOne({
+                                           _id : item.partner
+                                        }, function(err, user) {
+                                            notify.addNotificationURL('Approved',item.name+' space is approved.',user,'/admin/space');
+                                      });
+
                           res.send(200);
                       }
                     });
@@ -6134,6 +7409,908 @@ module.exports = function(Rooms) {
                 } else {
                     res.send(items);
                 }
+            });
+        },
+
+        getAllRoomsForAdminLogin: function(req, res) {
+            RoomsSchemaModel.find({}).sort({created:-1}).deepPopulate(['spaceId', 'spaceId.space_type']).populate("roomtype","").populate("createdBy","").exec(function (err, docs) {
+               if (err) {
+                    logger.log('error', 'GET '+req._parsedUrl.pathname+' Fetching all rooms is failed '+err+'');
+                    res.send(400);
+                } else {  
+                    logger.log('info', 'GET '+req._parsedUrl.pathname+' Fetching all rooms is successful');  
+                    res.send(docs);
+                }
+                     
+              });
+        },
+        getAllRoomsForAdminLoginByRoomTypeFilter:function(req,res)
+        {
+
+          RoomsSchemaModel.find({"roomtype":req.query.roomtype}).sort({created:-1}).deepPopulate(['spaceId', 'spaceId.space_type']).populate("roomtype","").populate("createdBy","").exec(function (err, docs) {
+               if (err) {
+                    logger.log('error', 'GET '+req._parsedUrl.pathname+' Fetching all rooms is failed '+err+'');
+                    res.send(400);
+                } else {  
+                    logger.log('info', 'GET '+req._parsedUrl.pathname+' Fetching all rooms is successful');  
+                    res.send(docs);
+                }
+                     
+              });
+        },
+       //Api to create a schedule for missing days 
+      creatingScheduleThroughApiForMissingSchedule: function(req, res) {
+            async.waterfall([
+                function(done) {
+                    RoomsSchemaModel.find({
+                        "isActive": true,
+                        "isPublished": true
+                    }, function(err, items) {
+                        if (err) {
+                            res.send(400);
+                        } else {
+                            done(null, items);
+                        }
+                    }).populate("spaceId", "");
+                },
+                function(roomobjects, done) {
+                    async.eachSeries(roomobjects, function(roomsingleobject, callbackschedule) {
+                        var roomsschedule = roomsingleobject.roomsslotschedule;
+                        var roomId = roomsingleobject._id;
+                        var location = roomsingleobject.loc;
+                        var spaceholiday = roomsingleobject.spaceId.space_holiday;
+                        spaceholiday = _.pluck(spaceholiday, "holiday_date");
+                        var spaceId = roomsingleobject.spaceId._id;
+                        var spaceholidaylist = [];
+                        for (var i = 0; i < spaceholiday.length; i++) {
+                            spaceholidaylist.push(spaceholiday[i].toISOString().substr(0, 11));
+                        }
+                        async.timesSeries(90, function(j, next) {
+                            var scheduleupdatingdate = new Date();
+                            scheduleupdatingdate.setDate(scheduleupdatingdate.getDate() + j);
+                            var checkingmissingscheduledate = scheduleupdatingdate;
+                            var updateddate = scheduleupdatingdate;
+                            var mycurrentday = updateddate.getDay();
+                            var previousdaycreate = new Date();
+                            var previousdate = new Date(previousdaycreate.setDate(previousdaycreate.getDate() + (j - 1)));
+                            previousdate = previousdate.toISOString();
+                            previousdate = previousdate.substr(0, 11);
+                            var nextdaycreate = new Date();
+                            var nextdate = new Date(nextdaycreate.setDate(nextdaycreate.getDate() + (j + 1)));
+                            nextdate = nextdate.toISOString();
+                            nextdate = nextdate.substr(0, 11);
+                            var todaydate = new Date();
+                            todaydate.setDate(todaydate.getDate() + j);
+                            todaydate = todaydate.toISOString();
+                            todaydate = todaydate.substr(0, 11);
+                            
+                            var univarsaldate = new Date();
+                            var univarsaldateminute = univarsaldate.getTimezoneOffset();
+                            var offsetTimeFromObject = config.zoneOffset.indiaOffset;
+                            var checkingcurrentdayisholiday = _.contains(spaceholidaylist, todaydate);
+                            var str = checkingmissingscheduledate.toISOString().substr(0, 10);
+                            str = str + "T00:00:00.000Z";
+                            var str1 = str.replace(/00:00:00.000/, '23:59:59.000');
+                            ScheduleModel.findOne({
+                                $and: [{
+                                    "room": roomsingleobject._id
+                                }, {
+                                    "date": {
+                                        $gte: new Date(str)
+                                    }
+                                }, {
+                                    "date": {
+                                        $lte: new Date(str1)
+                                    }
+                                }]
+                            }, function(err, scheduledoc) {
+                                if (err) {
+                                    return res.status(400).json({
+                                        "error": "cannot create a schedule"
+                                    });
+                                } else {
+                                    if (!scheduledoc && !checkingcurrentdayisholiday) {
+                                        if (mycurrentday == 0 && roomsschedule[6]) {
+                                            if (mycurrentday == 0 && !roomsschedule[6].isClosed && !checkingcurrentdayisholiday) {
+                                                var myunivarsalstarttime = roomsschedule[6].startTime.toISOString().substr(11, 13);
+                                                var myunivarsalendtime = roomsschedule[6].endTime.toISOString().substr(11, 13);
+                                                var startDate = new Date(todaydate + myunivarsalstarttime);
+                                                startDate = startDate.setMinutes(startDate.getMinutes() + univarsaldateminute);
+                                                var endDate = new Date(todaydate + myunivarsalendtime);
+                                                endDate = endDate.setMinutes(endDate.getMinutes() + univarsaldateminute);
+                                                if (offsetTimeFromObject < 0) {
+                                                    var addedoffsetdateStartTime = new Date(startDate);
+                                                    addedoffsetdateStartTime = addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes() - offsetTimeFromObject);
+                                                    var addedoffsetdateEndTime = new Date(endDate);
+                                                    addedoffsetdateEndTime = addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes() - offsetTimeFromObject);
+                                                    var myschedulecreatingdate = new Date();
+                                                    var checkingdate = new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
+                                                    checkingdate.setHours(0);
+                                                    checkingdate.setMinutes(0);
+                                                    checkingdate.setSeconds(0);
+                                                    checkingdate.setMilliseconds(0);
+                                                    var checkingdate1 = new Date(addedoffsetdateStartTime);
+                                                    checkingdate1.setHours(0);
+                                                    checkingdate1.setMinutes(0);
+                                                    checkingdate1.setSeconds(0);
+                                                    checkingdate1.setMilliseconds(0);
+                                                    var checkingdate2 = new Date(addedoffsetdateEndTime);
+                                                    checkingdate2.setHours(0);
+                                                    checkingdate2.setMinutes(0);
+                                                    checkingdate2.setSeconds(0);
+                                                    checkingdate2.setMilliseconds(0);
+                                                    if (new Date(checkingdate1) > new Date(checkingdate) && new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[6].isAllday) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else if (new Date(checkingdate1) > new Date(checkingdate) && new Date(checkingdate2) > new Date(checkingdate)) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(previousdate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else if (new Date(checkingdate1) > new Date(checkingdate)) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    }
+                                                } else if (offsetTimeFromObject > 0) {
+                                                    var addedoffsetdateStartTime = new Date(startDate);
+                                                    addedoffsetdateStartTime = addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes() - offsetTimeFromObject);
+                                                    var myschedulecreatingdate = new Date();
+                                                    var checkingdate = new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
+                                                    checkingdate.setHours(0);
+                                                    checkingdate.setMinutes(0);
+                                                    checkingdate.setSeconds(0);
+                                                    checkingdate.setMilliseconds(0);
+                                                    var checkingdate1 = new Date(addedoffsetdateStartTime);
+                                                    checkingdate1.setHours(0);
+                                                    checkingdate1.setMinutes(0);
+                                                    checkingdate1.setSeconds(0);
+                                                    checkingdate1.setMilliseconds(0);
+                                                    if (new Date(checkingdate) > new Date(checkingdate1)) {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(nextdate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    }
+                                                } else {
+                                                    startDate = new Date(todaydate + myunivarsalstarttime);
+                                                    endDate = new Date(todaydate + myunivarsalendtime);
+                                                    var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                    var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                }
+                                                var myfinalobj = {};
+                                                myfinalobj.spaceId = spaceId;
+                                                myfinalobj.room = roomId;
+                                                myfinalobj.loc = location;
+                                                myfinalobj.day = "Sunday";
+                                                myfinalobj.isAllday = roomsschedule[6].isAllday;
+                                                myfinalobj.isClosed = roomsschedule[6].isClosed;
+                                                myfinalobj.date = updateddate;
+                                                myfinalobj.bookings = [];
+                                                var myfinalschedule = [];
+                                                var startTimeDay = new Date(myfinalscheduleStartTime);
+                                                var endTimeDay = new Date(myfinalscheduleEndTime);
+                                                startTimeDay.setSeconds(0);
+                                                startTimeDay.setMilliseconds(0);
+                                                endTimeDay.setSeconds(0);
+                                                endTimeDay.setMilliseconds(0);
+                                                var myobj = {};
+                                                myobj.startTime = startTimeDay;
+                                                myobj.endTime = endTimeDay;
+                                                myfinalschedule.push(myobj);
+                                                myfinalobj.initialAval = myfinalschedule;
+                                                myfinalobj.currentAval = myfinalschedule;
+                                                var schedulecreate = new ScheduleModel(myfinalobj);
+                                                schedulecreate.save(function(err, items) {
+                                                    if (err) {
+                                                        res.send(400);
+                                                    }
+                                                });
+                                                next();
+                                            }
+                                        }
+                                        if (mycurrentday == 1 && roomsschedule[0]) {
+                                            if (mycurrentday == 1 && !roomsschedule[0].isClosed && !checkingcurrentdayisholiday) {
+                                                var myunivarsalstarttime = roomsschedule[0].startTime.toISOString().substr(11, 13);
+                                                var myunivarsalendtime = roomsschedule[0].endTime.toISOString().substr(11, 13);
+                                                var startDate = new Date(todaydate + myunivarsalstarttime);
+                                                startDate = startDate.setMinutes(startDate.getMinutes() + univarsaldateminute);
+                                                var endDate = new Date(todaydate + myunivarsalendtime);
+                                                endDate = endDate.setMinutes(endDate.getMinutes() + univarsaldateminute);
+                                                if (offsetTimeFromObject < 0) {
+                                                    var addedoffsetdateStartTime = new Date(startDate);
+                                                    addedoffsetdateStartTime = addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes() - offsetTimeFromObject);
+                                                    var addedoffsetdateEndTime = new Date(endDate);
+                                                    addedoffsetdateEndTime = addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes() - offsetTimeFromObject);
+                                                    var myschedulecreatingdate = new Date();
+                                                    var checkingdate = new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
+                                                    checkingdate.setHours(0);
+                                                    checkingdate.setMinutes(0);
+                                                    checkingdate.setSeconds(0);
+                                                    checkingdate.setMilliseconds(0);
+                                                    var checkingdate1 = new Date(addedoffsetdateStartTime);
+                                                    checkingdate1.setHours(0);
+                                                    checkingdate1.setMinutes(0);
+                                                    checkingdate1.setSeconds(0);
+                                                    checkingdate1.setMilliseconds(0);
+                                                    var checkingdate2 = new Date(addedoffsetdateEndTime);
+                                                    checkingdate2.setHours(0);
+                                                    checkingdate2.setMinutes(0);
+                                                    checkingdate2.setSeconds(0);
+                                                    checkingdate2.setMilliseconds(0);
+                                                    if (new Date(checkingdate1) > new Date(checkingdate) && new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[0].isAllday) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else if (new Date(checkingdate1) > new Date(checkingdate) && new Date(checkingdate2) > new Date(checkingdate)) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(previousdate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else if (new Date(checkingdate1) > new Date(checkingdate)) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    }
+                                                } else if (offsetTimeFromObject > 0) {
+                                                    var addedoffsetdateStartTime = new Date(startDate);
+                                                    addedoffsetdateStartTime = addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes() - offsetTimeFromObject);
+                                                    var myschedulecreatingdate = new Date();
+                                                    var checkingdate = new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
+                                                    checkingdate.setHours(0);
+                                                    checkingdate.setMinutes(0);
+                                                    checkingdate.setSeconds(0);
+                                                    checkingdate.setMilliseconds(0);
+                                                    var checkingdate1 = new Date(addedoffsetdateStartTime);
+                                                    checkingdate1.setHours(0);
+                                                    checkingdate1.setMinutes(0);
+                                                    checkingdate1.setSeconds(0);
+                                                    checkingdate1.setMilliseconds(0);
+                                                    if (new Date(checkingdate) > new Date(checkingdate1)) {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(nextdate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    }
+                                                } else {
+                                                    startDate = new Date(todaydate + myunivarsalstarttime);
+                                                    endDate = new Date(todaydate + myunivarsalendtime);
+                                                    var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                    var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                }
+                                                var myfinalobj = {};
+                                                myfinalobj.spaceId = spaceId;
+                                                myfinalobj.room = roomId;
+                                                myfinalobj.loc = location;
+                                                myfinalobj.day = "Monday";
+                                                myfinalobj.isAllday = roomsschedule[0].isAllday;
+                                                myfinalobj.isClosed = roomsschedule[0].isClosed;
+                                                myfinalobj.date = updateddate;
+                                                myfinalobj.bookings = [];
+                                                var myfinalschedule = [];
+                                                var startTimeDay = new Date(myfinalscheduleStartTime);
+                                                var endTimeDay = new Date(myfinalscheduleEndTime);
+                                                startTimeDay.setSeconds(0);
+                                                startTimeDay.setMilliseconds(0);
+                                                endTimeDay.setSeconds(0);
+                                                endTimeDay.setMilliseconds(0);
+                                                var myobj = {};
+                                                myobj.startTime = startTimeDay;
+                                                myobj.endTime = endTimeDay;
+                                                myfinalschedule.push(myobj);
+                                                myfinalobj.initialAval = myfinalschedule;
+                                                myfinalobj.currentAval = myfinalschedule;
+                                                var schedulecreate = new ScheduleModel(myfinalobj);
+                                                schedulecreate.save(function(err, items) {
+                                                    if (err) {
+                                                        res.send(400);
+                                                    }
+                                                });
+                                                next();
+                                            }
+                                        }
+                                        if (mycurrentday == 2 && roomsschedule[1]) {
+                                            if (mycurrentday == 2 && !roomsschedule[1].isClosed && !checkingcurrentdayisholiday) {
+                                                var myunivarsalstarttime = roomsschedule[1].startTime.toISOString().substr(11, 13);
+                                                var myunivarsalendtime = roomsschedule[1].endTime.toISOString().substr(11, 13);
+                                                var startDate = new Date(todaydate + myunivarsalstarttime);
+                                                startDate = startDate.setMinutes(startDate.getMinutes() + univarsaldateminute);
+                                                var endDate = new Date(todaydate + myunivarsalendtime);
+                                                endDate = endDate.setMinutes(endDate.getMinutes() + univarsaldateminute);
+                                                if (offsetTimeFromObject < 0) {
+                                                    var addedoffsetdateStartTime = new Date(startDate);
+                                                    addedoffsetdateStartTime = addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes() - offsetTimeFromObject);
+                                                    var addedoffsetdateEndTime = new Date(endDate);
+                                                    addedoffsetdateEndTime = addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes() - offsetTimeFromObject);
+                                                    var myschedulecreatingdate = new Date();
+                                                    var checkingdate = new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
+                                                    checkingdate.setHours(0);
+                                                    checkingdate.setMinutes(0);
+                                                    checkingdate.setSeconds(0);
+                                                    checkingdate.setMilliseconds(0);
+                                                    var checkingdate1 = new Date(addedoffsetdateStartTime);
+                                                    checkingdate1.setHours(0);
+                                                    checkingdate1.setMinutes(0);
+                                                    checkingdate1.setSeconds(0);
+                                                    checkingdate1.setMilliseconds(0);
+                                                    var checkingdate2 = new Date(addedoffsetdateEndTime);
+                                                    checkingdate2.setHours(0);
+                                                    checkingdate2.setMinutes(0);
+                                                    checkingdate2.setSeconds(0);
+                                                    checkingdate2.setMilliseconds(0);
+                                                    if (new Date(checkingdate1) > new Date(checkingdate) && new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[1].isAllday) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else if (new Date(checkingdate1) > new Date(checkingdate) && new Date(checkingdate2) > new Date(checkingdate)) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(previousdate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else if (new Date(checkingdate1) > new Date(checkingdate)) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    }
+                                                } else if (offsetTimeFromObject > 0) {
+                                                    var addedoffsetdateStartTime = new Date(startDate);
+                                                    addedoffsetdateStartTime = addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes() - offsetTimeFromObject);
+                                                    var myschedulecreatingdate = new Date();
+                                                    var checkingdate = new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
+                                                    checkingdate.setHours(0);
+                                                    checkingdate.setMinutes(0);
+                                                    checkingdate.setSeconds(0);
+                                                    checkingdate.setMilliseconds(0);
+                                                    var checkingdate1 = new Date(addedoffsetdateStartTime);
+                                                    checkingdate1.setHours(0);
+                                                    checkingdate1.setMinutes(0);
+                                                    checkingdate1.setSeconds(0);
+                                                    checkingdate1.setMilliseconds(0);
+                                                    if (new Date(checkingdate) > new Date(checkingdate1)) {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(nextdate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    }
+                                                } else {
+                                                    startDate = new Date(todaydate + myunivarsalstarttime);
+                                                    endDate = new Date(todaydate + myunivarsalendtime);
+                                                    var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                    var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                }
+                                                var myfinalobj = {};
+                                                myfinalobj.spaceId = spaceId;
+                                                myfinalobj.room = roomId;
+                                                myfinalobj.loc = location;
+                                                myfinalobj.day = "Tuesday";
+                                                myfinalobj.isAllday = roomsschedule[1].isAllday;
+                                                myfinalobj.isClosed = roomsschedule[1].isClosed;
+                                                myfinalobj.date = updateddate;
+                                                myfinalobj.bookings = [];
+                                                var myfinalschedule = [];
+                                                var startTimeDay = new Date(myfinalscheduleStartTime);
+                                                var endTimeDay = new Date(myfinalscheduleEndTime);
+                                                startTimeDay.setSeconds(0);
+                                                startTimeDay.setMilliseconds(0);
+                                                endTimeDay.setSeconds(0);
+                                                endTimeDay.setMilliseconds(0);
+                                                var myobj = {};
+                                                myobj.startTime = startTimeDay;
+                                                myobj.endTime = endTimeDay;
+                                                myfinalschedule.push(myobj);
+                                                myfinalobj.initialAval = myfinalschedule;
+                                                myfinalobj.currentAval = myfinalschedule;
+                                                var schedulecreate = new ScheduleModel(myfinalobj);
+                                                schedulecreate.save(function(err, items) {
+                                                    if (err) {
+                                                        res.send(400);
+                                                    }
+                                                });
+                                                next();
+                                            }
+                                        }
+                                        if (mycurrentday == 3 && roomsschedule[2]) {
+                                            if (mycurrentday == 3 && !roomsschedule[2].isClosed && !checkingcurrentdayisholiday) {
+                                                var myunivarsalstarttime = roomsschedule[2].startTime.toISOString().substr(11, 13);
+                                                var myunivarsalendtime = roomsschedule[2].endTime.toISOString().substr(11, 13);
+                                                var startDate = new Date(todaydate + myunivarsalstarttime);
+                                                startDate = startDate.setMinutes(startDate.getMinutes() + univarsaldateminute);
+                                                var endDate = new Date(todaydate + myunivarsalendtime);
+                                                endDate = endDate.setMinutes(endDate.getMinutes() + univarsaldateminute);
+                                                if (offsetTimeFromObject < 0) {
+                                                    var addedoffsetdateStartTime = new Date(startDate);
+                                                    addedoffsetdateStartTime = addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes() - offsetTimeFromObject);
+                                                    var addedoffsetdateEndTime = new Date(endDate);
+                                                    addedoffsetdateEndTime = addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes() - offsetTimeFromObject);
+                                                    var myschedulecreatingdate = new Date();
+                                                    var checkingdate = new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
+                                                    checkingdate.setHours(0);
+                                                    checkingdate.setMinutes(0);
+                                                    checkingdate.setSeconds(0);
+                                                    checkingdate.setMilliseconds(0);
+                                                    var checkingdate1 = new Date(addedoffsetdateStartTime);
+                                                    checkingdate1.setHours(0);
+                                                    checkingdate1.setMinutes(0);
+                                                    checkingdate1.setSeconds(0);
+                                                    checkingdate1.setMilliseconds(0);
+                                                    var checkingdate2 = new Date(addedoffsetdateEndTime);
+                                                    checkingdate2.setHours(0);
+                                                    checkingdate2.setMinutes(0);
+                                                    checkingdate2.setSeconds(0);
+                                                    checkingdate2.setMilliseconds(0);
+                                                    if (new Date(checkingdate1) > new Date(checkingdate) && new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[2].isAllday) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else if (new Date(checkingdate1) > new Date(checkingdate) && new Date(checkingdate2) > new Date(checkingdate)) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(previousdate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else if (new Date(checkingdate1) > new Date(checkingdate)) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    }
+                                                } else if (offsetTimeFromObject > 0) {
+                                                    var addedoffsetdateStartTime = new Date(startDate);
+                                                    addedoffsetdateStartTime = addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes() - offsetTimeFromObject);
+                                                    var myschedulecreatingdate = new Date();
+                                                    var checkingdate = new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
+                                                    checkingdate.setHours(0);
+                                                    checkingdate.setMinutes(0);
+                                                    checkingdate.setSeconds(0);
+                                                    checkingdate.setMilliseconds(0);
+                                                    var checkingdate1 = new Date(addedoffsetdateStartTime);
+                                                    checkingdate1.setHours(0);
+                                                    checkingdate1.setMinutes(0);
+                                                    checkingdate1.setSeconds(0);
+                                                    checkingdate1.setMilliseconds(0);
+                                                    if (new Date(checkingdate) > new Date(checkingdate1)) {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(nextdate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    }
+                                                } else {
+                                                    startDate = new Date(todaydate + myunivarsalstarttime);
+                                                    endDate = new Date(todaydate + myunivarsalendtime);
+                                                    var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                    var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                }
+                                                var myfinalobj = {};
+                                                myfinalobj.spaceId = spaceId;
+                                                myfinalobj.room = roomId;
+                                                myfinalobj.loc = location;
+                                                myfinalobj.day = "Wednesday";
+                                                myfinalobj.isAllday = roomsschedule[2].isAllday;
+                                                myfinalobj.isClosed = roomsschedule[2].isClosed;
+                                                myfinalobj.date = updateddate;
+                                                myfinalobj.bookings = [];
+                                                var myfinalschedule = [];
+                                                var startTimeDay = new Date(myfinalscheduleStartTime);
+                                                var endTimeDay = new Date(myfinalscheduleEndTime);
+                                                startTimeDay.setSeconds(0);
+                                                startTimeDay.setMilliseconds(0);
+                                                endTimeDay.setSeconds(0);
+                                                endTimeDay.setMilliseconds(0);
+                                                var myobj = {};
+                                                myobj.startTime = startTimeDay;
+                                                myobj.endTime = endTimeDay;
+                                                myfinalschedule.push(myobj);
+                                                myfinalobj.initialAval = myfinalschedule;
+                                                myfinalobj.currentAval = myfinalschedule;
+                                                var schedulecreate = new ScheduleModel(myfinalobj);
+                                                schedulecreate.save(function(err, items) {
+                                                    if (err) {
+                                                        res.send(400);
+                                                    }
+                                                });
+                                                next();
+                                            }
+                                        }
+                                        if (mycurrentday == 4 && roomsschedule[3]) {
+                                            if (mycurrentday == 4 && !roomsschedule[3].isClosed && !checkingcurrentdayisholiday) {
+                                                var myunivarsalstarttime = roomsschedule[3].startTime.toISOString().substr(11, 13);
+                                                var myunivarsalendtime = roomsschedule[3].endTime.toISOString().substr(11, 13);
+                                                var startDate = new Date(todaydate + myunivarsalstarttime);
+                                                startDate = startDate.setMinutes(startDate.getMinutes() + univarsaldateminute);
+                                                var endDate = new Date(todaydate + myunivarsalendtime);
+                                                endDate = endDate.setMinutes(endDate.getMinutes() + univarsaldateminute);
+                                                if (offsetTimeFromObject < 0) {
+                                                    var addedoffsetdateStartTime = new Date(startDate);
+                                                    addedoffsetdateStartTime = addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes() - offsetTimeFromObject);
+                                                    var addedoffsetdateEndTime = new Date(endDate);
+                                                    addedoffsetdateEndTime = addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes() - offsetTimeFromObject);
+                                                    var myschedulecreatingdate = new Date();
+                                                    var checkingdate = new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
+                                                    checkingdate.setHours(0);
+                                                    checkingdate.setMinutes(0);
+                                                    checkingdate.setSeconds(0);
+                                                    checkingdate.setMilliseconds(0);
+                                                    var checkingdate1 = new Date(addedoffsetdateStartTime);
+                                                    checkingdate1.setHours(0);
+                                                    checkingdate1.setMinutes(0);
+                                                    checkingdate1.setSeconds(0);
+                                                    checkingdate1.setMilliseconds(0);
+                                                    var checkingdate2 = new Date(addedoffsetdateEndTime);
+                                                    checkingdate2.setHours(0);
+                                                    checkingdate2.setMinutes(0);
+                                                    checkingdate2.setSeconds(0);
+                                                    checkingdate2.setMilliseconds(0);
+                                                    if (new Date(checkingdate1) > new Date(checkingdate) && new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[3].isAllday) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else if (new Date(checkingdate1) > new Date(checkingdate) && new Date(checkingdate2) > new Date(checkingdate)) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(previousdate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else if (new Date(checkingdate1) > new Date(checkingdate)) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    }
+                                                } else if (offsetTimeFromObject > 0) {
+                                                    var addedoffsetdateStartTime = new Date(startDate);
+                                                    addedoffsetdateStartTime = addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes() - offsetTimeFromObject);
+                                                    var myschedulecreatingdate = new Date();
+                                                    var checkingdate = new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
+                                                    checkingdate.setHours(0);
+                                                    checkingdate.setMinutes(0);
+                                                    checkingdate.setSeconds(0);
+                                                    checkingdate.setMilliseconds(0);
+                                                    var checkingdate1 = new Date(addedoffsetdateStartTime);
+                                                    checkingdate1.setHours(0);
+                                                    checkingdate1.setMinutes(0);
+                                                    checkingdate1.setSeconds(0);
+                                                    checkingdate1.setMilliseconds(0);
+                                                    if (new Date(checkingdate) > new Date(checkingdate1)) {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(nextdate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    }
+                                                } else {
+                                                    startDate = new Date(todaydate + myunivarsalstarttime);
+                                                    endDate = new Date(todaydate + myunivarsalendtime);
+                                                    var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                    var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                }
+                                                var myfinalobj = {};
+                                                myfinalobj.spaceId = spaceId;
+                                                myfinalobj.room = roomId;
+                                                myfinalobj.loc = location;
+                                                myfinalobj.day = "Thursday";
+                                                myfinalobj.isAllday = roomsschedule[3].isAllday;
+                                                myfinalobj.isClosed = roomsschedule[3].isClosed;
+                                                myfinalobj.date = updateddate;
+                                                myfinalobj.bookings = [];
+                                                var myfinalschedule = [];
+                                                var startTimeDay = new Date(myfinalscheduleStartTime);
+                                                var endTimeDay = new Date(myfinalscheduleEndTime);
+                                                startTimeDay.setSeconds(0);
+                                                startTimeDay.setMilliseconds(0);
+                                                endTimeDay.setSeconds(0);
+                                                endTimeDay.setMilliseconds(0);
+                                                var myobj = {};
+                                                myobj.startTime = startTimeDay;
+                                                myobj.endTime = endTimeDay;
+                                                myfinalschedule.push(myobj);
+                                                myfinalobj.initialAval = myfinalschedule;
+                                                myfinalobj.currentAval = myfinalschedule;
+                                                var schedulecreate = new ScheduleModel(myfinalobj);
+                                                schedulecreate.save(function(err, items) {
+                                                    if (err) {
+                                                        res.send(400);
+                                                    }
+                                                });
+                                                next();
+                                            }
+                                        }
+                                        if (mycurrentday == 5 && roomsschedule[4]) {
+                                            if (mycurrentday == 5 && !roomsschedule[4].isClosed && !checkingcurrentdayisholiday) {
+                                                var myunivarsalstarttime = roomsschedule[4].startTime.toISOString().substr(11, 13);
+                                                var myunivarsalendtime = roomsschedule[4].endTime.toISOString().substr(11, 13);
+                                                var startDate = new Date(todaydate + myunivarsalstarttime);
+                                                startDate = startDate.setMinutes(startDate.getMinutes() + univarsaldateminute);
+                                                var endDate = new Date(todaydate + myunivarsalendtime);
+                                                endDate = endDate.setMinutes(endDate.getMinutes() + univarsaldateminute);
+                                                if (offsetTimeFromObject < 0) {
+                                                    var addedoffsetdateStartTime = new Date(startDate);
+                                                    addedoffsetdateStartTime = addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes() - offsetTimeFromObject);
+                                                    var addedoffsetdateEndTime = new Date(endDate);
+                                                    addedoffsetdateEndTime = addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes() - offsetTimeFromObject);
+                                                    var myschedulecreatingdate = new Date();
+                                                    var checkingdate = new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
+                                                    checkingdate.setHours(0);
+                                                    checkingdate.setMinutes(0);
+                                                    checkingdate.setSeconds(0);
+                                                    checkingdate.setMilliseconds(0);
+                                                    var checkingdate1 = new Date(addedoffsetdateStartTime);
+                                                    checkingdate1.setHours(0);
+                                                    checkingdate1.setMinutes(0);
+                                                    checkingdate1.setSeconds(0);
+                                                    checkingdate1.setMilliseconds(0);
+                                                    var checkingdate2 = new Date(addedoffsetdateEndTime);
+                                                    checkingdate2.setHours(0);
+                                                    checkingdate2.setMinutes(0);
+                                                    checkingdate2.setSeconds(0);
+                                                    checkingdate2.setMilliseconds(0);
+                                                    if (new Date(checkingdate1) > new Date(checkingdate) && new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[4].isAllday) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else if (new Date(checkingdate1) > new Date(checkingdate) && new Date(checkingdate2) > new Date(checkingdate)) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(previousdate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else if (new Date(checkingdate1) > new Date(checkingdate)) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    }
+                                                } else if (offsetTimeFromObject > 0) {
+                                                    var addedoffsetdateStartTime = new Date(startDate);
+                                                    addedoffsetdateStartTime = addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes() - offsetTimeFromObject);
+                                                    var myschedulecreatingdate = new Date();
+                                                    var checkingdate = new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
+                                                    checkingdate.setHours(0);
+                                                    checkingdate.setMinutes(0);
+                                                    checkingdate.setSeconds(0);
+                                                    checkingdate.setMilliseconds(0);
+                                                    var checkingdate1 = new Date(addedoffsetdateStartTime);
+                                                    checkingdate1.setHours(0);
+                                                    checkingdate1.setMinutes(0);
+                                                    checkingdate1.setSeconds(0);
+                                                    checkingdate1.setMilliseconds(0);
+                                                    if (new Date(checkingdate) > new Date(checkingdate1)) {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(nextdate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    }
+                                                } else {
+                                                    startDate = new Date(todaydate + myunivarsalstarttime);
+                                                    endDate = new Date(todaydate + myunivarsalendtime);
+                                                    var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                    var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                }
+                                                var myfinalobj = {};
+                                                myfinalobj.spaceId = spaceId;
+                                                myfinalobj.room = roomId;
+                                                myfinalobj.loc = location;
+                                                myfinalobj.day = "Friday";
+                                                myfinalobj.isAllday = roomsschedule[4].isAllday;
+                                                myfinalobj.isClosed = roomsschedule[4].isClosed;
+                                                myfinalobj.date = updateddate;
+                                                myfinalobj.bookings = [];
+                                                var myfinalschedule = [];
+                                                var startTimeDay = new Date(myfinalscheduleStartTime);
+                                                var endTimeDay = new Date(myfinalscheduleEndTime);
+                                                startTimeDay.setSeconds(0);
+                                                startTimeDay.setMilliseconds(0);
+                                                endTimeDay.setSeconds(0);
+                                                endTimeDay.setMilliseconds(0);
+                                                var myobj = {};
+                                                myobj.startTime = startTimeDay;
+                                                myobj.endTime = endTimeDay;
+                                                myfinalschedule.push(myobj);
+                                                myfinalobj.initialAval = myfinalschedule;
+                                                myfinalobj.currentAval = myfinalschedule;
+                                                var schedulecreate = new ScheduleModel(myfinalobj);
+                                                schedulecreate.save(function(err, items) {
+                                                    if (err) {
+                                                        res.send(400);
+                                                    }
+                                                });
+                                                next();
+                                            }
+                                        }
+                                        if (mycurrentday == 6 && roomsschedule[5]) {
+                                            if (mycurrentday == 6 && !roomsschedule[5].isClosed && !checkingcurrentdayisholiday) {
+                                                var myunivarsalstarttime = roomsschedule[5].startTime.toISOString().substr(11, 13);
+                                                var myunivarsalendtime = roomsschedule[5].endTime.toISOString().substr(11, 13);
+                                                var startDate = new Date(todaydate + myunivarsalstarttime);
+                                                startDate = startDate.setMinutes(startDate.getMinutes() + univarsaldateminute);
+                                                var endDate = new Date(todaydate + myunivarsalendtime);
+                                                endDate = endDate.setMinutes(endDate.getMinutes() + univarsaldateminute);
+                                                if (offsetTimeFromObject < 0) {
+                                                    var addedoffsetdateStartTime = new Date(startDate);
+                                                    addedoffsetdateStartTime = addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes() - offsetTimeFromObject);
+                                                    var addedoffsetdateEndTime = new Date(endDate);
+                                                    addedoffsetdateEndTime = addedoffsetdateEndTime.setMinutes(addedoffsetdateEndTime.getMinutes() - offsetTimeFromObject);
+                                                    var myschedulecreatingdate = new Date();
+                                                    var checkingdate = new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
+                                                    checkingdate.setHours(0);
+                                                    checkingdate.setMinutes(0);
+                                                    checkingdate.setSeconds(0);
+                                                    checkingdate.setMilliseconds(0);
+                                                    var checkingdate1 = new Date(addedoffsetdateStartTime);
+                                                    checkingdate1.setHours(0);
+                                                    checkingdate1.setMinutes(0);
+                                                    checkingdate1.setSeconds(0);
+                                                    checkingdate1.setMilliseconds(0);
+                                                    var checkingdate2 = new Date(addedoffsetdateEndTime);
+                                                    checkingdate2.setHours(0);
+                                                    checkingdate2.setMinutes(0);
+                                                    checkingdate2.setSeconds(0);
+                                                    checkingdate2.setMilliseconds(0);
+                                                    if (new Date(checkingdate1) > new Date(checkingdate) && new Date(checkingdate2) > new Date(checkingdate) && roomsschedule[5].isAllday) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else if (new Date(checkingdate1) > new Date(checkingdate) && new Date(checkingdate2) > new Date(checkingdate)) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(previousdate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else if (new Date(checkingdate1) > new Date(checkingdate)) {
+                                                        startDate = new Date(previousdate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    }
+                                                } else if (offsetTimeFromObject > 0) {
+                                                    var addedoffsetdateStartTime = new Date(startDate);
+                                                    addedoffsetdateStartTime = addedoffsetdateStartTime.setMinutes(addedoffsetdateStartTime.getMinutes() - offsetTimeFromObject);
+                                                    var myschedulecreatingdate = new Date();
+                                                    var checkingdate = new Date(myschedulecreatingdate.setDate(myschedulecreatingdate.getDate() + j));
+                                                    checkingdate.setHours(0);
+                                                    checkingdate.setMinutes(0);
+                                                    checkingdate.setSeconds(0);
+                                                    checkingdate.setMilliseconds(0);
+                                                    var checkingdate1 = new Date(addedoffsetdateStartTime);
+                                                    checkingdate1.setHours(0);
+                                                    checkingdate1.setMinutes(0);
+                                                    checkingdate1.setSeconds(0);
+                                                    checkingdate1.setMilliseconds(0);
+                                                    if (new Date(checkingdate) > new Date(checkingdate1)) {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(nextdate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    } else {
+                                                        startDate = new Date(todaydate + myunivarsalstarttime);
+                                                        endDate = new Date(todaydate + myunivarsalendtime);
+                                                        var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                        var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                    }
+                                                } else {
+                                                    startDate = new Date(todaydate + myunivarsalstarttime);
+                                                    endDate = new Date(todaydate + myunivarsalendtime);
+                                                    var myfinalscheduleStartTime = new Date(startDate.toUTCString()).toISOString();
+                                                    var myfinalscheduleEndTime = new Date(endDate.toUTCString()).toISOString();
+                                                }
+                                                var myfinalobj = {};
+                                                myfinalobj.spaceId = spaceId;
+                                                myfinalobj.room = roomId;
+                                                myfinalobj.loc = location;
+                                                myfinalobj.day = "Saturday";
+                                                myfinalobj.isAllday = roomsschedule[5].isAllday;
+                                                myfinalobj.isClosed = roomsschedule[5].isClosed;
+                                                myfinalobj.date = updateddate;
+                                                myfinalobj.bookings = [];
+                                                var myfinalschedule = [];
+                                                var startTimeDay = new Date(myfinalscheduleStartTime);
+                                                var endTimeDay = new Date(myfinalscheduleEndTime);
+                                                startTimeDay.setSeconds(0);
+                                                startTimeDay.setMilliseconds(0);
+                                                endTimeDay.setSeconds(0);
+                                                endTimeDay.setMilliseconds(0);
+                                                var myobj = {};
+                                                myobj.startTime = startTimeDay;
+                                                myobj.endTime = endTimeDay;
+                                                myfinalschedule.push(myobj);
+                                                myfinalobj.initialAval = myfinalschedule;
+                                                myfinalobj.currentAval = myfinalschedule;
+                                                var schedulecreate = new ScheduleModel(myfinalobj);
+                                                schedulecreate.save(function(err, items) {
+                                                    if (err) {
+                                                        res.send(400);
+                                                    }
+                                                });
+                                                next();
+                                            }
+                                        }
+                                        
+                                    }
+                                    else
+                                     {
+                                       next();
+                                     } // else of checking scheduledoc
+                                }
+                            });
+                        }, function(err) {
+                            callbackschedule();
+                        });
+                    }, function(err) {
+                        done();
+                    });
+                }
+            ], function(err) {
+                res.send(200);
             });
         }
         
